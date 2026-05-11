@@ -1,0 +1,16 @@
+--------------------------------------------------
+DATE: 2026-02-11 20:22:20
+TO: alessandro@caudf.gov.br
+SUBJECT: Recuperação de Senha - Recenseadores CAU/DF
+BODY:
+
+            <h3>Olá, ALESSANDRO S VIANA</h3>
+            <p>Recebemos uma solicitação para resetar sua senha no sistema de Recenseadores do CAU/DF.</p>
+            <p>Sua nova senha temporária é: <strong>Q7TMYrg8nl</strong></p>
+            <p>Recomendamos que você altere esta senha após o login.</p>
+            <br>
+            <p>Atenciosamente,<br>Equipe CAU/DF</p>
+            
+STATUS: mail() failed (Check SMTP config)
+--------------------------------------------------
+

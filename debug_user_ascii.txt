@@ -1,0 +1,6 @@
+Searching for user: ALESSANDRO S VIANA
+USER ID: 4 NAME: ALESSANDRO S VIANA
+  - ROUTE: Jardins Mangueiral STATUS: [completed] STEP: [5] MICRO: [Guar?? (RA X)]
+  - ROUTE: Lago Sul STATUS: [in_progress] STEP: [4] MICRO: [Lago Sul (RA XVI)]
+  - ROUTE: Obra sem Placa de Identifica????o STATUS: [completed] STEP: [5] MICRO: [Lago Sul (RA XVI)]
+  - ROUTE: Den??ncia  Modesto - Restaurante, Pizzaria e Cozinha de Fus??o - Lago Norte STATUS: [completed] STEP: [5] MICRO: [Lago Norte (RA XVIII)]

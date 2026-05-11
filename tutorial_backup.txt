@@ -1,0 +1,21 @@
+Pronto! Acabei de criar um sistema completo de Backup com 1 Clique para o seu Windows.
+
+Dentro da sua pasta de trabalho (C:\Users\Alessandro\Documents\recenseadores), você encontrará dois novos arquivos agora:
+
+executar_backup.bat (Este é o que você deve clicar).
+backup.ps1 (Este é o script que faz o trabalho pesado).
+Como usar o backup:
+Sempre que você quiser salvar uma cópia de segurança do sistema atual:
+
+Basta dar um duplo clique no arquivo executar_backup.bat.
+Uma tela preta vai aparecer por alguns segundos (ou minutos, dependendo do tamanho das fotos nos uploads).
+Ela vai te avisar quando terminar.
+Onde os arquivos são salvos?
+O script cria automaticamente uma nova pasta no seu computador: 📂 C:\Backups_Sistema_Recenseadores
+
+Dentro dessa pasta, ele separa tudo por data e hora:
+
+Um arquivo .sql (Cópia exata de todo o seu Banco de Dados).
+Um arquivo .zip (Cópia de todos os arquivos de código e todas as fotos de documentos na pasta uploads).
+Minha Sugestão:
+Rode esse script pelo menos uma vez por semana (ou sempre que terminarmos de fazer grandes mudanças aqui). Se o seu computador tiver qualquer problema, basta restaurar esses dois arquivos e o sistema volta exatamente para onde paramos hoje! ✅🚀

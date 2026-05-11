@@ -1,0 +1,7 @@
+VAL: [] STEP: 2 COUNT: 1
+VAL: [Cruzeiro (RA XI)] STEP: 3 COUNT: 1
+VAL: [Lago Norte (RA XVIII)] STEP: 5 COUNT: 1
+VAL: [Lago Sul (RA XVI)] STEP: 5 COUNT: 1
+VAL: [Noroeste (RA XXXVI)] STEP: 3 COUNT: 1
+VAL: [Plano Piloto (RA I)] STEP: 3 COUNT: 2
+VAL: [Sudoeste/Octogonal (RA XXII)] STEP: 3 COUNT: 1
