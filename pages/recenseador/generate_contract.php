@@ -50,53 +50,94 @@ $rates = [
     <title>Termo de Registro de Demanda - Rota #<?php echo $route_id; ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         body { font-family: 'Inter', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f4f4f4; }
-        .contract-page { background: white; width: 210mm; min-height: 297mm; margin: 20px auto; padding: 25mm; box-shadow: 0 0 10px rgba(0,0,0,0.1); box-sizing: border-box; }
+        .contract-page { background: white; width: 210mm; min-height: 297mm; margin: 5px auto; padding: 5mm 25mm 25mm 25mm; box-shadow: 0 0 10px rgba(0,0,0,0.1); box-sizing: border-box; }
         
-        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 30px; }
-        .header h1 { font-size: 18px; margin: 5px 0; text-transform: uppercase; }
-        .header h2 { font-size: 14px; margin: 0; color: #555; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 25px; }
+        .header img { 
+            max-width: 280px; 
+            height: auto; 
+            display: inline-block;
+        }
         
         .title { 
             text-align: center; 
             font-weight: 800; 
             text-transform: uppercase; 
-            font-size: 18px; 
-            margin: 30px 0; 
+            font-size: 20px; 
+            margin: 20px 0; 
             padding: 15px;
             border-top: 1px solid #333;
             border-bottom: 1px solid #333;
             background: #fdfdfd;
             letter-spacing: 0.5px;
             line-height: 1.4;
+            color: #1e293b;
         }
         
-        .section { margin-bottom: 25px; }
-        .section-title { font-weight: 700; text-transform: uppercase; font-size: 13px; border-bottom: 1px solid #eee; margin-bottom: 10px; color: #000; }
+        .demand-banner {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 18px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
         
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .field { font-size: 12px; }
-        .field strong { color: #555; }
+        .demand-type-label {
+            font-size: 10px;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 6px;
+        }
         
-        .legal-text { font-size: 12px; text-align: justify; margin-top: 20px; }
+        .demand-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
         
-        .table-rates { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
-        .table-rates th, .table-rates td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        .table-rates th { background: #f8f9fa; }
+        .badge-padrao { background: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+        .badge-especifica { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .badge-mista { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
+        .section { margin-bottom: 30px; }
+        .section-title { font-weight: 700; text-transform: uppercase; font-size: 13px; border-bottom: 2px solid #f1f5f9; margin-bottom: 15px; color: #0f172a; padding-bottom: 5px; }
         
-        .signatures { margin-top: 80px; display: grid; grid-template-columns: 1fr 1fr; gap: 50px; text-align: center; }
-        .sig-box { border-top: 1px solid #000; padding-top: 10px; font-size: 11px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .field { font-size: 12.5px; color: #334155; }
+        .field strong { color: #64748b; font-weight: 600; margin-right: 5px; }
+        
+        .legal-text { font-size: 12px; text-align: justify; margin-top: 20px; color: #475569; }
+        
+        .table-rates { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 11.5px; }
+        .table-rates th, .table-rates td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; }
+        .table-rates th { background: #f8fafc; color: #475569; font-weight: 700; }
+        
+        .signatures { margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 50px; text-align: center; }
+        .sig-box { border-top: 1px solid #94a3b8; padding-top: 12px; font-size: 11px; color: #1e293b; }
 
         @media print {
             body { background: white; margin: 0; }
-            .contract-page { margin: 0; box-shadow: none; border: none; }
-            .no-print { display: none; }
+            .contract-page { margin: 0; box-shadow: none; border: none; padding: 5mm 15mm; }
+            .no-print { display: none !important; }
+            .no-print-bar { display: none !important; }
         }
 
-        .no-print-bar { background: #333; color: white; padding: 10px; text-align: center; position: sticky; top: 0; z-index: 100; }
-        .btn { background: #00bfa5; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }
-        .btn-print { background: #2196f3; }
+        .no-print-bar { background: #1e293b; color: white; padding: 12px; text-align: center; position: sticky; top: 0; z-index: 100; display: flex; justify-content: center; align-items: center; gap: 20px; }
+        .btn { background: #00bfa5; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; transition: all 0.2s; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-print { background: #2563eb; }
     </style>
 </head>
 <body>
@@ -109,13 +150,32 @@ $rates = [
 </div>
 
 <div class="contract-page">
+    
     <div class="header">
-        <img src="<?php echo BASE_URL; ?>assets/img/logo_cau.png" alt="Logo CAU/DF" style="height: 60px; margin-bottom: 10px; display: none;">
-        <h1>Conselho de Arquitetura e Urbanismo do Distrito Federal</h1>
-        <h2>Gerência de Fiscalização - GERFISC</h2>
+        <img src="<?php echo BASE_URL; ?>assets/img/logo_caudf.png" alt="Logo CAU/DF">
     </div>
 
-    <div class="title">Termo de Registro de Demanda e Compromisso de Prestação de Serviços</div>
+
+    <div class="title" style="margin-bottom: 15px;">Termo de Registro de Demanda</div>
+    <div class="demand-banner">
+        <div>
+            <span class="demand-type-label">Classificação da Demanda</span>
+            <?php 
+                $dt = $data['demand_type'] ?? 'especifica';
+                if ($dt === 'padrao'): ?>
+                    <span class="demand-badge badge-padrao">Padrão (Área Aberta)</span>
+                <?php elseif ($dt === 'especifica'): ?>
+                    <span class="demand-badge badge-especifica">Específica (Endereços Fixos)</span>
+                <?php else: ?>
+                    <span class="demand-badge badge-mista">Mista (Híbrida)</span>
+                <?php endif; ?>
+        </div>
+        <div style="text-align: right;">
+            <span class="demand-type-label">Identificador</span>
+            <span style="font-weight: 700; color: #334155;">#<?php echo $route_id; ?></span>
+        </div>
+    </div>
+
 
     <div class="section">
         <div class="section-title">1. Qualificação do Recenseador</div>
@@ -130,28 +190,45 @@ $rates = [
         <div class="field" style="margin-top: 5px;"><strong>Endereço:</strong> <?php echo htmlspecialchars($data['address'] . ", " . $data['city'] . " - " . $data['state'] . " (CEP: " . $data['cep'] . ")"); ?></div>
     </div>
 
-    <div class="section">
-        <div class="section-title">2. Objeto da Rota (Demanda #<?php echo $route_id; ?>)</div>
-        <div class="field"><strong>Título da Rota:</strong> <?php echo htmlspecialchars($data['title']); ?></div>
-        <div class="field"><strong>Microrregião de Atuação:</strong> <?php echo htmlspecialchars($data['microregion']); ?></div>
-        <div class="field" style="margin-top: 5px;"><strong>Localização Prevista:</strong> <?php echo htmlspecialchars($data['start_location']); ?></div>
-        <?php if (!empty($data['maps_url'])): ?>
+        
+        <div class="field"><strong>Microrregião de Atuação:</strong> <?php echo htmlspecialchars($data['microregion'] ?? 'Não especificada'); ?></div>
+        
+        <?php if (($data['demand_type'] ?? 'especifica') !== 'padrao'): ?>
+            <div class="field" style="margin-top: 5px;"><strong>Localização Prevista:</strong> <?php echo htmlspecialchars($data['start_location'] ?? ($data['address_street'] ? ($data['address_street'] . ', ' . $data['address_number']) : 'Não informada')); ?></div>
+        <?php endif; ?>
+
+        <?php 
+            $mapUrl = !empty($data['google_maps_link']) ? $data['google_maps_link'] : (!empty($data['maps_url']) ? $data['maps_url'] : null);
+            if ($mapUrl): 
+        ?>
             <div class="field" style="margin-top: 5px; color: #0284c7;">
                 <strong>Localização Exata (Google Maps):</strong> 
-                <a href="<?php echo htmlspecialchars($data['maps_url']); ?>" target="_blank" style="color: #0284c7; text-decoration: none;">Clique aqui para abrir o mapa <i class="fas fa-external-link-alt" style="font-size: 10px;"></i></a>
+                <a href="<?php echo htmlspecialchars($mapUrl); ?>" target="_blank" style="color: #0284c7; text-decoration: none;">Clique aqui para abrir o mapa <i class="fas fa-external-link-alt" style="font-size: 10px;"></i></a>
             </div>
         <?php endif; ?>
-        <div class="field" style="margin-top: 5px;"><strong>Descrição/Instruções:</strong> <?php echo nl2br(htmlspecialchars($data['description'])); ?></div>
 
-        <?php if (!empty($data['admin_file_1'])): 
-            $file_ext = strtolower(pathinfo($data['admin_file_1'], PATHINFO_EXTENSION));
-            if (in_array($file_ext, ['jpg', 'jpeg', 'png', 'gif'])):
+        <?php if (!empty($data['area_details'])): ?>
+            <div class="field" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border: 1px solid #eee; border-radius: 4px;">
+                <strong>Detalhamento da Área de Atuação:</strong>
+                <div style="margin-top: 5px;"><?php echo $data['area_details']; // Contém HTML do Quill ?></div>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($data['description'])): ?>
+            <div class="field" style="margin-top: 5px;"><strong>Instruções Complementares:</strong> <?php echo nl2br(htmlspecialchars($data['description'])); ?></div>
+        <?php endif; ?>
+
+        <?php 
+            $refImage = !empty($data['ref_image']) ? $data['ref_image'] : (!empty($data['admin_file_1']) ? $data['admin_file_1'] : null);
+            if ($refImage): 
+                $file_ext = strtolower(pathinfo($refImage, PATHINFO_EXTENSION));
+                if (in_array($file_ext, ['jpg', 'jpeg', 'png', 'gif'])):
         ?>
             <div style="margin-top: 15px; text-align: center; border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
                 <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; color: #666; text-align: left;">
                     <i class="fas fa-map-marked-alt"></i> Mapa de Referência / Localização
                 </div>
-                <img src="<?php echo htmlspecialchars($data['admin_file_1']); ?>" style="max-width: 100%; max-height: 250px; border-radius: 2px;">
+                <img src="<?php echo htmlspecialchars($refImage); ?>" style="max-width: 100%; max-height: 250px; border-radius: 2px;">
             </div>
         <?php endif; endif; ?>
     </div>
@@ -197,7 +274,10 @@ $rates = [
         <div class="legal-text">
             O RECENSEADOR acima qualificado declara aceitar a execução da rota descrita neste termo, comprometendo-se a realizar as vistorias técnicas com zelo, ética e profissionalismo, seguindo as orientações da Gerência de Fiscalização do CAU/DF. 
             <br><br>
-            A conclusão dos trabalhos deverá ocorrer impreterivelmente até <strong><?php echo date('d/m/Y H:i', strtotime($data['scheduled_end'])); ?></strong>, mediante envio de relatório circunstanciado e comprovantes através do sistema oficial. O não cumprimento dos prazos ou a execução em desacordo com as normas poderá acarretar em glosas ou sanções previstas no contrato principal.
+            A conclusão dos trabalhos deverá ocorrer impreterivelmente até <strong><?php 
+                $deadline = !empty($data['end_date']) ? $data['end_date'] : (!empty($data['scheduled_end']) ? $data['scheduled_end'] : null);
+                echo $deadline ? date('d/m/Y', strtotime($deadline)) : 'Prazo não definido'; 
+            ?></strong>, mediante envio de relatório circunstanciado e comprovantes através do sistema oficial. O não cumprimento dos prazos ou a execução em desacordo com as normas poderá acarretar em glosas ou sanções previstas no contrato principal.
         </div>
     </div>
 
@@ -205,7 +285,7 @@ $rates = [
         <div class="sig-box">
             <strong><?php echo htmlspecialchars($data['name']); ?></strong><br>
             Recenseador<br>
-            (Aceite Digital em <?php echo date('d/m/Y H:i'); ?>)
+            (Aceite Digital em <?php echo !empty($data['accepted_at']) ? date('d/m/Y H:i', strtotime($data['accepted_at'])) : date('d/m/Y H:i'); ?>)
         </div>
         <div class="sig-box">
             <strong>GERFISC - CAU/DF</strong><br>

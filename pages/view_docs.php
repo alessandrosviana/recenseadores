@@ -184,8 +184,8 @@ $documents = $docs_stmt->fetchAll();
                 <form method="post" action="admin/dashboard.php" style="display:flex; align-items:center; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end;" onsubmit="return confirm('Deseja aprovar este cadastro?');">
                     <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
                     <input type="hidden" name="action" value="approve">
-                    <input type="text" name="processo_sei" placeholder="Processo SEI" required class="form-control" style="width: 140px; padding: 0.4rem 0.5rem; height: 40px; font-size: 0.85rem; margin: 0;">
-                    <input type="text" name="contrato" placeholder="Nº Contrato" required class="form-control" style="width: 140px; padding: 0.4rem 0.5rem; height: 40px; font-size: 0.85rem; margin: 0;">
+                    <input type="text" name="processo_sei" placeholder="Processo SEI" class="form-control" style="width: 140px; padding: 0.4rem 0.5rem; height: 40px; font-size: 0.85rem; margin: 0;">
+                    <input type="text" name="contrato" placeholder="Nº do Edital" class="form-control" style="width: 140px; padding: 0.4rem 0.5rem; height: 40px; font-size: 0.85rem; margin: 0;">
                     <button type="submit" class="btn btn-primary" style="height: 40px; line-height: 1;"><i class="fas fa-check"></i> Aprovar Cadastro</button>
                 </form>
                 <form method="post" action="admin/dashboard.php" style="display:flex; justify-content: flex-end;"

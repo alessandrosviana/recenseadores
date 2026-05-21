@@ -153,7 +153,7 @@ if (!$edit_user) {
                 <?php echo htmlspecialchars($edit_user['processo_sei'] ?? 'NÃO INFORMADO'); ?>
             </div>
             <div style="font-size: 0.85rem; color: #555;">
-                <strong style="display: block; color: #198754; font-size: 0.75rem;">Nº CONTRATO:</strong>
+                <strong style="display: block; color: #198754; font-size: 0.75rem;">Nº DO EDITAL:</strong>
                 <?php echo htmlspecialchars($edit_user['contrato'] ?? 'NÃO INFORMADO'); ?>
             </div>
         </div>
@@ -190,7 +190,7 @@ if (!$edit_user) {
                             value="<?php echo htmlspecialchars($edit_user['processo_sei'] ?? ''); ?>">
                     </div>
                     <div class="form-group">
-                        <label>Número do Contrato</label>
+                        <label>Nº do Edital</label>
                         <input type="text" name="contrato" class="form-control"
                             value="<?php echo htmlspecialchars($edit_user['contrato'] ?? ''); ?>">
                     </div>

@@ -80,13 +80,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $routeData = [
                         'user_id' => $userId,
+                        'demand_type' => $_POST['demand_type'] ?? 'especifica',
+                        'area_details' => $_POST['area_details'] ?? '',
                         'title' => $title,
                         'description' => $desc,
                         'microregion' => $microregion,
                         'start_location' => $full_start_location,
                         'scheduled_start' => !empty($_POST['scheduled_start']) ? $_POST['scheduled_start'] : null,
                         'scheduled_end' => !empty($_POST['scheduled_end']) ? $_POST['scheduled_end'] : null,
-                        'status' => 'assigned',
+                        'status' => 'pending_acceptance',
                         'address_cep' => $cep,
                         'address_street' => $street,
                         'address_number' => $number,
@@ -94,10 +96,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'address_city' => $city,
                         'address_state' => $state,
                         'address_complement' => $complement,
-                        'admin_file_1' => $adminFiles[1] ?? null,
-                        'admin_file_2' => $adminFiles[2] ?? null,
-                        'admin_file_3' => $adminFiles[3] ?? null,
-                        'maps_url' => $_POST['maps_url'] ?? null,
+                        'ref_image' => $adminFiles[1] ?? null,
+                        'ref_pdf_1' => $adminFiles[2] ?? null,
+                        'ref_pdf_2' => $adminFiles[3] ?? null,
+                        'google_maps_link' => $_POST['maps_url'] ?? null,
                         'wizard_step' => 2
                     ];
 
@@ -297,7 +299,7 @@ $wizard_routes = $pdo->query("SELECT r.*, u.name as user_name, u.cpf as user_cpf
 $paid_routes = $pdo->query("SELECT r.*, u.name as user_name, u.cpf as user_cpf FROM routes r JOIN users u ON r.user_id = u.id WHERE r.wizard_step = 6 ORDER BY r.completed_at DESC")->fetchAll();
 
 // Active routes include 'assigned', 'accepted', 'in_progress' and 'delayed'
-$active_routes = $pdo->query("SELECT r.*, u.name as user_name, u.microregion as user_macroregion FROM routes r JOIN users u ON r.user_id = u.id WHERE r.status IN ('assigned', 'accepted', 'in_progress', 'delayed') ORDER BY r.created_at DESC")->fetchAll();
+$active_routes = $pdo->query("SELECT r.*, u.name as user_name, u.microregion as user_macroregion FROM routes r JOIN users u ON r.user_id = u.id WHERE r.status IN ('pending_acceptance', 'accepted', 'in_progress', 'delayed') ORDER BY r.created_at DESC")->fetchAll();
 
 // Completed routes - Todas as que foram entregues mas AINDA NÃO foram pagas (Passo < 6)
 $completed_routes = $pdo->query("SELECT r.*, u.name as user_name FROM routes r JOIN users u ON r.user_id = u.id WHERE r.status = 'completed' AND (r.wizard_step < 6 OR r.wizard_step IS NULL) ORDER BY r.completed_at DESC")->fetchAll();
@@ -315,7 +317,7 @@ $rejected_routes = $pdo->query("SELECT r.*, u.name as user_name FROM routes r JO
 $report_sql = "
     SELECT u.id, u.name, u.email, u.processo_sei, u.contrato,
         COUNT(r.id) as total_routes,
-        SUM(CASE WHEN r.status = 'assigned' THEN 1 ELSE 0 END) as assigned_routes,
+        SUM(CASE WHEN r.status = 'pending_acceptance' THEN 1 ELSE 0 END) as assigned_routes,
         SUM(CASE WHEN r.status = 'in_progress' THEN 1 ELSE 0 END) as in_progress_routes,
         SUM(CASE WHEN r.status = 'delayed' THEN 1 ELSE 0 END) as delayed_routes,
         SUM(CASE WHEN r.status = 'completed' THEN 1 ELSE 0 END) as completed_routes,
@@ -351,6 +353,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
     <title>Painel Administrativo - CAU/DF</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
 
     <script>
@@ -487,6 +490,17 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
 
         // Auto-refresh Pending Users every 5 seconds
         setInterval(function () {
+            const pendingList = document.getElementById('pending-list');
+            if (pendingList) {
+                // Verifica se o mouse está em cima, se algum campo está focado ou se tem texto digitado
+                const inputs = pendingList.querySelectorAll('input[type="text"]');
+                let hasText = false;
+                inputs.forEach(i => { if(i.value.trim() !== '') hasText = true; });
+                
+                if (hasText || pendingList.contains(document.activeElement)) {
+                    return;
+                }
+            }
             fetch('fetch_dashboard_data.php?t=' + new Date().getTime())
                 .then(response => response.json())
                 .then(data => {
@@ -507,8 +521,58 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         }
                     }
                 })
-                .catch(error => console.error('Error fetching updates:', data));
+                .catch(error => console.error('Error fetching updates:', error));
         }, 5000);
+
+        function setDemandType(type) {
+            document.getElementById('demand_type_input').value = type;
+            document.querySelectorAll('.demand-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-type') === type);
+            });
+
+            const specificFields = document.querySelectorAll('.specific-only');
+            const areaFields = document.querySelectorAll('.area-only');
+
+            if (type === 'padrao') {
+                specificFields.forEach(el => el.style.display = 'none');
+                areaFields.forEach(el => el.style.display = 'block');
+                document.getElementById('route_microregion').required = false;
+                document.getElementById('street').required = false;
+            } else if (type === 'especifica') {
+                specificFields.forEach(el => el.style.display = 'block');
+                areaFields.forEach(el => el.style.display = 'none');
+                document.getElementById('route_microregion').required = true;
+                document.getElementById('street').required = true;
+            } else { // mista
+                specificFields.forEach(el => el.style.display = 'block');
+                areaFields.forEach(el => el.style.display = 'block');
+                document.getElementById('route_microregion').required = true;
+                document.getElementById('street').required = true;
+            }
+        }
+
+        // Initialize Quill
+        let quill;
+        document.addEventListener("DOMContentLoaded", function () {
+            if (document.getElementById('editor-container')) {
+                quill = new Quill('#editor-container', {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            ['bold', 'italic'],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            ['clean']
+                        ]
+                    }
+                });
+
+                quill.on('text-change', function() {
+                    document.getElementById('area_details_input').value = quill.root.innerHTML;
+                });
+            }
+            
+            setDemandType('especifica');
+        });
     </script>
     
     <style>
@@ -588,7 +652,39 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
         input:checked + .slider:before { transform: translateX(18px); }
         .slider.round { border-radius: 34px; }
         .slider.round:before { border-radius: 50%; }
+
+        /* Demand Type Selector */
+        .demand-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 2rem;
+            background: #f1f1f1;
+            padding: 5px;
+            border-radius: 8px;
+        }
+        .demand-btn {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.2s;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .demand-btn.active {
+            background: white;
+            color: var(--primary-teal);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .specific-only, .area-only { transition: all 0.3s ease; }
     </style>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 </head>
 
 <body>
@@ -1270,10 +1366,32 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 <!-- Card Header with Status & Actions -->
                                 <div class="card-header-actions">
                                     <div>
+                                        <?php 
+                                            $demandLabel = "Específica";
+                                            $demandColor = "#3b82f6"; // Blue
+                                            $demandIcon = "location-dot";
+                                            
+                                            if (($route['demand_type'] ?? '') === 'padrao') {
+                                                $demandLabel = "Padrão";
+                                                $demandColor = "#8b5cf6"; // Purple
+                                                $demandIcon = "map";
+                                            } elseif (($route['demand_type'] ?? '') === 'mista') {
+                                                $demandLabel = "Mista";
+                                                $demandColor = "#f59e0b"; // Orange
+                                                $demandIcon = "layer-group";
+                                            }
+                                        ?>
+                                        <span style="background: <?php echo $demandColor; ?>15; color: <?php echo $demandColor; ?>; font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 10px; border: 1px solid <?php echo $demandColor; ?>40; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; margin-right: 5px; vertical-align: middle;">
+                                            <i class="fas fa-<?php echo $demandIcon; ?>" style="font-size: 0.7rem;"></i> <?php echo $demandLabel; ?>
+                                        </span>
                                         <?php if ($route['status'] == 'delayed'): ?>
                                             <span style="font-size: 0.65rem; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 10px; border: 1px solid #fecaca;"><i class="fas fa-exclamation-triangle"></i> ATRASADA</span>
-                                        <?php elseif ($route['status'] == 'assigned'): ?>
-                                            <span style="font-size: 0.65rem; font-weight: 800; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 10px; border: 1px solid #fde68a;"><i class="fas fa-clock"></i> AGUARDANDO</span>
+                                        <?php elseif ($route['status'] == 'pending_acceptance'): ?>
+                                            <span style="font-size: 0.65rem; font-weight: 800; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 10px; border: 1px solid #fde68a;"><i class="fas fa-clock"></i> PENDENTE ACEITE</span>
+                                        <?php elseif ($route['status'] == 'accepted'): ?>
+                                            <span style="font-size: 0.65rem; font-weight: 800; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 10px; border: 1px solid #bae6fd;"><i class="fas fa-check-double"></i> ACEITA</span>
+                                        <?php elseif ($route['status'] == 'rejected'): ?>
+                                            <span style="font-size: 0.65rem; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 10px; border: 1px solid #fecaca;"><i class="fas fa-times"></i> REJEITADA (Motivo: <?php echo htmlspecialchars($route['rejection_reason'] ?? 'Não informado'); ?>)</span>
                                         <?php else: ?>
                                             <span style="font-size: 0.65rem; font-weight: 800; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 10px; border: 1px solid #bbf7d0;"><i class="fas fa-spinner fa-spin"></i> EM ANDAMENTO</span>
                                         <?php endif; ?>
@@ -1314,7 +1432,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                                 <i class="fas fa-flag-checkered" style="width: 14px;"></i> 
                                                 <span>Prazo Final: <span style="background: #fee2e2; padding: 1px 6px; border-radius: 4px;"><?php echo date('d/m/Y H:i', strtotime($route['scheduled_end'])); ?></span></span>
                                             </div>
-                                            <?php if ($route['status'] === 'in_progress'): ?>
+                                            <?php if (in_array($route['status'], ['pending_acceptance', 'accepted', 'in_progress', 'delayed'])): ?>
                                                 <div class="countdown-container" data-deadline="<?php echo $route['scheduled_end']; ?>" style="border-radius: 6px; padding: 0.6rem 0.8rem; margin-top: 0.5rem; display: flex; justify-content: center; align-items: center; gap: 6px; background: #f0f9ff; border: 1px solid #bae6fd; color: #0284c7; font-size: 0.85rem; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.02); width: 100%;">
                                                     <i class="fas fa-hourglass-half" style="color: #0284c7; font-size: 0.8rem;"></i>
                                                     <div class="countdown-timer">00:00:00</div>
@@ -1353,20 +1471,44 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                     </div>
 
                                     <div style="font-size: 0.8rem; color: #64748b; background: #fdfdfd; padding: 0.5rem 0; border-top: 1px dashed #e2e8f0;">
-                                        <i class="fas fa-map-signs" style="color: #cbd5e1;"></i> <?php echo htmlspecialchars($route['start_location']); ?>
-                                    </div>
+                                        <?php if (!empty($route['area_details']) && $route['area_details'] !== '<p><br></p>'): ?>
+                                            <div style="color: #475569; margin-bottom: 8px; font-weight: 500; display: flex; align-items: flex-start; gap: 8px; background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
+                                                <i class="fas fa-align-left" style="color: #94a3b8; margin-top: 3px;"></i>
+                                                <div class="area-desc-content" style="flex: 1; line-height: 1.5; max-height: 150px; overflow-y: auto; padding-right: 5px;">
+                                                    <?php echo $route['area_details']; ?>
+                                                </div>
+                                            </div>
+                                        <?php endif; ?>
+
+                                        <?php 
+                                            $cleanLoc = trim($route['start_location'] ?? '', ', - ');
+                                            if (!empty($cleanLoc)): 
+                                        ?>
+                                            <div style="display: flex; align-items: center; gap: 6px; padding: 0 8px;">
+                                                <i class="fas fa-map-signs" style="color: #cbd5e1;"></i>
+                                                <?php echo htmlspecialchars($route['start_location']); ?>
+                                            </div>
+                                        <?php elseif (empty($route['area_details']) || $route['area_details'] === '<p><br></p>'): ?>
+                                            <div style="display: flex; align-items: center; gap: 6px; padding: 0 8px;">
+                                                <i class="fas fa-map-signs" style="color: #cbd5e1;"></i>
+                                                Área de Atuação
+                                            </div>
+                                        <?php endif; ?></div>
                                 </div>
 
                                 <!-- Card Footer: Actions -->
                                 <div style="padding: 1rem; border-top: 1px solid #f1f5f9; background: #fff;">
-                                    <?php if ($route['status'] !== 'assigned'): ?>
+                                    <?php if (!in_array($route['status'], ['pending_acceptance', 'rejected'])): ?>
                                         <a href="../recenseador/generate_contract.php?route_id=<?php echo $route['id']; ?>" target="_blank" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: white; background: #28a745; border-color: #28a745; padding: 0.6rem; margin-bottom: 0.5rem;" title="Baixar Termo de Registro de Demanda assinado pelo recenseador">
                                             <i class="fas fa-file-signature"></i> TERMO DE ACEITE (PDF)
                                         </a>
                                     <?php endif; ?>
                                     
-                                    <?php if (!empty($route['maps_url'])): ?>
-                                        <a href="<?php echo htmlspecialchars($route['maps_url']); ?>" target="_blank" class="btn btn-outline" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: #2563eb; border-color: #dbeafe; background: #fdfdfd; padding: 0.6rem;">
+                                    <?php 
+                                        $mapUrl = !empty($route['google_maps_link']) ? $route['google_maps_link'] : (!empty($route['maps_url']) ? $route['maps_url'] : null);
+                                        if ($mapUrl): 
+                                     ?>
+                                         <a href="<?php echo htmlspecialchars($mapUrl); ?>" target="_blank" class="btn btn-outline" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: #2563eb; border-color: #dbeafe; background: #fdfdfd; padding: 0.6rem;">
                                             <i class="fab fa-google"></i> ABRIR NO GOOGLE MAPS
                                         </a>
                                     <?php else: ?>
@@ -1404,17 +1546,17 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                     </p>
                                 </div>
                                 <div class="pending-actions">
-                                    <a href="view_user.php?user_id=<?php echo $user['id']; ?>" target="_blank"
+                                    <a href="../view_docs.php?user_id=<?php echo $user['id']; ?>" target="_blank"
                                         class="btn btn-outline" style="height: 40px; padding: 0 1rem; font-size: 0.8rem;">
-                                        <i class="fas fa-search"></i> ANALISAR PERFIL / DOCS
+                                        <i class="fas fa-search"></i> ANALISAR DOCUMENTOS
                                     </a>
                                     
                                     <form method="post" style="display:flex; align-items:center; gap: 0.5rem;" onsubmit="return confirm('Deseja aprovar este cadastro e documentos?');">
                                         <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
                                         <input type="hidden" name="action" value="approve">
-                                        <input type="text" name="processo_sei" placeholder="Processo SEI" required class="form-control" style="width: 140px;">
-                                        <input type="text" name="contrato" placeholder="Nº Contrato" required class="form-control" style="width: 140px;">
-                                        <button type="submit" class="btn-approve">
+                                        <input type="text" name="processo_sei" placeholder="Processo SEI" class="form-control" style="height: 40px; width: 150px; font-size: 0.8rem; border: 1px solid #ddd; border-radius: 4px; padding: 0 0.5rem;">
+                                        <input type="text" name="contrato" placeholder="Nº do Edital" class="form-control" style="height: 40px; width: 150px; font-size: 0.8rem; border: 1px solid #ddd; border-radius: 4px; padding: 0 0.5rem;">
+                                        <button type="submit" class="btn-approve" style="height: 40px; padding: 0 1.2rem; font-size: 0.8rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 700;">
                                             <i class="fas fa-check"></i> APROVAR
                                         </button>
                                     </form>
@@ -1476,6 +1618,23 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         <?php echo $count++; ?> - <?php echo mb_strtoupper(htmlspecialchars($u['name']), 'UTF-8') . ' (CPF: ' . htmlspecialchars($u['cpf'] ?? '') . ' - ' . htmlspecialchars($macroDisplay) . ' ' . $dot . ' [' . $rCount . ' rotas])'; ?>
                                     </option><?php endforeach; ?>
                             </select></div>
+                        <!-- Seletor de Tipo de Demanda -->
+                        <div class="form-group mb-4">
+                            <label>Tipo de Demanda</label>
+                            <div class="demand-type-selector">
+                                <button type="button" class="demand-btn" data-type="padrao" onclick="setDemandType('padrao')">
+                                    <i class="fas fa-map"></i> Padrão
+                                </button>
+                                <button type="button" class="demand-btn active" data-type="especifica" onclick="setDemandType('especifica')">
+                                    <i class="fas fa-location-dot"></i> Específica
+                                </button>
+                                <button type="button" class="demand-btn" data-type="mista" onclick="setDemandType('mista')">
+                                    <i class="fas fa-layer-group"></i> Mista
+                                </button>
+                            </div>
+                            <input type="hidden" name="demand_type" id="demand_type_input" value="especifica">
+                        </div>
+
                         <div class="form-group mb-4"><label>Título</label><input type="text" name="route_title" required
                                 class="form-control" style="width: 100%; padding:0.8rem; border:1px solid #ccc;"></div>
 
@@ -1541,24 +1700,26 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                             </select>
                         </div>
 
-                        <div style="display:grid; grid-template-columns: 150px 1fr; gap:1rem;"><input type="text"
-                                name="address_cep" id="cep" placeholder="CEP" onblur="buscaCep()"
-                                style="padding:0.8rem; border:1px solid #ccc;"><input type="text" name="address_street"
-                                id="street" placeholder="Rua" style="padding:0.8rem; border:1px solid #ccc;"></div>
-                        <br>
-                        <div style="display:grid; grid-template-columns: 100px 1fr; gap:1rem; margin-bottom:1rem;">
-                            <input type="text" name="address_number" id="number" placeholder="Número"
-                                style="padding:0.8rem; border:1px solid #ccc;">
-                            <input type="text" name="address_complement" placeholder="Complemento"
-                                style="padding:0.8rem; border:1px solid #ccc;">
-                        </div>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1rem; margin-bottom:1rem;">
-                            <input type="text" name="address_neighborhood" id="neighborhood" placeholder="Bairro"
-                                style="padding:0.8rem; border:1px solid #ccc;">
-                            <input type="text" name="address_city" id="city" placeholder="Cidade"
-                                style="padding:0.8rem; border:1px solid #ccc;">
-                            <input type="text" name="address_state" id="state" placeholder="UF"
-                                style="padding:0.8rem; border:1px solid #ccc;">
+                        <div class="specific-only">
+                            <div style="display:grid; grid-template-columns: 150px 1fr; gap:1rem;"><input type="text"
+                                    name="address_cep" id="cep" placeholder="CEP" onblur="buscaCep()"
+                                    style="padding:0.8rem; border:1px solid #ccc;"><input type="text" name="address_street"
+                                    id="street" placeholder="Rua" style="padding:0.8rem; border:1px solid #ccc;"></div>
+                            <br>
+                            <div style="display:grid; grid-template-columns: 100px 1fr; gap:1rem; margin-bottom:1rem;">
+                                <input type="text" name="address_number" id="number" placeholder="Número"
+                                    style="padding:0.8rem; border:1px solid #ccc;">
+                                <input type="text" name="address_complement" placeholder="Complemento"
+                                    style="padding:0.8rem; border:1px solid #ccc;">
+                            </div>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1rem; margin-bottom:1rem;">
+                                <input type="text" name="address_neighborhood" id="neighborhood" placeholder="Bairro"
+                                    style="padding:0.8rem; border:1px solid #ccc;">
+                                <input type="text" name="address_city" id="city" placeholder="Cidade"
+                                    style="padding:0.8rem; border:1px solid #ccc;">
+                                <input type="text" name="address_state" id="state" placeholder="UF"
+                                    style="padding:0.8rem; border:1px solid #ccc;">
+                            </div>
                         </div>
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-bottom:1rem;">
                             <div class="form-group">
@@ -1575,7 +1736,13 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                             <label><i class="fab fa-google"></i> Link do Google Maps (Local da Vistoria)</label>
                             <input type="url" name="maps_url" class="form-control" placeholder="https://www.google.com.br/maps/place/..." style="width: 100%; padding:0.8rem; border:1px solid #ccc;">
                         </div>
-                        <div class="form-group mb-4"><label>Instruções / Descrição</label><textarea name="route_desc"
+                         <div class="form-group mb-4 area-only" style="display:none;">
+                            <label><i class="fas fa-align-left"></i> Descrição da Área de Atuação</label>
+                            <div id="editor-container" style="height: 200px; background: #fff; border-radius: 4px;"></div>
+                            <input type="hidden" name="area_details" id="area_details_input">
+                        </div>
+
+                        <div class="form-group mb-4"><label>Instruções Complementares</label><textarea name="route_desc"
                                 class="form-control" rows="3"
                                 style="width: 100%; padding:0.8rem; border:1px solid #ccc;"></textarea></div>
 
@@ -1662,7 +1829,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                     </td>
                                     <td style="padding:1rem; text-align: center;">
                                         <div style="display: flex; justify-content: center; gap: 0.5rem;">
-                                            <a href="view_user.php?user_id=<?php echo $u['id']; ?>"
+                                            <a href="../view_docs.php?user_id=<?php echo $u['id']; ?>"
                                                     class="btn btn-outline"
                                                     style="padding: 0.3rem 0.6rem; font-size: 0.85rem; background: #f0fdfa; color: var(--primary-teal); border-color: var(--primary-teal);"><i class="fas fa-user-circle"></i> Perfil</a>
                                             

@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             maps_url = ?,
             scheduled_start = ?,
             scheduled_end = ?,
-            status = 'assigned',
+            status = 'pending_acceptance',
             admin_file_1 = ?,
             rejected_reason = NULL
             WHERE id = ?";

@@ -70,18 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Update wizard step to 4 if currently < 4
             $pdo->prepare("UPDATE routes SET wizard_step = 4 WHERE id = ? AND (wizard_step < 4 OR wizard_step IS NULL)")->execute([$routeId]);
         }
-    } elseif (isset($_POST['reject_route_id'])) {
-        $routeId = $_POST['reject_route_id'];
-        $reason = $_POST['reject_reason'] ?? '';
-        
-        $sql = "UPDATE routes SET status = 'rejected', rejected_reason = ? WHERE id = ? AND user_id = ?";
-        $stmt = $pdo->prepare($sql);
-        if ($stmt->execute([$reason, $routeId, $_SESSION['user_id']])) {
-            $message = '<div class="alert warning"><i class="fas fa-ban"></i> Rota rejeitada. O administrador será notificado.</div>';
-        }
     } elseif (isset($_POST['accept_route_id'])) {
         $routeId = $_POST['accept_route_id'];
-        $stmt = $pdo->prepare("UPDATE routes SET status = 'accepted', wizard_step = 3 WHERE id = ? AND user_id = ?");
+        $stmt = $pdo->prepare("UPDATE routes SET status = 'accepted', wizard_step = 3, accepted_at = NOW() WHERE id = ? AND user_id = ?");
         if ($stmt->execute([$routeId, $_SESSION['user_id']])) {
             $message = '<div class="alert success"><i class="fas fa-file-signature"></i> Rota aceita! Por favor, baixe o seu Termo de Registro de Demanda abaixo antes de iniciar.</div>';
         }
@@ -164,10 +155,11 @@ $user_docs = $docs_stmt->fetchAll();
             box-shadow: var(--shadow-sm);
         }
 
-        .bg-assigned { background: var(--slate-200); color: var(--slate-500); }
-        .bg-accepted { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .bg-pending_acceptance { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .bg-accepted { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
         .bg-in_progress { background: var(--info-light); color: var(--info); border: 1px solid var(--info); }
         .bg-completed { background: var(--success-light); color: var(--success); }
+        .bg-rejected { background: var(--danger-light); color: var(--danger); }
 
         .countdown-timer {
             font-family: 'Courier New', Courier, monospace;
@@ -273,7 +265,9 @@ $user_docs = $docs_stmt->fetchAll();
 
                     <?php if (count($routes) > 0): ?>
                         <div class="grid grid-2">
-                            <?php foreach ($routes as $route): ?>
+                            <?php foreach ($routes as $route): 
+                                $deadline = !empty($route['scheduled_end']) ? $route['scheduled_end'] : (!empty($route['end_date']) ? $route['end_date'] : null);
+                            ?>
                                 <div class="route-card" style="display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border); transition: transform 0.2s;">
                                     <!-- Header: Simplified & Elegant -->
                                     <div style="background: var(--slate-50); padding: 1.25rem; border-bottom: 1px solid var(--border); position: relative;">
@@ -281,11 +275,12 @@ $user_docs = $docs_stmt->fetchAll();
                                             <span style="font-size: 0.65rem; font-weight: 800; color: var(--primary-teal); letter-spacing: 0.05em; text-transform: uppercase;">Tarefa Atribuída</span>
                                             <span class="status-label bg-<?php echo $route['status']; ?>" style="font-size: 0.65rem; padding: 4px 10px;">
                                                 <?php
-                                                if ($route['status'] == 'assigned') echo 'Aguardando';
-                                                elseif ($route['status'] == 'accepted') echo 'Aceita / Contrato';
+                                                if ($route['status'] == 'pending_acceptance') echo 'Pendente Aceite';
+                                                elseif ($route['status'] == 'accepted') echo 'Aceita / Preparando';
                                                 elseif ($route['status'] == 'in_progress') echo 'Em Andamento';
                                                 elseif ($route['status'] == 'completed') echo 'Concluída';
-                                                else echo htmlspecialchars($route['status']);
+                                                elseif ($route['status'] == 'rejected') echo 'Rejeitada';
+                                                 else echo htmlspecialchars($route['status']);
                                                 ?>
                                             </span>
                                         </div>
@@ -293,8 +288,11 @@ $user_docs = $docs_stmt->fetchAll();
                                             <?php echo htmlspecialchars($route['title']); ?>
                                         </h3>
                                         
-                                        <?php if (!empty($route['maps_url'])): ?>
-                                        <a href="<?php echo htmlspecialchars($route['maps_url']); ?>" target="_blank" 
+                                        <?php 
+                                        $mapUrl = !empty($route['google_maps_link']) ? $route['google_maps_link'] : (!empty($route['maps_url']) ? $route['maps_url'] : null);
+                                        if ($mapUrl): 
+                                     ?>
+                                         <a href="<?php echo htmlspecialchars($mapUrl); ?>" target="_blank" 
                                            style="display: inline-flex; align-items: center; gap: 6px; margin-top: 0.8rem; color: #2563eb; font-size: 0.7rem; font-weight: 700; text-decoration: none; padding: 4px 0;">
                                             <i class="fas fa-external-link-alt"></i> ABRIR NO GOOGLE MAPS
                                         </a>
@@ -313,20 +311,20 @@ $user_docs = $docs_stmt->fetchAll();
                                                 </div>
                                             </div>
                                             
-                                            <?php if (!empty($route['scheduled_end'])): ?>
+                                            <?php if (!empty($deadline)): ?>
                                             <div style="background: #fff5f5; border: 1px solid #fee2e2; padding: 0.75rem; border-radius: 8px;">
                                                 <small style="font-size: 0.6rem; color: #b91c1c; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 4px;">Prazo Final</small>
                                                 <div style="font-size: 0.8rem; font-weight: 700; color: #b91c1c;">
                                                     <i class="far fa-clock" style="margin-right: 4px;"></i>
-                                                    <?php echo date('d/m/Y H:i', strtotime($route['scheduled_end'])); ?>
+                                                    <?php echo date('d/m/Y H:i', strtotime($deadline)); ?>
                                                 </div>
                                             </div>
                                             <?php endif; ?>
                                         </div>
 
                                         <!-- Urgent Countdown if in progress -->
-                                        <?php if ($route['status'] === 'in_progress' && !empty($route['scheduled_end'])): ?>
-                                            <div class="countdown-container" data-deadline="<?php echo $route['scheduled_end']; ?>" style="border-radius: 6px; padding: 0.6rem 0.8rem; margin-top: 0.5rem; display: flex; justify-content: center; align-items: center; gap: 6px; background: #f0f9ff; border: 1px solid #bae6fd; color: #0284c7; font-size: 0.85rem; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.02); width: 100%;">
+                                        <?php if (in_array($route['status'], ['pending_acceptance', 'accepted', 'in_progress', 'delayed']) && !empty($deadline)): ?>
+                                            <div class="countdown-container" data-deadline="<?php echo $deadline; ?>" style="border-radius: 6px; padding: 0.6rem 0.8rem; margin-top: 0.5rem; display: flex; justify-content: center; align-items: center; gap: 6px; background: #f0f9ff; border: 1px solid #bae6fd; color: #0284c7; font-size: 0.85rem; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.02); width: 100%;">
                                                 <i class="fas fa-hourglass-half" style="color: #0284c7; font-size: 0.8rem;"></i>
                                                 <div class="countdown-timer">00:00:00</div>
                                             </div>
@@ -355,7 +353,11 @@ $user_docs = $docs_stmt->fetchAll();
 
                                         <!-- Attachments: Compact Pills -->
                                         <?php 
-                                        $adminFiles = array_filter([$route['admin_file_1'] ?? null, $route['admin_file_2'] ?? null, $route['admin_file_3'] ?? null]);
+                                        $adminFiles = array_filter([
+                                             $route['ref_image'] ?? $route['admin_file_1'] ?? null, 
+                                             $route['ref_pdf_1'] ?? $route['admin_file_2'] ?? null, 
+                                             $route['ref_pdf_2'] ?? $route['admin_file_3'] ?? null
+                                         ]);
                                         if (!empty($adminFiles)): 
                                         ?>
                                         <div style="background: #fffbeb; padding: 0.75rem; border-radius: 8px; border: 1px solid #fef3c7;">
@@ -378,7 +380,7 @@ $user_docs = $docs_stmt->fetchAll();
 
                                         <!-- Action Buttons -->
                                         <div style="margin-top: auto;">
-                                            <?php if ($route['status'] === 'assigned'): ?>
+                                            <?php if ($route['status'] === 'pending_acceptance'): ?>
                                                 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
                                                     <form method="post">
                                                         <input type="hidden" name="accept_route_id" value="<?php echo $route['id']; ?>">

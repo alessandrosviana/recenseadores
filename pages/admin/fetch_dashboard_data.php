@@ -21,12 +21,12 @@ if (count($pending_users) > 0) {
                 <p style="margin: 0.2rem 0; color: #666;">' . htmlspecialchars($user['email']) . '</p>
             </div>
             <div class="pending-actions">
-                <a href="../view_docs.php?user_id=' . $user['id'] . '" target="_blank" class="btn btn-outline" style="padding: 0.5rem 1rem;"><i class="fas fa-search"></i> Analisar Documentos</a>
+                <a href="../view_docs.php?user_id=' . $user['id'] . '" target="_blank" class="btn btn-outline" style="padding: 0.5rem 1rem;"><i class="fas fa-search"></i> ANALISAR DOCUMENTOS</a>
                 <form method="post" style="display:flex; align-items:center; gap: 0.5rem;" onsubmit="return confirm(\'Deseja aprovar este cadastro e documentos?\');">
                     <input type="hidden" name="user_id" value="' . $user['id'] . '">
                     <input type="hidden" name="action" value="approve">
-                    <input type="text" name="processo_sei" placeholder="Processo SEI" required class="form-control" style="width: 140px; padding: 0.4rem 0.5rem; height: 40px; font-size: 0.85rem; margin: 0;">
-                    <input type="text" name="contrato" placeholder="Nº Contrato" required class="form-control" style="width: 140px; padding: 0.4rem 0.5rem; height: 40px; font-size: 0.85rem; margin: 0;">
+                    <input type="text" name="processo_sei" placeholder="Processo SEI" class="form-control" style="width: 140px; padding: 0.4rem 0.5rem; height: 40px; font-size: 0.85rem; margin: 0;">
+                    <input type="text" name="contrato" placeholder="Nº do Edital" class="form-control" style="width: 140px; padding: 0.4rem 0.5rem; height: 40px; font-size: 0.85rem; margin: 0;">
                     <button class="action-btn btn-approve"><i class="fas fa-check"></i> Aprovar</button>
                 </form>
                 <form method="post" style="display:flex; align-items:center;" onsubmit="return confirm(\'Tem certeza que deseja reprovar este cadastro?\');"><input type="hidden" name="user_id" value="' . $user['id'] . '"><input type="hidden" name="action" value="reject"><button class="action-btn btn-reject" title="Reprovar Cadastro"><i class="fas fa-times"></i></button></form>

@@ -60,7 +60,7 @@ $routes = $routes_stmt->fetchAll();
             border-left: 4px solid #ddd;
         }
 
-        .status-assigned {
+        .status-pending_acceptance {
             border-left-color: #f0ad4e;
         }
 
@@ -82,7 +82,7 @@ $routes = $routes_stmt->fetchAll();
             color: white;
         }
 
-        .badge-assigned {
+        .badge-pending_acceptance {
             background: #f0ad4e;
         }
 
@@ -155,9 +155,18 @@ $routes = $routes_stmt->fetchAll();
                             <div style="display: flex; align-items: center;">
                                 <a href="edit_route.php?id=<?php echo $route['id']; ?>" class="btn-edit"><i
                                         class="fas fa-edit"></i> Editar</a>
-                                <span class="badge badge-<?php echo $route['status']; ?>">
+                                <?php 
+                                        $demandLabel = "Específica";
+                                        $demandColor = "#3b82f6";
+                                        if (($route['demand_type'] ?? '') === 'padrao') { $demandLabel = "Padrão"; $demandColor = "#8b5cf6"; }
+                                        elseif (($route['demand_type'] ?? '') === 'mista') { $demandLabel = "Mista"; $demandColor = "#f59e0b"; }
+                                    ?>
+                                    <span style="background: <?php echo $demandColor; ?>20; color: <?php echo $demandColor; ?>; font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; border: 1px solid <?php echo $demandColor; ?>40; margin-right: 8px; text-transform: uppercase; vertical-align: middle;">
+                                        <?php echo $demandLabel; ?>
+                                    </span>
+                                    <span class="badge badge-<?php echo $route['status']; ?>">
                                     <?php
-                                    if ($route['status'] == 'assigned')
+                                    if ($route['status'] == 'pending_acceptance')
                                         echo 'AGUARDANDO';
                                     elseif ($route['status'] == 'in_progress')
                                         echo 'EM ANDAMENTO';
@@ -170,18 +179,41 @@ $routes = $routes_stmt->fetchAll();
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; color: #555; font-size: 0.95rem;">
                             <div>
-                                <strong><i class="fas fa-map-marker-alt"></i> Início/Endereço:</strong><br>
+                                <?php if (!empty($route['area_details']) && $route['area_details'] !== '<p><br></p>'): ?>
+                                    <div style="margin-bottom: 1rem; background: #f8fafc; padding: 0.8rem; border-radius: 6px; border: 1px solid #e2e8f0; grid-column: span 2;">
+                                        <strong style="color: #475569; display: block; margin-bottom: 5px;"><i class="fas fa-align-left"></i> Descrição da Área de Atuação:</strong>
+                                        <div style="font-size: 0.9rem; color: #334155; line-height: 1.5;">
+                                            <?php echo $route['area_details']; ?>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
+                                <strong><i class="fas fa-map-marker-alt"></i> Local/Endereço:</strong><br>
                                 <?php
+                                $cleanLoc = trim($route['start_location'] ?? '', ', - ');
                                 if (!empty($route['address_street'])) {
                                     echo htmlspecialchars($route['address_street']) . ", " . htmlspecialchars($route['address_number']);
                                     if (!empty($route['address_complement']))
                                         echo " - " . htmlspecialchars($route['address_complement']);
                                     echo "<br>" . htmlspecialchars($route['address_neighborhood']) . " - " . htmlspecialchars($route['address_city']) . "/" . htmlspecialchars($route['address_state']);
                                     echo "<br>CEP: " . htmlspecialchars($route['address_cep']);
-                                } else {
+                                } elseif (!empty($cleanLoc)) {
                                     echo htmlspecialchars($route['start_location']);
+                                } else {
+                                    echo "Área de Atuação";
                                 }
                                 ?>
+                                
+                                <?php 
+                                    $mapUrl = !empty($route['google_maps_link']) ? $route['google_maps_link'] : (!empty($route['maps_url']) ? $route['maps_url'] : null);
+                                    if ($mapUrl): 
+                                ?>
+                                    <div style="margin-top: 10px;">
+                                        <a href="<?php echo htmlspecialchars($mapUrl); ?>" target="_blank" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; color: #2563eb; border-color: #dbeafe; background: #eff6ff;">
+                                            <i class="fab fa-google"></i> Abrir no Google Maps
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                             <div>
                                 <strong><i class="fas fa-info-circle"></i> Descrição:</strong><br>
