@@ -182,7 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
                 try {
-                    $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role, status) VALUES (?, ?, ?, 'admin', 'approved')");
+                    $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role, status, cpf) VALUES (?, ?, ?, 'admin', 'approved', NULL)");
                     if ($stmt->execute([$name, $email, $hashed_password])) {
                         $message = '<div class="alert success"><i class="fas fa-check"></i> Administrador criado com sucesso!</div>';
                     }

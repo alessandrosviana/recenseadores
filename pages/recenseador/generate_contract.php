@@ -190,7 +190,8 @@ $rates = [
         <div class="field" style="margin-top: 5px;"><strong>Endereço:</strong> <?php echo htmlspecialchars($data['address'] . ", " . $data['city'] . " - " . $data['state'] . " (CEP: " . $data['cep'] . ")"); ?></div>
     </div>
 
-        
+    <div class="section">
+        <div class="section-title">2. Detalhes da Rota / Demanda</div>
         <div class="field"><strong>Microrregião de Atuação:</strong> <?php echo htmlspecialchars($data['microregion'] ?? 'Não especificada'); ?></div>
         
         <?php if (($data['demand_type'] ?? 'especifica') !== 'padrao'): ?>
