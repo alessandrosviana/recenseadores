@@ -16,29 +16,45 @@ if (!$user_id) {
 $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_user') {
-    $name = $_POST['name'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $phone = $_POST['phone'] ?? '';
-    $cpf = $_POST['cpf'] ?? '';
-    $rg = $_POST['rg'] ?? '';
-    $address = $_POST['address'] ?? '';
-    $city = $_POST['city'] ?? '';
-    $state = $_POST['state'] ?? '';
-    $cep = $_POST['cep'] ?? '';
+    $name = trim($_POST['name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $cpf = trim($_POST['cpf'] ?? '');
+    $rg = trim($_POST['rg'] ?? '');
+    $address = trim($_POST['address'] ?? '');
+    $city = trim($_POST['city'] ?? '');
+    $state = trim($_POST['state'] ?? '');
+    $cep = trim($_POST['cep'] ?? '');
     $microregion = $_POST['microregion'] ?? '';
-    $processo_sei = $_POST['processo_sei'] ?? '';
-    $contrato = $_POST['contrato'] ?? '';
+    $processo_sei = trim($_POST['processo_sei'] ?? '');
+    $contrato = trim($_POST['contrato'] ?? '');
     $status = $_POST['status'] ?? 'pending';
 
-    try {
-        $stmt = $pdo->prepare("UPDATE users SET name=?, email=?, phone=?, cpf=?, rg=?, address=?, city=?, state=?, cep=?, microregion=?, processo_sei=?, contrato=?, status=? WHERE id=?");
-        if ($stmt->execute([$name, $email, $phone, $cpf, $rg, $address, $city, $state, $cep, $microregion, $processo_sei, $contrato, $status, $user_id])) {
-            $message = '<div class="alert success"><i class="fas fa-check"></i> Dados do usuário atualizados com sucesso!</div>';
-        } else {
-            $message = '<div class="alert danger"><i class="fas fa-times"></i> Nenhuma alteração foi feita ou ocorreu um erro.</div>';
+    // Obter role do usuário antes de atualizar
+    $stmtRole = $pdo->prepare("SELECT role FROM users WHERE id = ?");
+    $stmtRole->execute([$user_id]);
+    $currentUser = $stmtRole->fetch();
+    $user_role = $currentUser ? $currentUser['role'] : 'recenseador';
+
+    if ($user_role === 'recenseador' && empty($cpf)) {
+        $message = '<div class="alert danger"><i class="fas fa-times"></i> Erro: O campo CPF é obrigatório para recenseadores.</div>';
+    } else {
+        $db_cpf = empty($cpf) ? null : $cpf;
+
+        try {
+            $stmt = $pdo->prepare("UPDATE users SET name=?, email=?, phone=?, cpf=?, rg=?, address=?, city=?, state=?, cep=?, microregion=?, processo_sei=?, contrato=?, status=? WHERE id=?");
+            if ($stmt->execute([$name, $email, $phone, $db_cpf, $rg, $address, $city, $state, $cep, $microregion, $processo_sei, $contrato, $status, $user_id])) {
+                $message = '<div class="alert success"><i class="fas fa-check"></i> Dados do usuário atualizados com sucesso!</div>';
+            } else {
+                $message = '<div class="alert danger"><i class="fas fa-times"></i> Nenhuma alteração foi feita ou ocorreu um erro.</div>';
+            }
+        } catch (PDOException $e) {
+            if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                $message = '<div class="alert danger"><i class="fas fa-times"></i> Erro ao atualizar: Este E-mail ou CPF já está cadastrado em outro usuário.</div>';
+            } else {
+                $message = '<div class="alert danger"><i class="fas fa-times"></i> Erro ao atualizar: ' . $e->getMessage() . '</div>';
+            }
         }
-    } catch (PDOException $e) {
-        $message = '<div class="alert danger"><i class="fas fa-times"></i> Erro ao atualizar: ' . $e->getMessage() . '</div>';
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'reset_password') {
     try {
@@ -211,9 +227,11 @@ if (!$edit_user) {
 
                 <div class="grid-2">
                     <div class="form-group">
-                        <label>CPF</label>
-                        <input type="text" name="cpf" class="form-control"
-                            value="<?php echo htmlspecialchars($edit_user['cpf']); ?>">
+                        <label>CPF <?php echo ($edit_user['role'] === 'recenseador') ? '<span style="color: red;">*</span>' : ''; ?></label>
+                        <input type="text" id="cpf" name="cpf" class="form-control"
+                            value="<?php echo htmlspecialchars($edit_user['cpf'] ?? ''); ?>"
+                            placeholder="000.000.000-00" maxlength="14"
+                            <?php echo ($edit_user['role'] === 'recenseador') ? 'required' : ''; ?>>
                     </div>
                     <div class="form-group">
                         <label>RG</label>
@@ -303,6 +321,19 @@ if (!$edit_user) {
         </div>
     </main>
 
+    <script>
+        // Mascara CPF
+        const cpfInput = document.getElementById('cpf');
+        if (cpfInput) {
+            cpfInput.addEventListener('input', function (e) {
+                let v = e.target.value.replace(/\D/g, '').substring(0, 11);
+                if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+                else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{0,3})/, "$1.$2.$3");
+                else if (v.length > 3) v = v.replace(/(\d{3})(\d{0,3})/, "$1.$2");
+                e.target.value = v;
+            });
+        }
+    </script>
 </body>
 
 </html>
