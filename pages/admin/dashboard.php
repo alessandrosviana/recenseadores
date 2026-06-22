@@ -299,7 +299,10 @@ $wizard_routes = $pdo->query("SELECT r.*, u.name as user_name, u.cpf as user_cpf
 $paid_routes = $pdo->query("SELECT r.*, u.name as user_name, u.cpf as user_cpf FROM routes r JOIN users u ON r.user_id = u.id WHERE r.wizard_step = 6 ORDER BY r.completed_at DESC")->fetchAll();
 
 // Active routes include 'assigned', 'accepted', 'in_progress' and 'delayed'
-$active_routes = $pdo->query("SELECT r.*, u.name as user_name, u.microregion as user_macroregion FROM routes r JOIN users u ON r.user_id = u.id WHERE r.status IN ('pending_acceptance', 'accepted', 'in_progress', 'delayed') ORDER BY r.created_at DESC")->fetchAll();
+$active_routes = $pdo->query("SELECT r.*, u.name as user_name, u.microregion as user_macroregion FROM routes r JOIN users u ON r.user_id = u.id WHERE r.status IN ('pending_acceptance', 'accepted', 'in_progress', 'delayed') AND (r.scheduled_end IS NULL OR r.scheduled_end >= NOW()) ORDER BY r.created_at DESC")->fetchAll();
+
+// Expired routes (active and past deadline)
+$expired_routes = $pdo->query("SELECT r.*, u.name as user_name, u.microregion as user_macroregion FROM routes r JOIN users u ON r.user_id = u.id WHERE r.status IN ('pending_acceptance', 'accepted', 'in_progress', 'delayed') AND r.scheduled_end IS NOT NULL AND r.scheduled_end < NOW() ORDER BY r.scheduled_end ASC")->fetchAll();
 
 // Completed routes - Todas as que foram entregues mas AINDA NÃO foram pagas (Passo < 6)
 $completed_routes = $pdo->query("SELECT r.*, u.name as user_name FROM routes r JOIN users u ON r.user_id = u.id WHERE r.status = 'completed' AND (r.wizard_step < 6 OR r.wizard_step IS NULL) ORDER BY r.completed_at DESC")->fetchAll();
@@ -701,6 +704,13 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                 <i class="fas fa-chart-line"></i>
                 <span class="link-label">Monitoramento</span>
                 <span class="counter"><?php echo count($active_routes); ?></span>
+            </a>
+            <a href="#" class="sidebar-link" id="link-expired" onclick="showTab('expired'); return false;">
+                <i class="fas fa-hourglass-end" style="color: #dc3545;"></i>
+                <span class="link-label">Prazos Encerrados</span>
+                <?php if (count($expired_routes) > 0): ?>
+                    <span class="counter" style="background: #dc3545; color: white;"><?php echo count($expired_routes); ?></span>
+                <?php endif; ?>
             </a>
             <a href="#" class="sidebar-link" id="link-wizard" onclick="showTab('wizard'); return false;">
                 <i class="fas fa-tasks"></i>
@@ -1524,6 +1534,168 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                     <div class="text-center py-5" style="border: 2px dashed #eee; border-radius: 8px;">
                         <i class="fas fa-check-circle" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
                         <p class="text-muted">Nenhuma rota ativa ou atrasada no momento.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- SECTION 1.2: TAREFAS COM PRAZO ENCERRADO -->
+            <div id="expired" class="tab-content">
+                <div class="section-header">
+                    <h2><i class="fas fa-hourglass-end"></i> Tarefas com Prazo Encerrado</h2>
+                    <p class="text-muted">Acompanhe as coletas ativas que excederam o prazo estipulado.</p>
+                </div>
+
+                <?php if (count($expired_routes) > 0): ?>
+                    <div class="grid grid-2">
+                        <?php foreach ($expired_routes as $route): ?>
+                            <div class="monitor-card delayed">
+                                <!-- Card Header with Status & Actions -->
+                                <div class="card-header-actions">
+                                    <div>
+                                        <?php 
+                                            $demandLabel = "Específica";
+                                            $demandColor = "#3b82f6"; // Blue
+                                            $demandIcon = "location-dot";
+                                            
+                                            if (($route['demand_type'] ?? '') === 'padrao') {
+                                                $demandLabel = "Padrão";
+                                                $demandColor = "#8b5cf6"; // Purple
+                                                $demandIcon = "map";
+                                            } elseif (($route['demand_type'] ?? '') === 'mista') {
+                                                $demandLabel = "Mista";
+                                                $demandColor = "#f59e0b"; // Orange
+                                                $demandIcon = "layer-group";
+                                            }
+                                        ?>
+                                        <span style="background: <?php echo $demandColor; ?>15; color: <?php echo $demandColor; ?>; font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 10px; border: 1px solid <?php echo $demandColor; ?>40; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; margin-right: 5px; vertical-align: middle;">
+                                            <i class="fas fa-<?php echo $demandIcon; ?>" style="font-size: 0.7rem;"></i> <?php echo $demandLabel; ?>
+                                        </span>
+                                        <span style="font-size: 0.65rem; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 10px; border: 1px solid #fecaca;"><i class="fas fa-exclamation-triangle"></i> PRAZO ENCERRADO</span>
+                                    </div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <a href="edit_route.php?id=<?php echo $route['id']; ?>" class="action-btn-circle btn-edit" title="Editar Rota"><i class="fas fa-edit"></i></a>
+
+                                        <?php if ($route['status'] == 'in_progress'): ?>
+                                            <form method="post" style="display:inline;">
+                                                <input type="hidden" name="route_id" value="<?php echo $route['id']; ?>">
+                                                <input type="hidden" name="action" value="mark_delayed">
+                                                <button type="submit" class="action-btn-circle btn-reset" title="Marcar Atraso"><i class="fas fa-history"></i></button>
+                                            </form>
+                                        <?php endif; ?>
+
+                                        <form method="post" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja cancelar esta rota?');">
+                                            <input type="hidden" name="route_id" value="<?php echo $route['id']; ?>">
+                                            <input type="hidden" name="action" value="cancel_route">
+                                            <button type="submit" class="action-btn-circle btn-cancel" title="Cancelar Rota"><i class="fas fa-ban"></i></button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- Card Body -->
+                                <div style="padding: 1.25rem;">
+                                    <!-- Date Timeline Box -->
+                                    <div style="background: #f8fafc; border-radius: 8px; padding: 0.75rem; margin-bottom: 1.25rem; border: 1px solid #f1f5f9; display: grid; gap: 0.4rem;">
+                                        <div style="font-size: 0.75rem; color: #64748b; display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-play-circle" style="color: #22c55e; width: 14px;"></i> 
+                                            <span>Início: <strong><?php echo ($route['start_time']) ? date('d/m/Y H:i', strtotime($route['start_time'])) : 'N/A'; ?></strong></span>
+                                        </div>
+                                        <div style="font-size: 0.7rem; color: #94a3b8; display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-calendar-alt" style="width: 14px;"></i> 
+                                            <span>Atribuída em: <?php echo date('d/m/Y H:i', strtotime($route['created_at'])); ?></span>
+                                        </div>
+                                        <?php if (!empty($route['scheduled_end'])): ?>
+                                            <div style="font-size: 0.75rem; color: #ef4444; display: flex; align-items: center; gap: 8px; font-weight: 700; margin-top: 2px;">
+                                                <i class="fas fa-flag-checkered" style="width: 14px;"></i> 
+                                                <span>Prazo Final: <span style="background: #fee2e2; padding: 1px 6px; border-radius: 4px;"><?php echo date('d/m/Y H:i', strtotime($route['scheduled_end'])); ?></span></span>
+                                            </div>
+                                            <div class="countdown-container" data-deadline="<?php echo $route['scheduled_end']; ?>" style="border-radius: 6px; padding: 0.6rem 0.8rem; margin-top: 0.5rem; display: flex; justify-content: center; align-items: center; gap: 6px; background: #ffebeb; border: 1px solid #fecaca; color: #dc3545; font-size: 0.85rem; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.02); width: 100%;">
+                                                <i class="fas fa-hourglass-end" style="color: #dc3545; font-size: 0.8rem;"></i>
+                                                <div class="countdown-timer">PRAZO ENCERRADO</div>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <!-- Main Content -->
+                                    <h3 style="margin: 0 0 0.5rem; font-size: 1rem; font-weight: 800; color: #1e293b; line-height: 1.4;">
+                                        <?php echo htmlspecialchars($route['title']); ?>
+                                    </h3>
+                                    
+                                    <div style="margin-bottom: 0.75rem;">
+                                        <p style="margin:0 0 4px; color: #1e40af; font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+                                            <i class="fas fa-user-circle" style="color: #3b82f6; font-size: 1rem;"></i>
+                                            <?php echo mb_strtoupper(htmlspecialchars($route['user_name']), 'UTF-8'); ?>
+                                        </p>
+                                        <?php 
+                                            $macroDisp = $route['user_macroregion'] ?? '';
+                                            $macroDisp = preg_replace('/Macrorregi.*?o/i', 'Macrorregião', $macroDisp);
+                                        ?>
+                                        <?php if (!empty($macroDisp)): ?>
+                                            <span style="display: inline-block; margin-bottom: 4px; background: #eff6ff; color: #1d4ed8; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; border: 1px solid #bfdbfe;">
+                                                <i class="fas fa-layer-group"></i> <?php echo htmlspecialchars($macroDisp); ?>
+                                            </span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($route['microregion'])): ?>
+                                            <p style="margin: 2px 0 0; color: #059669; font-weight: 700; font-size: 0.8rem;">
+                                                <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($route['microregion']); ?>
+                                            </p>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <div style="font-size: 0.8rem; color: #64748b; background: #fdfdfd; padding: 0.5rem 0; border-top: 1px dashed #e2e8f0;">
+                                        <?php if (!empty($route['area_details']) && $route['area_details'] !== '<p><br></p>'): ?>
+                                            <div style="color: #475569; margin-bottom: 8px; font-weight: 500; display: flex; align-items: flex-start; gap: 8px; background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
+                                                <i class="fas fa-align-left" style="color: #94a3b8; margin-top: 3px;"></i>
+                                                <div class="area-desc-content" style="flex: 1; line-height: 1.5; max-height: 150px; overflow-y: auto; padding-right: 5px;">
+                                                    <?php echo $route['area_details']; ?>
+                                                </div>
+                                            </div>
+                                        <?php endif; ?>
+
+                                        <?php 
+                                            $cleanLoc = trim($route['start_location'] ?? '', ', - ');
+                                            if (!empty($cleanLoc)): 
+                                        ?>
+                                            <div style="display: flex; align-items: center; gap: 6px; padding: 0 8px;">
+                                                <i class="fas fa-map-signs" style="color: #cbd5e1;"></i>
+                                                <?php echo htmlspecialchars($route['start_location']); ?>
+                                            </div>
+                                        <?php elseif (empty($route['area_details']) || $route['area_details'] === '<p><br></p>'): ?>
+                                            <div style="display: flex; align-items: center; gap: 6px; padding: 0 8px;">
+                                                <i class="fas fa-map-signs" style="color: #cbd5e1;"></i>
+                                                Área de Atuação
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+
+                                <!-- Card Footer: Actions -->
+                                <div style="padding: 1rem; border-top: 1px solid #f1f5f9; background: #fff;">
+                                    <?php if (!in_array($route['status'], ['pending_acceptance', 'rejected'])): ?>
+                                        <a href="../recenseador/generate_contract.php?route_id=<?php echo $route['id']; ?>" target="_blank" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: white; background: #28a745; border-color: #28a745; padding: 0.6rem; margin-bottom: 0.5rem;" title="Baixar Termo de Registro de Demanda assinado pelo recenseador">
+                                            <i class="fas fa-file-signature"></i> TERMO DE ACEITE (PDF)
+                                        </a>
+                                    <?php endif; ?>
+                                    
+                                    <?php 
+                                        $mapUrl = !empty($route['google_maps_link']) ? $route['google_maps_link'] : (!empty($route['maps_url']) ? $route['maps_url'] : null);
+                                        if ($mapUrl): 
+                                     ?>
+                                         <a href="<?php echo htmlspecialchars($mapUrl); ?>" target="_blank" class="btn btn-outline" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: #2563eb; border-color: #dbeafe; background: #fdfdfd; padding: 0.6rem;">
+                                            <i class="fab fa-google"></i> ABRIR NO GOOGLE MAPS
+                                        </a>
+                                    <?php else: ?>
+                                        <div style="font-size: 0.75rem; color: #cbd5e1; text-align: center; font-style: italic;">
+                                            Mapa indisponível
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="text-center py-5" style="border: 2px dashed #eee; border-radius: 8px;">
+                        <i class="fas fa-check-circle" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+                        <p class="text-muted">Nenhuma rota atrasada no momento.</p>
                     </div>
                 <?php endif; ?>
             </div>
