@@ -132,6 +132,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = '<div class="alert warning"><i class="fas fa-clock"></i> Rota marcada como atrasada.</div>';
             }
             $active_tab = 'monitor';
+        } elseif ($action === 'renew_route') {
+            $routeId = $_POST['route_id'];
+            $stmt = $pdo->prepare("UPDATE routes SET scheduled_end = DATE_ADD(NOW(), INTERVAL 7 DAY), status = 'in_progress' WHERE id = ?");
+            if ($stmt->execute([$routeId])) {
+                $message = '<div class="alert success"><i class="fas fa-history"></i> Rota renovada com sucesso por mais 7 dias!</div>';
+            }
+            $active_tab = 'monitor';
         } elseif ($action === 'update_wizard') {
             $routeId = $_POST['route_id'];
             $step = (int) $_POST['step'];
@@ -1675,6 +1682,14 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             <i class="fas fa-file-signature"></i> TERMO DE ACEITE (PDF)
                                         </a>
                                     <?php endif; ?>
+
+                                    <form method="post" style="width: 100%; margin-bottom: 0.5rem;" onsubmit="return confirm('Tem certeza que deseja renovar esta rota por mais 7 dias?');">
+                                        <input type="hidden" name="route_id" value="<?php echo $route['id']; ?>">
+                                        <input type="hidden" name="action" value="renew_route">
+                                        <button type="submit" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: white; background: #3b82f6; border-color: #3b82f6; padding: 0.6rem;">
+                                            <i class="fas fa-redo"></i> RENOVAR TAREFA (7 DIAS)
+                                        </button>
+                                    </form>
                                     
                                     <?php 
                                         $mapUrl = !empty($route['google_maps_link']) ? $route['google_maps_link'] : (!empty($route['maps_url']) ? $route['maps_url'] : null);
