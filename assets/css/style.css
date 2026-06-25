@@ -265,10 +265,15 @@ header {
 .btn-edit { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
 .btn-reset { background: #fffbeb; color: #d97706; border-color: #fef3c7; }
 .btn-cancel { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+.btn-archive { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+.btn-unarchive { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
 
 .btn-edit:hover { background: #2563eb; color: white; border-color: #2563eb; }
 .btn-reset:hover { background: #d97706; color: white; border-color: #d97706; }
 .btn-cancel:hover { background: #dc2626; color: white; border-color: #dc2626; }
+.btn-archive:hover { background: #475569; color: white; border-color: #475569; }
+.btn-unarchive:hover { background: #16a34a; color: white; border-color: #16a34a; }
+
 
 /* --- CARDS --- */
 .card {
