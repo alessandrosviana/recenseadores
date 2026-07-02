@@ -40,7 +40,7 @@ $routes = $routes_stmt->fetchAll();
     <title>Rotas de <?php echo mb_strtoupper(htmlspecialchars($user['name']), 'UTF-8'); ?> - CAU/DF</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/recenseadores/assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <style>
         .page-header {
             background: #fff;
@@ -231,7 +231,7 @@ $routes = $routes_stmt->fetchAll();
                                 ?>
                                     <div style="margin-top: 1rem; border-top: 1px solid #eee; padding-top: 0.5rem; display: flex; gap: 10px;">
                                         <?php foreach ($admFiles as $f): ?>
-                                            <a href="<?php echo str_replace('../../', '/recenseadores/', htmlspecialchars($f)); ?>" target="_blank" style="font-size: 0.8rem; color: #f57f17; text-decoration: none;">
+                                            <a href="<?php echo str_replace('../../', BASE_URL, htmlspecialchars($f)); ?>" target="_blank" style="font-size: 0.8rem; color: #f57f17; text-decoration: none;">
                                                 <i class="fas fa-paperclip"></i> Anexo Admin
                                             </a>
                                         <?php endforeach; ?>

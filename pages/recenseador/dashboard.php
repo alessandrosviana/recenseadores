@@ -104,7 +104,7 @@ $user_docs = $docs_stmt->fetchAll();
     <title>Painel do Recenseador - CAU/DF</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/recenseadores/assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <style>
         .dashboard-header {
             background: white;
@@ -369,7 +369,7 @@ $user_docs = $docs_stmt->fetchAll();
                                                     $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
                                                     $icon = ($ext === 'pdf') ? 'fa-file-pdf' : 'fa-file-image';
                                                 ?>
-                                                <a href="<?php echo str_replace('../../', '/recenseadores/', htmlspecialchars($file)); ?>" target="_blank" 
+                                                <a href="<?php echo str_replace('../../', BASE_URL, htmlspecialchars($file)); ?>" target="_blank" 
                                                    style="background: white; border: 1px solid #fde68a; padding: 4px 10px; border-radius: 4px; font-size: 0.65rem; color: #92400e; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
                                                     <i class="fas <?php echo $icon; ?>"></i> Abrir
                                                 </a>

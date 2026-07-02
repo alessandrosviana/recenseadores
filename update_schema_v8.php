@@ -16,7 +16,7 @@ try {
 
     echo "Schema updated successfully!";
 
-} catch (PDOException $e) {
+} catch (PDOException $e) {29
     echo "<strong style='color:red'>ERROR:</strong> " . $e->getMessage();
 }
 ?>
