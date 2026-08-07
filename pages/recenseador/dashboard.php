@@ -70,14 +70,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Update wizard step to 4 if currently < 4
             $pdo->prepare("UPDATE routes SET wizard_step = 4 WHERE id = ? AND (wizard_step < 4 OR wizard_step IS NULL)")->execute([$routeId]);
         }
-    } elseif (isset($_POST['accept_route_id'])) {
-        $routeId = $_POST['accept_route_id'];
-        $stmt = $pdo->prepare("UPDATE routes SET status = 'accepted', wizard_step = 3, accepted_at = NOW() WHERE id = ? AND user_id = ?");
-        if ($stmt->execute([$routeId, $_SESSION['user_id']])) {
-            $message = '<div class="alert success"><i class="fas fa-file-signature"></i> Rota aceita! Por favor, baixe o seu Termo de Registro de Demanda abaixo antes de iniciar.</div>';
+        } elseif (isset($_POST['accept_route_id'])) {
+            $routeId = $_POST['accept_route_id'];
+            $stmt = $pdo->prepare("UPDATE routes SET status = 'accepted', wizard_step = 3, accepted_at = NOW() WHERE id = ? AND user_id = ?");
+            if ($stmt->execute([$routeId, $_SESSION['user_id']])) {
+                $message = '<div class="alert success"><i class="fas fa-file-signature"></i> Rota aceita! Por favor, baixe o seu Termo de Registro de Demanda abaixo antes de iniciar.</div>';
+            }
+        } elseif (isset($_POST['replace_doc_id']) && isset($_FILES['new_document'])) {
+            $docId = (int)$_POST['replace_doc_id'];
+            $userId = $_SESSION['user_id'];
+            
+            // Buscar o documento atual para garantir propriedade e checar status
+            $stmt = $pdo->prepare("SELECT * FROM documents WHERE id = ? AND user_id = ?");
+            $stmt->execute([$docId, $userId]);
+            $doc = $stmt->fetch();
+            
+            if ($doc && $doc['status'] === 'rejected') {
+                $allowed = ['pdf', 'jpg', 'jpeg', 'png'];
+                $filename = $_FILES['new_document']['name'];
+                $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                
+                if (in_array($ext, $allowed)) {
+                    $uploadDir = '../../uploads/';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0777, true);
+                    }
+                    
+                    // Gerar nome de arquivo único
+                    $newFilename = uniqid() . '_' . basename($filename);
+                    $destination = $uploadDir . $newFilename;
+                    
+                    if (move_uploaded_file($_FILES['new_document']['tmp_name'], $destination)) {
+                        // Deletar o arquivo físico antigo se existir
+                        $oldFilePath = $doc['file_path'];
+                        $oldPhysicalPath = '../../uploads/' . basename($oldFilePath);
+                        if (!empty($oldFilePath) && file_exists($oldPhysicalPath)) {
+                            @unlink($oldPhysicalPath);
+                        }
+                        
+                        // Gravar o novo caminho relativo compatível com o sistema ('../uploads/...')
+                        $dbFilePath = '../uploads/' . $newFilename;
+                        
+                        // Atualizar tabela de documentos
+                        $updateStmt = $pdo->prepare("UPDATE documents SET file_path = ?, original_name = ?, status = 'pending', uploaded_at = NOW() WHERE id = ?");
+                        $updateStmt->execute([$dbFilePath, $filename, $docId]);
+                        
+                        // Se o status do recenseador for 'rejected', atualiza para 'pending'
+                        $userStmt = $pdo->prepare("SELECT status FROM users WHERE id = ?");
+                        $userStmt->execute([$userId]);
+                        $userStatus = $userStmt->fetchColumn();
+                        
+                        if ($userStatus === 'rejected') {
+                            $updateUserStmt = $pdo->prepare("UPDATE users SET status = 'pending' WHERE id = ?");
+                            $updateUserStmt->execute([$userId]);
+                        }
+                        
+                        $message = '<div class="alert success"><i class="fas fa-check-circle"></i> Documento enviado com sucesso! Aguarde a nova análise do administrador.</div>';
+                    } else {
+                        $message = '<div class="alert danger"><i class="fas fa-times"></i> Erro ao salvar o novo arquivo no servidor.</div>';
+                    }
+                } else {
+                    $message = '<div class="alert danger"><i class="fas fa-times"></i> Formato inválido. Apenas PDF, JPG, JPEG e PNG são aceitos.</div>';
+                }
+            } else {
+                $message = '<div class="alert danger"><i class="fas fa-times"></i> Documento não encontrado ou não está marcado como reprovado.</div>';
+            }
         }
     }
-}
 
 // Fetch user status
 $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
@@ -239,11 +298,20 @@ $user_docs = $docs_stmt->fetchAll();
                                         <i class="far fa-file-pdf" style="color: #dc3545; margin-right: 5px;"></i> 
                                         <?php echo htmlspecialchars($doc['document_type']); ?>
                                     </div>
-                                    <div>
+                                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
                                         <?php if (($doc['status'] ?? 'pending') === 'approved'): ?>
                                             <span style="background: #198754; color: white; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700;">APROVADO</span>
                                         <?php elseif (($doc['status'] ?? 'pending') === 'rejected'): ?>
                                             <span style="background: #dc3545; color: white; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700;">REPROVADO</span>
+                                            
+                                            <!-- Formulário inline para substituição do documento rejeitado -->
+                                            <form method="post" enctype="multipart/form-data" style="margin: 0; display: inline-block;">
+                                                <input type="hidden" name="replace_doc_id" value="<?php echo $doc['id']; ?>">
+                                                <input type="file" name="new_document" accept=".pdf,image/*" required style="display: none;" id="replace-upload-<?php echo $doc['id']; ?>" onchange="this.form.submit()">
+                                                <label for="replace-upload-<?php echo $doc['id']; ?>" class="btn btn-outline" style="font-size: 0.65rem; padding: 3px 8px; cursor: pointer; border-color: #d97706; color: #d97706; display: inline-flex; align-items: center; gap: 4px; background: white; font-weight: 700; transition: all 0.2s; border-radius: 4px; margin-top: 3px;">
+                                                    <i class="fas fa-sync-alt"></i> Substituir
+                                                </label>
+                                            </form>
                                         <?php else: ?>
                                             <span style="background: #ffc107; color: #000; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700;">PENDENTE</span>
                                         <?php endif; ?>

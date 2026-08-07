@@ -1484,6 +1484,12 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             <i class="fas fa-calendar-alt" style="width: 14px;"></i> 
                                             <span>Atribuída em: <?php echo date('d/m/Y H:i', strtotime($route['created_at'])); ?></span>
                                         </div>
+                                        <?php if (!empty($route['accepted_at'])): ?>
+                                            <div style="font-size: 0.75rem; color: #0284c7; display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                                                <i class="fas fa-check-circle" style="color: #0284c7; width: 14px;"></i> 
+                                                <span>Aceita em: <strong><?php echo date('d/m/Y H:i', strtotime($route['accepted_at'])); ?></strong></span>
+                                            </div>
+                                        <?php endif; ?>
                                         <?php if (!empty($route['scheduled_end'])): ?>
                                             <div style="font-size: 0.75rem; color: #ef4444; display: flex; align-items: center; gap: 8px; font-weight: 700; margin-top: 2px;">
                                                 <i class="fas fa-flag-checkered" style="width: 14px;"></i> 
@@ -1656,6 +1662,12 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             <i class="fas fa-calendar-alt" style="width: 14px;"></i> 
                                             <span>Atribuída em: <?php echo date('d/m/Y H:i', strtotime($route['created_at'])); ?></span>
                                         </div>
+                                        <?php if (!empty($route['accepted_at'])): ?>
+                                            <div style="font-size: 0.75rem; color: #0284c7; display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                                                <i class="fas fa-check-circle" style="color: #0284c7; width: 14px;"></i> 
+                                                <span>Aceita em: <strong><?php echo date('d/m/Y H:i', strtotime($route['accepted_at'])); ?></strong></span>
+                                            </div>
+                                        <?php endif; ?>
                                         <?php if (!empty($route['scheduled_end'])): ?>
                                             <div style="font-size: 0.75rem; color: #ef4444; display: flex; align-items: center; gap: 8px; font-weight: 700; margin-top: 2px;">
                                                 <i class="fas fa-flag-checkered" style="width: 14px;"></i> 

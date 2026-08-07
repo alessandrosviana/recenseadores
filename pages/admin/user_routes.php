@@ -220,6 +220,9 @@ $routes = $routes_stmt->fetchAll();
                                 <?php echo nl2br(htmlspecialchars($route['description'])); ?>
                                 <br><br>
                                 <small>Atribuída em: <?php echo date('d/m/Y H:i', strtotime($route['created_at'])); ?></small>
+                                <?php if (!empty($route['accepted_at'])): ?>
+                                    <br><small>Aceita em: <?php echo date('d/m/Y H:i', strtotime($route['accepted_at'])); ?></small>
+                                <?php endif; ?>
                                 <?php if ($route['status'] == 'completed' && !empty($route['completed_at'])): ?>
                                     <br><small>Finalizada em:
                                         <?php echo date('d/m/Y H:i', strtotime($route['completed_at'])); ?></small>

@@ -173,6 +173,14 @@ $rates = [
         <div style="text-align: right;">
             <span class="demand-type-label">Identificador</span>
             <span style="font-weight: 700; color: #334155;">#<?php echo $route_id; ?></span>
+            
+            <span class="demand-type-label" style="margin-top: 10px;">Atribuído em</span>
+            <span style="font-weight: 700; color: #334155; font-size: 11px; display: block;"><?php echo date('d/m/Y H:i', strtotime($data['created_at'])); ?></span>
+            
+            <?php if (!empty($data['accepted_at'])): ?>
+                <span class="demand-type-label" style="margin-top: 10px;">Aceito em</span>
+                <span style="font-weight: 700; color: #0284c7; font-size: 11px; display: block;"><?php echo date('d/m/Y H:i', strtotime($data['accepted_at'])); ?></span>
+            <?php endif; ?>
         </div>
     </div>
 
