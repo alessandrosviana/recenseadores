@@ -1478,7 +1478,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                     <div style="background: #f8fafc; border-radius: 8px; padding: 0.75rem; margin-bottom: 1.25rem; border: 1px solid #f1f5f9; display: grid; gap: 0.4rem;">
                                         <div style="font-size: 0.75rem; color: #64748b; display: flex; align-items: center; gap: 8px;">
                                             <i class="fas fa-play-circle" style="color: #22c55e; width: 14px;"></i> 
-                                            <span>Início: <strong><?php echo ($route['start_time']) ? date('d/m/Y H:i', strtotime($route['start_time'])) : 'N/A'; ?></strong></span>
+                                            <span>Início: <strong><?php echo ($route['start_time']) ? date('d/m/Y H:i', strtotime($route['start_time'])) : 'Aguardando início da rota pelo recenseador'; ?></strong></span>
                                         </div>
                                         <div style="font-size: 0.7rem; color: #94a3b8; display: flex; align-items: center; gap: 8px;">
                                             <i class="fas fa-calendar-alt" style="width: 14px;"></i> 
@@ -1656,7 +1656,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                     <div style="background: #f8fafc; border-radius: 8px; padding: 0.75rem; margin-bottom: 1.25rem; border: 1px solid #f1f5f9; display: grid; gap: 0.4rem;">
                                         <div style="font-size: 0.75rem; color: #64748b; display: flex; align-items: center; gap: 8px;">
                                             <i class="fas fa-play-circle" style="color: #22c55e; width: 14px;"></i> 
-                                            <span>Início: <strong><?php echo ($route['start_time']) ? date('d/m/Y H:i', strtotime($route['start_time'])) : 'N/A'; ?></strong></span>
+                                            <span>Início: <strong><?php echo ($route['start_time']) ? date('d/m/Y H:i', strtotime($route['start_time'])) : 'Aguardando início da rota pelo recenseador'; ?></strong></span>
                                         </div>
                                         <div style="font-size: 0.7rem; color: #94a3b8; display: flex; align-items: center; gap: 8px;">
                                             <i class="fas fa-calendar-alt" style="width: 14px;"></i> 
@@ -3142,7 +3142,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                     <div style="background: #f8fafc; border-radius: 8px; padding: 0.75rem; margin-bottom: 1.25rem; border: 1px solid #f1f5f9; display: grid; gap: 0.4rem;">
                                         <div style="font-size: 0.75rem; color: #64748b; display: flex; align-items: center; gap: 8px;">
                                             <i class="fas fa-play-circle" style="color: #22c55e; width: 14px;"></i> 
-                                            <span>Início: <strong><?php echo ($route['start_time']) ? date('d/m/Y H:i', strtotime($route['start_time'])) : 'N/A'; ?></strong></span>
+                                            <span>Início: <strong><?php echo ($route['start_time']) ? date('d/m/Y H:i', strtotime($route['start_time'])) : 'Aguardando início da rota pelo recenseador'; ?></strong></span>
                                         </div>
                                         <div style="font-size: 0.7rem; color: #94a3b8; display: flex; align-items: center; gap: 8px;">
                                             <i class="fas fa-calendar-alt" style="width: 14px;"></i> 
