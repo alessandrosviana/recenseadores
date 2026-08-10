@@ -479,6 +479,16 @@ $user_docs = $docs_stmt->fetchAll();
                                             </div>
                                             <?php endif; ?>
                                         </div>
+                                        
+                                        <?php if ($route['status'] === 'completed' && !empty($route['completed_at'])): ?>
+                                        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 0.75rem; border-radius: 8px; display: flex; align-items: center; gap: 8px; color: #15803d; font-size: 0.8rem; font-weight: 600; margin-top: -5px;">
+                                            <i class="fas fa-calendar-check" style="font-size: 1rem; color: #16a34a;"></i>
+                                            <div>
+                                                <small style="font-size: 0.6rem; color: #166534; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Data da Conclusão</small>
+                                                <?php echo date('d/m/Y \à\s H:i', strtotime($route['completed_at'])); ?>
+                                            </div>
+                                        </div>
+                                        <?php endif; ?>
 
                                         <!-- Urgent Countdown if in progress -->
                                         <?php if (in_array($route['status'], ['pending_acceptance', 'accepted', 'in_progress', 'delayed']) && !empty($deadline)): ?>
