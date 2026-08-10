@@ -413,7 +413,24 @@ $user_docs = $docs_stmt->fetchAll();
                                     <!-- Header: Simplified & Elegant -->
                                     <div style="background: var(--slate-50); padding: 1.25rem; border-bottom: 1px solid var(--border); position: relative;">
                                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                            <span style="font-size: 0.65rem; font-weight: 800; color: var(--primary-teal); letter-spacing: 0.05em; text-transform: uppercase;">Tarefa Atribuída</span>
+                                            <?php 
+                                                $demandLabel = "Específica";
+                                                $demandColor = "#3b82f6"; // Blue
+                                                $demandIcon = "location-dot";
+                                                
+                                                if (($route['demand_type'] ?? '') === 'padrao') {
+                                                    $demandLabel = "Padrão";
+                                                    $demandColor = "#8b5cf6"; // Purple
+                                                    $demandIcon = "map";
+                                                } elseif (($route['demand_type'] ?? '') === 'mista') {
+                                                    $demandLabel = "Mista";
+                                                    $demandColor = "#f59e0b"; // Orange
+                                                    $demandIcon = "layer-group";
+                                                }
+                                            ?>
+                                            <span style="background: <?php echo $demandColor; ?>15; color: <?php echo $demandColor; ?>; font-size: 0.65rem; font-weight: 800; padding: 3px 10px; border-radius: 10px; border: 1px solid <?php echo $demandColor; ?>40; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; letter-spacing: 0.05em; vertical-align: middle;">
+                                                <i class="fas fa-<?php echo $demandIcon; ?>" style="font-size: 0.7rem;"></i> Tarefa <?php echo $demandLabel; ?>
+                                            </span>
                                             <span class="status-label bg-<?php echo $route['status']; ?>" style="font-size: 0.65rem; padding: 4px 10px;">
                                                 <?php
                                                 if ($route['status'] == 'pending_acceptance') echo 'Pendente Aceite';
