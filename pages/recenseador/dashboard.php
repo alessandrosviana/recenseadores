@@ -622,6 +622,39 @@ $user_docs = $docs_stmt->fetchAll();
                                                     <div style="background: var(--success-light); color: var(--success); padding: 0.75rem; border-radius: 8px; text-align: center; font-weight: 700; font-size: 0.8rem; border: 1px solid var(--success-light);">
                                                         <i class="fas fa-check-double"></i> ROTA CONCLUÍDA E ENVIADA
                                                     </div>
+                                                    
+                                                    <!-- Meus Envios de Comprovação -->
+                                                    <div style="background: #fdfdfd; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border); font-size: 0.8rem; color: #475569; margin-top: 5px;">
+                                                        <strong style="color: var(--success); display: flex; align-items: center; gap: 4px; margin-bottom: 0.5rem;">
+                                                            <i class="fas fa-file-invoice"></i> Minha Comprovação Enviada
+                                                        </strong>
+                                                        
+                                                        <div style="margin-bottom: 0.5rem; line-height: 1.4;">
+                                                            <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Relatório de Execução</small>
+                                                            <div style="color: var(--slate-700); white-space: pre-line;"><?php echo htmlspecialchars(trim($route['observation'] ?? 'Sem observações.')); ?></div>
+                                                        </div>
+                                                        
+                                                        <?php
+                                                        $myFiles = array_filter([$route['report_file_1'], $route['report_file_2'], $route['report_file_3']]);
+                                                        if (!empty($myFiles)):
+                                                        ?>
+                                                            <div>
+                                                                <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 4px;">Arquivos Comprovantes</small>
+                                                                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                                                    <?php foreach ($myFiles as $idx => $f): 
+                                                                        $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                                                                        $icon = ($ext === 'pdf') ? 'fa-file-pdf' : 'fa-file-image';
+                                                                        $link = str_replace('../../', BASE_URL, htmlspecialchars($f));
+                                                                    ?>
+                                                                        <a href="<?php echo $link; ?>" target="_blank" class="btn btn-outline" 
+                                                                           style="font-size: 0.65rem; padding: 4px 8px; border-color: var(--success); color: var(--success); display: inline-flex; align-items: center; gap: 4px; background: white; text-decoration: none;">
+                                                                            <i class="fas <?php echo $icon; ?>"></i> Anexo <?php echo $idx + 1; ?>
+                                                                        </a>
+                                                                    <?php endforeach; ?>
+                                                                </div>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 </div>
                                             <?php endif; ?>
                                         </div>
