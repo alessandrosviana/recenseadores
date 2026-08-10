@@ -505,19 +505,15 @@ $user_docs = $docs_stmt->fetchAll();
                                             
                                             <?php if ($showArea): ?>
                                                 <div>
-                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 4px;">Descrição da Área de Atuação</small>
-                                                    <div class="area-details-preview" style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4;">
-                                                        <?php echo $route['area_details']; // Renderização HTML Quill ?>
-                                                    </div>
+                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Descrição da Área de Atuação</small>
+                                                    <div class="area-details-preview" style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4;"><?php echo trim($route['area_details']); ?></div>
                                                 </div>
                                             <?php endif; ?>
                                             
                                             <?php if ($showDesc): ?>
                                                 <div>
-                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 4px;">Instruções Complementares</small>
-                                                    <div style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; white-space: pre-line;">
-                                                        <?php echo htmlspecialchars($route['description']); ?>
-                                                    </div>
+                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Instruções Complementares</small>
+                                                    <div style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['description'])); ?></div>
                                                 </div>
                                             <?php endif; ?>
                                         </div>
