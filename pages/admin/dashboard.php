@@ -1555,7 +1555,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             
                                             <?php if ($showDesc): ?>
                                                 <div>
-                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Instruções Complementares</small>
+                                                    <small style="font-size: 0.6rem; color: #dc3545; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Instruções Complementares</small>
                                                     <div style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['description'])); ?></div>
                                                 </div>
                                             <?php endif; ?>
@@ -1747,7 +1747,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             
                                             <?php if ($showDesc): ?>
                                                 <div>
-                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Instruções Complementares</small>
+                                                    <small style="font-size: 0.6rem; color: #dc3545; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Instruções Complementares</small>
                                                     <div style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['description'])); ?></div>
                                                 </div>
                                             <?php endif; ?>
@@ -3251,7 +3251,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             
                                             <?php if ($showDesc): ?>
                                                 <div>
-                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Instruções Complementares</small>
+                                                    <small style="font-size: 0.6rem; color: #dc3545; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Instruções Complementares</small>
                                                     <div style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['description'])); ?></div>
                                                 </div>
                                             <?php endif; ?>
