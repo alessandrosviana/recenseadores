@@ -265,10 +265,13 @@ $routes = $routes_stmt->fetchAll();
                                     <div style="margin-top: 0.5rem;">
                                         <strong><i class="fas fa-paperclip"></i> Anexos:</strong>
                                         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.3rem;">
-                                            <?php foreach ($files as $index => $file): ?>
+                                            <?php foreach ($files as $index => $file): 
+                                                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                                                $icon = ($ext === 'pdf') ? 'fa-file-pdf' : 'fa-file-image';
+                                            ?>
                                                 <a href="<?php echo htmlspecialchars($file); ?>" target="_blank" class="btn btn-outline"
-                                                    style="font-size: 0.8rem; padding: 0.3rem 0.6rem;">
-                                                    <i class="fas fa-file-pdf"></i> Anexo <?php echo $index + 1; ?>
+                                                    style="font-size: 0.8rem; padding: 0.3rem 0.6rem; display: inline-flex; align-items: center; gap: 4px;">
+                                                    <i class="fas <?php echo $icon; ?>"></i> Anexo <?php echo $index + 1; ?>
                                                 </a>
                                             <?php endforeach; ?>
                                         </div>

@@ -42,12 +42,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
         
         $filePaths = [];
+        $allowedExts = ['pdf', 'jpg', 'jpeg', 'png'];
         for ($i = 1; $i <= 3; $i++) {
             $inputName = "report_file_$i";
             if (isset($_FILES[$inputName]) && $_FILES[$inputName]['error'] == 0) {
-                $ext = pathinfo($_FILES[$inputName]['name'], PATHINFO_EXTENSION);
-                if (strtolower($ext) == 'pdf') {
-                    $newName = "report_{$routeId}_{$i}_" . time() . ".pdf";
+                $ext = strtolower(pathinfo($_FILES[$inputName]['name'], PATHINFO_EXTENSION));
+                if (in_array($ext, $allowedExts)) {
+                    $newName = "report_{$routeId}_{$i}_" . time() . "." . $ext;
                     if (move_uploaded_file($_FILES[$inputName]['tmp_name'], $uploadDir . $newName)) {
                         $filePaths[$i] = $uploadDir . $newName;
                     }
@@ -697,23 +698,23 @@ $user_docs = $docs_stmt->fetchAll();
                 
                 <div class="form-group" style="margin-bottom: 1.5rem;">
                     <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem; color: #475569;">
-                        <i class="fas fa-file-pdf"></i> Comprovantes e Relatórios Finais (Apenas PDF, máx. 3 arquivos):
+                        <i class="fas fa-images"></i> Comprovantes, Fotos e Relatórios Finais (PDF ou Imagem, máx. 3 arquivos):
                     </label>
                     <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
                         <div class="custom-file-upload">
                             <i class="fas fa-upload" style="color: #64748b;"></i>
                             <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">Arquivo 1 (Obrigatório)</span>
-                            <input type="file" name="report_file_1" accept=".pdf" required style="font-size: 0.8rem; width: 100%; margin-top: 5px;">
+                            <input type="file" name="report_file_1" accept=".pdf,image/*" required style="font-size: 0.8rem; width: 100%; margin-top: 5px;">
                         </div>
                         <div class="custom-file-upload">
                             <i class="fas fa-upload" style="color: #64748b;"></i>
                             <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">Arquivo 2 (Opcional)</span>
-                            <input type="file" name="report_file_2" accept=".pdf" style="font-size: 0.8rem; width: 100%; margin-top: 5px;">
+                            <input type="file" name="report_file_2" accept=".pdf,image/*" style="font-size: 0.8rem; width: 100%; margin-top: 5px;">
                         </div>
                         <div class="custom-file-upload">
                             <i class="fas fa-upload" style="color: #64748b;"></i>
                             <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">Arquivo 3 (Opcional)</span>
-                            <input type="file" name="report_file_3" accept=".pdf" style="font-size: 0.8rem; width: 100%; margin-top: 5px;">
+                            <input type="file" name="report_file_3" accept=".pdf,image/*" style="font-size: 0.8rem; width: 100%; margin-top: 5px;">
                         </div>
                     </div>
                 </div>

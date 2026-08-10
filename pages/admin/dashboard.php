@@ -1354,7 +1354,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         </div>
 
                                         <?php if ($r['wizard_step'] >= 3): ?>
-                                            <div style="background: #fdfdfd; padding: 0.8rem; border-radius: 4px; border-left: 3px solid #198754; font-size: 0.85rem; color: #555; margin-top: 10px;">
+                            <div style="background: #fdfdfd; padding: 0.8rem; border-radius: 4px; border-left: 3px solid #198754; font-size: 0.85rem; color: #555; margin-top: 10px;">
                                                 <strong><i class="fas fa-comment-dots"></i> Relatório do Recenseador:</strong><br>
                                                 <?php echo nl2br(htmlspecialchars($r['observation'] ?? 'Sem observações.')); ?>
 
@@ -1363,9 +1363,12 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                                 if (!empty($files)):
                                                 ?>
                                                     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
-                                                        <?php foreach ($files as $idx => $f): ?>
-                                                            <a href="<?php echo htmlspecialchars($f); ?>" target="_blank" class="btn btn-outline" style="font-size: 0.7rem; padding: 0.2rem 0.4rem; border-color: #198754; color: #198754;">
-                                                                <i class="fas fa-file-pdf"></i> Anexo <?php echo $idx + 1; ?>
+                                                        <?php foreach ($files as $idx => $f): 
+                                                            $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                                                            $icon = ($ext === 'pdf') ? 'fa-file-pdf' : 'fa-file-image';
+                                                        ?>
+                                                            <a href="<?php echo htmlspecialchars($f); ?>" target="_blank" class="btn btn-outline" style="font-size: 0.7rem; padding: 0.2rem 0.4rem; border-color: #198754; color: #198754; display: inline-flex; align-items: center; gap: 4px;">
+                                                                <i class="fas <?php echo $icon; ?>"></i> Anexo <?php echo $idx + 1; ?>
                                                             </a>
                                                         <?php endforeach; ?>
                                                     </div>
@@ -2229,8 +2232,10 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                                 <?php
                                                 $files = array_filter([$c_route['report_file_1'], $c_route['report_file_2'], $c_route['report_file_3']]);
                                                 foreach ($files as $idx => $file):
+                                                    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                                                    $icon = ($ext === 'pdf') ? 'fa-file-pdf' : 'fa-file-image';
                                                 ?>
-                                                    <a href="<?php echo htmlspecialchars($file); ?>" target="_blank" title="Anexo <?php echo $idx+1; ?>" style="color: #28a745; margin: 0 3px;"><i class="fas fa-file-pdf"></i></a>
+                                                    <a href="<?php echo htmlspecialchars($file); ?>" target="_blank" title="Anexo <?php echo $idx+1; ?>" style="color: #28a745; margin: 0 3px;"><i class="fas <?php echo $icon; ?>"></i></a>
                                                 <?php endforeach; ?>
                                                 <a href="edit_route.php?id=<?php echo $c_route['id']; ?>" style="display: block; font-size: 0.65rem; color: #666; margin-top: 5px;">Ver</a>
                                             </td>
