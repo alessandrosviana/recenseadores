@@ -232,6 +232,78 @@ $user_docs = $docs_stmt->fetchAll();
             border: 2px solid #1e293b;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
         }
+
+        /* Modal Styles */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e2e8f0;
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: color 0.2s;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .modal-close-btn:hover {
+            color: #475569;
+        }
+
+        .custom-file-upload {
+            border: 1px dashed #cbd5e1;
+            padding: 10px;
+            border-radius: 6px;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
     </style>
 </head>
 
@@ -490,24 +562,11 @@ $user_docs = $docs_stmt->fetchAll();
                                                     </a>
                                                 </div>
                                                 <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 10px;">
-                                                    <form method="post" enctype="multipart/form-data">
-                                                        <input type="hidden" name="complete_route_id" value="<?php echo $route['id']; ?>">
-                                                        <div class="form-group" style="margin-bottom: 0.75rem;">
-                                                            <label style="font-size: 0.7rem; font-weight: 700;">Relatório de Execução</label>
-                                                            <textarea name="observation" required class="form-control" rows="2" style="font-size: 0.8rem; border-radius: 6px;" placeholder="Descreva os detalhes da visita..."></textarea>
-                                                        </div>
-                                                        <div class="form-group" style="margin-bottom: 1rem;">
-                                                            <label style="font-size: 0.7rem; font-weight: 700;">Comprovantes (PDF)</label>
-                                                            <div style="display: flex; flex-direction: column; gap: 4px;">
-                                                                <input type="file" name="report_file_1" accept=".pdf" style="font-size: 0.7rem;">
-                                                                <input type="file" name="report_file_2" accept=".pdf" style="font-size: 0.7rem;">
-                                                                <input type="file" name="report_file_3" accept=".pdf" style="font-size: 0.7rem;">
-                                                            </div>
-                                                        </div>
-                                                        <button type="submit" class="btn btn-primary" style="width: 100%; background: var(--success); box-shadow: none; padding: 0.75rem; font-size: 0.75rem;">
-                                                            <i class="fas fa-check-circle"></i> CONCLUIR TAREFA
-                                                        </button>
-                                                    </form>
+                                                    <button type="button" class="btn" 
+                                                            onclick="openCompleteModal(<?php echo $route['id']; ?>, '<?php echo htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8'); ?>')" 
+                                                            style="width: 100%; background: #2563eb; border-color: #2563eb; color: white; padding: 0.75rem; font-size: 0.75rem; font-weight: 600;">
+                                                        <i class="fas fa-check-circle"></i> CONCLUIR ROTA (ENVIAR RELATÓRIO)
+                                                    </button>
                                                 </div>
                                             <?php elseif ($route['status'] === 'completed'): ?>
                                                 <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -587,6 +646,78 @@ $user_docs = $docs_stmt->fetchAll();
         updateCountdowns();
         // Update every second
         setInterval(updateCountdowns, 1000);
+    </script>
+
+    <!-- Modal de Conclusão de Rota -->
+    <div id="complete-route-modal" class="modal-backdrop" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-route-title" style="margin: 0; color: var(--primary-teal); font-weight: 700; font-size: 1.1rem;">Concluir Rota</h3>
+                <button type="button" onclick="closeCompleteModal()" class="modal-close-btn">&times;</button>
+            </div>
+            <form method="post" enctype="multipart/form-data" style="margin: 0;">
+                <input type="hidden" name="complete_route_id" id="modal-route-id" value="">
+                
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem; color: #475569;">
+                        <i class="fas fa-align-left"></i> Relatório de Execução / Observações:
+                    </label>
+                    <textarea name="observation" required class="form-control" rows="6" 
+                              style="font-size: 0.9rem; border-radius: 6px; padding: 10px; width: 100%; border: 1px solid #cbd5e1; box-sizing: border-box;" 
+                              placeholder="Descreva detalhadamente as atividades realizadas nesta rota, visitas, coletas e eventuais ocorrências..."></textarea>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem; color: #475569;">
+                        <i class="fas fa-file-pdf"></i> Comprovantes e Relatórios Finais (Apenas PDF, máx. 3 arquivos):
+                    </label>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+                        <div class="custom-file-upload">
+                            <i class="fas fa-upload" style="color: #64748b;"></i>
+                            <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">Arquivo 1 (Obrigatório)</span>
+                            <input type="file" name="report_file_1" accept=".pdf" required style="font-size: 0.8rem; width: 100%; margin-top: 5px;">
+                        </div>
+                        <div class="custom-file-upload">
+                            <i class="fas fa-upload" style="color: #64748b;"></i>
+                            <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">Arquivo 2 (Opcional)</span>
+                            <input type="file" name="report_file_2" accept=".pdf" style="font-size: 0.8rem; width: 100%; margin-top: 5px;">
+                        </div>
+                        <div class="custom-file-upload">
+                            <i class="fas fa-upload" style="color: #64748b;"></i>
+                            <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">Arquivo 3 (Opcional)</span>
+                            <input type="file" name="report_file_3" accept=".pdf" style="font-size: 0.8rem; width: 100%; margin-top: 5px;">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                    <button type="button" onclick="closeCompleteModal()" class="btn btn-outline" style="border-color: #cbd5e1; color: #64748b; font-size: 0.85rem; padding: 0.6rem 1.2rem; background: white; border-radius: 4px; cursor: pointer;">Cancelar</button>
+                    <button type="submit" class="btn" style="background: var(--success); border-color: var(--success); font-size: 0.85rem; padding: 0.6rem 1.2rem; color: white; border-radius: 4px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                        <i class="fas fa-check-circle"></i> Concluir Rota
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    function openCompleteModal(routeId, routeTitle) {
+        document.getElementById('modal-route-id').value = routeId;
+        document.getElementById('modal-route-title').innerText = 'Concluir Rota: ' + routeTitle;
+        document.getElementById('complete-route-modal').style.display = 'flex';
+    }
+
+    function closeCompleteModal() {
+        document.getElementById('complete-route-modal').style.display = 'none';
+    }
+
+    // Fechar ao clicar fora do modal
+    window.onclick = function(event) {
+        var modal = document.getElementById('complete-route-modal');
+        if (event.target == modal) {
+            closeCompleteModal();
+        }
+    }
     </script>
 </body>
 
