@@ -1534,13 +1534,36 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                     </div>
 
                                     <div style="font-size: 0.8rem; color: #64748b; background: #fdfdfd; padding: 0.5rem 0; border-top: 1px dashed #e2e8f0;">
-                                        <?php if (!empty($route['area_details']) && $route['area_details'] !== '<p><br></p>'): ?>
-                                            <div style="color: #475569; margin-bottom: 8px; font-weight: 500; display: flex; align-items: flex-start; gap: 8px; background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
-                                                <i class="fas fa-align-left" style="color: #94a3b8; margin-top: 3px;"></i>
-                                                <div class="area-desc-content" style="flex: 1; line-height: 1.5; max-height: 150px; overflow-y: auto; padding-right: 5px;">
-                                                    <?php echo $route['area_details']; ?>
+                                        <!-- Seção de Instruções e Detalhamento da Rota -->
+                                        <?php 
+                                        $showDesc = !empty($route['description']);
+                                        $showArea = in_array($route['demand_type'], ['padrao', 'mista']) && !empty($route['area_details']) && $route['area_details'] !== '<p><br></p>';
+                                        
+                                        if ($showDesc || $showArea): 
+                                        ?>
+                                        <div style="background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
+                                            <h4 style="font-size: 0.65rem; color: #475569; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; display: flex; align-items: center; gap: 6px;">
+                                                <i class="fas fa-info-circle"></i> Instruções da Rota
+                                            </h4>
+                                            
+                                            <?php if ($showArea): ?>
+                                                <div>
+                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Descrição da Área de Atuação</small>
+                                                    <div class="area-desc-content" style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; max-height: 150px; overflow-y: auto; padding-right: 5px;">
+                                                        <?php echo $route['area_details']; // Renderização HTML Quill ?>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            <?php endif; ?>
+                                            
+                                            <?php if ($showDesc): ?>
+                                                <div>
+                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Instruções Complementares</small>
+                                                    <div style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; white-space: pre-line;">
+                                                        <?php echo htmlspecialchars($route['description']); ?>
+                                                    </div>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
                                         <?php endif; ?>
 
                                         <?php 
@@ -1707,13 +1730,36 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                     </div>
 
                                     <div style="font-size: 0.8rem; color: #64748b; background: #fdfdfd; padding: 0.5rem 0; border-top: 1px dashed #e2e8f0;">
-                                        <?php if (!empty($route['area_details']) && $route['area_details'] !== '<p><br></p>'): ?>
-                                            <div style="color: #475569; margin-bottom: 8px; font-weight: 500; display: flex; align-items: flex-start; gap: 8px; background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
-                                                <i class="fas fa-align-left" style="color: #94a3b8; margin-top: 3px;"></i>
-                                                <div class="area-desc-content" style="flex: 1; line-height: 1.5; max-height: 150px; overflow-y: auto; padding-right: 5px;">
-                                                    <?php echo $route['area_details']; ?>
+                                        <!-- Seção de Instruções e Detalhamento da Rota -->
+                                        <?php 
+                                        $showDesc = !empty($route['description']);
+                                        $showArea = in_array($route['demand_type'], ['padrao', 'mista']) && !empty($route['area_details']) && $route['area_details'] !== '<p><br></p>';
+                                        
+                                        if ($showDesc || $showArea): 
+                                        ?>
+                                        <div style="background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
+                                            <h4 style="font-size: 0.65rem; color: #475569; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; display: flex; align-items: center; gap: 6px;">
+                                                <i class="fas fa-info-circle"></i> Instruções da Rota
+                                            </h4>
+                                            
+                                            <?php if ($showArea): ?>
+                                                <div>
+                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Descrição da Área de Atuação</small>
+                                                    <div class="area-desc-content" style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; max-height: 150px; overflow-y: auto; padding-right: 5px;">
+                                                        <?php echo $route['area_details']; // Renderização HTML Quill ?>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            <?php endif; ?>
+                                            
+                                            <?php if ($showDesc): ?>
+                                                <div>
+                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Instruções Complementares</small>
+                                                    <div style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; white-space: pre-line;">
+                                                        <?php echo htmlspecialchars($route['description']); ?>
+                                                    </div>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
                                         <?php endif; ?>
 
                                         <?php 
@@ -3192,13 +3238,36 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                     </div>
 
                                     <div style="font-size: 0.8rem; color: #64748b; background: #fdfdfd; padding: 0.5rem 0; border-top: 1px dashed #e2e8f0;">
-                                        <?php if (!empty($route['area_details']) && $route['area_details'] !== '<p><br></p>'): ?>
-                                            <div style="color: #475569; margin-bottom: 8px; font-weight: 500; display: flex; align-items: flex-start; gap: 8px; background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
-                                                <i class="fas fa-align-left" style="color: #94a3b8; margin-top: 3px;"></i>
-                                                <div class="area-desc-content" style="flex: 1; line-height: 1.5; max-height: 150px; overflow-y: auto; padding-right: 5px;">
-                                                    <?php echo $route['area_details']; ?>
+                                        <!-- Seção de Instruções e Detalhamento da Rota -->
+                                        <?php 
+                                        $showDesc = !empty($route['description']);
+                                        $showArea = in_array($route['demand_type'], ['padrao', 'mista']) && !empty($route['area_details']) && $route['area_details'] !== '<p><br></p>';
+                                        
+                                        if ($showDesc || $showArea): 
+                                        ?>
+                                        <div style="background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
+                                            <h4 style="font-size: 0.65rem; color: #475569; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; display: flex; align-items: center; gap: 6px;">
+                                                <i class="fas fa-info-circle"></i> Instruções da Rota
+                                            </h4>
+                                            
+                                            <?php if ($showArea): ?>
+                                                <div>
+                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Descrição da Área de Atuação</small>
+                                                    <div class="area-desc-content" style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; max-height: 150px; overflow-y: auto; padding-right: 5px;">
+                                                        <?php echo $route['area_details']; // Renderização HTML Quill ?>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            <?php endif; ?>
+                                            
+                                            <?php if ($showDesc): ?>
+                                                <div>
+                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Instruções Complementares</small>
+                                                    <div style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; white-space: pre-line;">
+                                                        <?php echo htmlspecialchars($route['description']); ?>
+                                                    </div>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
                                         <?php endif; ?>
 
                                         <?php 

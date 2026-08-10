@@ -491,6 +491,38 @@ $user_docs = $docs_stmt->fetchAll();
                                             </div>
                                         </div>
 
+                                        <!-- Seção de Instruções e Detalhamento da Rota -->
+                                        <?php 
+                                        $showDesc = !empty($route['description']);
+                                        $showArea = in_array($route['demand_type'], ['padrao', 'mista']) && !empty($route['area_details']) && $route['area_details'] !== '<p><br></p>';
+                                        
+                                        if ($showDesc || $showArea): 
+                                        ?>
+                                        <div style="background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px;">
+                                            <h4 style="font-size: 0.65rem; color: #475569; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; display: flex; align-items: center; gap: 6px;">
+                                                <i class="fas fa-info-circle"></i> Instruções da Rota
+                                            </h4>
+                                            
+                                            <?php if ($showArea): ?>
+                                                <div>
+                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 4px;">Descrição da Área de Atuação</small>
+                                                    <div class="area-details-preview" style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4;">
+                                                        <?php echo $route['area_details']; // Renderização HTML Quill ?>
+                                                    </div>
+                                                </div>
+                                            <?php endif; ?>
+                                            
+                                            <?php if ($showDesc): ?>
+                                                <div>
+                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 4px;">Instruções Complementares</small>
+                                                    <div style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; white-space: pre-line;">
+                                                        <?php echo htmlspecialchars($route['description']); ?>
+                                                    </div>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <?php endif; ?>
+
                                         <!-- Attachments: Compact Pills -->
                                         <?php 
                                         $adminFiles = array_filter([
