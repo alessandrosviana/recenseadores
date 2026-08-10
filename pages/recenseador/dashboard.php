@@ -505,7 +505,7 @@ $user_docs = $docs_stmt->fetchAll();
                                             
                                             <?php if ($showArea): ?>
                                                 <div>
-                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Descrição da Área de Atuação</small>
+                                                    <small style="font-size: 0.6rem; color: #dc3545; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Descrição da Área de Atuação</small>
                                                     <div class="area-details-preview" style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4;"><?php echo trim($route['area_details']); ?></div>
                                                 </div>
                                             <?php endif; ?>

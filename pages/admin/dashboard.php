@@ -1548,7 +1548,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             
                                             <?php if ($showArea): ?>
                                                 <div>
-                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Descrição da Área de Atuação</small>
+                                                    <small style="font-size: 0.6rem; color: #dc3545; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Descrição da Área de Atuação</small>
                                                     <div class="area-desc-content" style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; max-height: 150px; overflow-y: auto; padding-right: 5px;"><?php echo trim($route['area_details']); ?></div>
                                                 </div>
                                             <?php endif; ?>
@@ -1740,7 +1740,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             
                                             <?php if ($showArea): ?>
                                                 <div>
-                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Descrição da Área de Atuação</small>
+                                                    <small style="font-size: 0.6rem; color: #dc3545; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Descrição da Área de Atuação</small>
                                                     <div class="area-desc-content" style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; max-height: 150px; overflow-y: auto; padding-right: 5px;"><?php echo trim($route['area_details']); ?></div>
                                                 </div>
                                             <?php endif; ?>
@@ -3244,7 +3244,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             
                                             <?php if ($showArea): ?>
                                                 <div>
-                                                    <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Descrição da Área de Atuação</small>
+                                                    <small style="font-size: 0.6rem; color: #dc3545; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Descrição da Área de Atuação</small>
                                                     <div class="area-desc-content" style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; max-height: 150px; overflow-y: auto; padding-right: 5px;"><?php echo trim($route['area_details']); ?></div>
                                                 </div>
                                             <?php endif; ?>
