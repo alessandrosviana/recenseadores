@@ -158,11 +158,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $active_tab = 'monitor';
         } elseif ($action === 'renew_route') {
             $routeId = $_POST['route_id'];
-            $stmt = $pdo->prepare("UPDATE routes SET scheduled_end = DATE_ADD(NOW(), INTERVAL 7 DAY), status = 'in_progress' WHERE id = ?");
-            if ($stmt->execute([$routeId])) {
+            $reason = trim($_POST['renewal_reason'] ?? '');
+            $stmt = $pdo->prepare("UPDATE routes SET scheduled_end = DATE_ADD(NOW(), INTERVAL 7 DAY), status = 'in_progress', renewal_reason = ? WHERE id = ?");
+            if ($stmt->execute([$reason, $routeId])) {
                 $message = '<div class="alert success"><i class="fas fa-history"></i> Rota renovada com sucesso por mais 7 dias!</div>';
             }
-            $active_tab = 'monitor';
+            $active_tab = 'expired';
         } elseif ($action === 'update_wizard') {
             $routeId = $_POST['route_id'];
             $step = (int) $_POST['step'];
@@ -1541,8 +1542,9 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         <?php 
                                         $showDesc = !empty($route['description']);
                                         $showArea = in_array($route['demand_type'], ['padrao', 'mista']) && !empty($route['area_details']) && $route['area_details'] !== '<p><br></p>';
+                                        $showRenewal = !empty($route['renewal_reason']);
                                         
-                                        if ($showDesc || $showArea): 
+                                        if ($showDesc || $showArea || $showRenewal): 
                                         ?>
                                         <div style="background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
                                             <h4 style="font-size: 0.65rem; color: #475569; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; display: flex; align-items: center; gap: 6px;">
@@ -1560,6 +1562,15 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                                 <div>
                                                     <small style="font-size: 0.6rem; color: #dc3545; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Instruções Complementares</small>
                                                     <div style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['description'])); ?></div>
+                                                </div>
+                                            <?php endif; ?>
+
+                                            <?php if ($showRenewal): ?>
+                                                <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.8rem; color: #1e40af; margin-top: 4px;">
+                                                    <small style="font-size: 0.6rem; color: #1e3a8a; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">
+                                                        <i class="fas fa-history"></i> Motivo da Prorrogação
+                                                    </small>
+                                                    <div style="line-height: 1.4; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['renewal_reason'])); ?></div>
                                                 </div>
                                             <?php endif; ?>
                                         </div>
@@ -1733,8 +1744,9 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         <?php 
                                         $showDesc = !empty($route['description']);
                                         $showArea = in_array($route['demand_type'], ['padrao', 'mista']) && !empty($route['area_details']) && $route['area_details'] !== '<p><br></p>';
+                                        $showRenewal = !empty($route['renewal_reason']);
                                         
-                                        if ($showDesc || $showArea): 
+                                        if ($showDesc || $showArea || $showRenewal): 
                                         ?>
                                         <div style="background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
                                             <h4 style="font-size: 0.65rem; color: #475569; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; display: flex; align-items: center; gap: 6px;">
@@ -1752,6 +1764,15 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                                 <div>
                                                     <small style="font-size: 0.6rem; color: #dc3545; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Instruções Complementares</small>
                                                     <div style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['description'])); ?></div>
+                                                </div>
+                                            <?php endif; ?>
+
+                                            <?php if ($showRenewal): ?>
+                                                <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.8rem; color: #1e40af; margin-top: 4px;">
+                                                    <small style="font-size: 0.6rem; color: #1e3a8a; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">
+                                                        <i class="fas fa-history"></i> Motivo da Prorrogação
+                                                    </small>
+                                                    <div style="line-height: 1.4; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['renewal_reason'])); ?></div>
                                                 </div>
                                             <?php endif; ?>
                                         </div>
@@ -1782,13 +1803,9 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         </a>
                                     <?php endif; ?>
 
-                                    <form method="post" style="width: 100%; margin-bottom: 0.5rem;" onsubmit="return confirm('Tem certeza que deseja renovar esta rota por mais 7 dias?');">
-                                        <input type="hidden" name="route_id" value="<?php echo $route['id']; ?>">
-                                        <input type="hidden" name="action" value="renew_route">
-                                        <button type="submit" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: white; background: #3b82f6; border-color: #3b82f6; padding: 0.6rem;">
-                                            <i class="fas fa-redo"></i> RENOVAR TAREFA (7 DIAS)
-                                        </button>
-                                    </form>
+                                    <button type="button" class="btn" onclick="openRenewModal(<?php echo $route['id']; ?>, '<?php echo htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8'); ?>')" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: white; background: #3b82f6; border-color: #3b82f6; padding: 0.6rem; margin-bottom: 0.5rem;">
+                                        <i class="fas fa-redo"></i> RENOVAR TAREFA (7 DIAS)
+                                    </button>
                                     
                                     <?php 
                                         $mapUrl = !empty($route['google_maps_link']) ? $route['google_maps_link'] : (!empty($route['maps_url']) ? $route['maps_url'] : null);
@@ -3239,8 +3256,9 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         <?php 
                                         $showDesc = !empty($route['description']);
                                         $showArea = in_array($route['demand_type'], ['padrao', 'mista']) && !empty($route['area_details']) && $route['area_details'] !== '<p><br></p>';
+                                        $showRenewal = !empty($route['renewal_reason']);
                                         
-                                        if ($showDesc || $showArea): 
+                                        if ($showDesc || $showArea || $showRenewal): 
                                         ?>
                                         <div style="background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
                                             <h4 style="font-size: 0.65rem; color: #475569; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; display: flex; align-items: center; gap: 6px;">
@@ -3258,6 +3276,15 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                                 <div>
                                                     <small style="font-size: 0.6rem; color: #dc3545; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Instruções Complementares</small>
                                                     <div style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['description'])); ?></div>
+                                                </div>
+                                            <?php endif; ?>
+
+                                            <?php if ($showRenewal): ?>
+                                                <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.8rem; color: #1e40af; margin-top: 4px;">
+                                                    <small style="font-size: 0.6rem; color: #1e3a8a; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">
+                                                        <i class="fas fa-history"></i> Motivo da Prorrogação
+                                                    </small>
+                                                    <div style="line-height: 1.4; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['renewal_reason'])); ?></div>
                                                 </div>
                                             <?php endif; ?>
                                         </div>
@@ -3353,6 +3380,57 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
         updateCountdowns();
         // Update every second
         setInterval(updateCountdowns, 1000);
+    </script>
+
+    <!-- Modal de Justificativa de Renovação -->
+    <div id="renew-route-modal" class="modal-backdrop" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9999;">
+        <div class="modal-content" style="background: white; padding: 2rem; border-radius: 8px; max-width: 500px; width: 90%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; margin: 1.5rem; box-sizing: border-box;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1rem;">
+                <h3 id="renew-modal-title" style="margin: 0; color: #1e293b; font-weight: 700; font-size: 1.1rem;">Renovar Tarefa</h3>
+                <button type="button" onclick="closeRenewModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8;">&times;</button>
+            </div>
+            <form method="post" action="">
+                <input type="hidden" name="action" value="renew_route">
+                <input type="hidden" name="route_id" id="renew-route-id" value="">
+                
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem; color: #475569;">
+                        <i class="fas fa-edit"></i> Justificativa da Renovação (Mínimo de 10 caracteres):
+                    </label>
+                    <textarea name="renewal_reason" id="renew-reason-input" required class="form-control" rows="4" 
+                              style="font-size: 0.9rem; border-radius: 6px; padding: 10px; width: 100%; border: 1px solid #cbd5e1; box-sizing: border-box; resize: vertical;" 
+                              placeholder="Descreva detalhadamente o motivo pelo qual esta rota está sendo renovada por mais 7 dias (ex: atrasos justificados, necessidade de revisita, etc.)..."></textarea>
+                </div>
+                
+                <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                    <button type="button" onclick="closeRenewModal()" class="btn btn-outline" style="border-color: #cbd5e1; color: #64748b; font-size: 0.85rem; padding: 0.6rem 1.2rem; background: white; border-radius: 4px; cursor: pointer;">Cancelar</button>
+                    <button type="submit" class="btn" style="background: #3b82f6; border-color: #3b82f6; font-size: 0.85rem; padding: 0.6rem 1.2rem; color: white; border-radius: 4px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                       <i class="fas fa-redo"></i> Renovar por 7 Dias
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openRenewModal(routeId, routeTitle) {
+            document.getElementById('renew-route-id').value = routeId;
+            document.getElementById('renew-modal-title').innerText = 'Renovar Tarefa: ' + routeTitle;
+            document.getElementById('renew-reason-input').value = '';
+            document.getElementById('renew-route-modal').style.display = 'flex';
+        }
+
+        function closeRenewModal() {
+            document.getElementById('renew-route-modal').style.display = 'none';
+        }
+
+        // Fechar ao clicar fora do modal
+        window.addEventListener('click', function(event) {
+            var modal = document.getElementById('renew-route-modal');
+            if (event.target == modal) {
+                closeRenewModal();
+            }
+        });
     </script>
 </body>
 

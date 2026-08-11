@@ -523,8 +523,9 @@ $user_docs = $docs_stmt->fetchAll();
                                         <?php 
                                         $showDesc = !empty($route['description']);
                                         $showArea = in_array($route['demand_type'], ['padrao', 'mista']) && !empty($route['area_details']) && $route['area_details'] !== '<p><br></p>';
+                                        $showRenewal = !empty($route['renewal_reason']);
                                         
-                                        if ($showDesc || $showArea): 
+                                        if ($showDesc || $showArea || $showRenewal): 
                                         ?>
                                         <div style="background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px;">
                                             <h4 style="font-size: 0.65rem; color: #475569; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; display: flex; align-items: center; gap: 6px;">
@@ -542,6 +543,15 @@ $user_docs = $docs_stmt->fetchAll();
                                                 <div>
                                                     <small style="font-size: 0.6rem; color: #dc3545; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Instruções Complementares</small>
                                                     <div style="font-size: 0.8rem; color: var(--slate-700); line-height: 1.4; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['description'])); ?></div>
+                                                </div>
+                                            <?php endif; ?>
+
+                                            <?php if ($showRenewal): ?>
+                                                <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.8rem; color: #1e40af; margin-top: 4px;">
+                                                    <small style="font-size: 0.6rem; color: #1e3a8a; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">
+                                                        <i class="fas fa-history"></i> Motivo da Prorrogação
+                                                    </small>
+                                                    <div style="line-height: 1.4; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['renewal_reason'])); ?></div>
                                                 </div>
                                             <?php endif; ?>
                                         </div>
