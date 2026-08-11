@@ -240,6 +240,44 @@ $users = $users_stmt->fetchAll();
 
         <div class="form-container">
             <form method="post" enctype="multipart/form-data">
+                <?php if ($route['status'] === 'completed'): ?>
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 1.25rem; border-radius: 6px; margin-bottom: 1.5rem; color: #166534; font-size: 0.9rem;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: #15803d; display: flex; align-items: center; gap: 6px; font-weight: 700;">
+                            <i class="fas fa-check-circle" style="font-size: 1.1rem;"></i> Rota Concluída pelo Recenseador
+                        </h4>
+                        
+                        <?php if (!empty($route['completed_at'])): ?>
+                            <p style="margin: 0 0 0.75rem 0; font-size: 0.8rem; color: #166534; font-weight: 600;">
+                                Concluída em: <?php echo date('d/m/Y \à\s H:i', strtotime($route['completed_at'])); ?>
+                            </p>
+                        <?php endif; ?>
+
+                        <div style="margin-bottom: 0.75rem;">
+                            <strong style="display: block; font-size: 0.75rem; text-transform: uppercase; color: #166534; margin-bottom: 2px;">Relatório de Execução / Observações:</strong>
+                            <div style="background: white; padding: 0.75rem; border-radius: 4px; border: 1px solid #bbf7d0; color: #374151; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['observation'] ?? 'Nenhuma observação informada.')); ?></div>
+                        </div>
+
+                        <?php
+                        $files = array_filter([$route['report_file_1'], $route['report_file_2'], $route['report_file_3']]);
+                        if (!empty($files)):
+                        ?>
+                            <div>
+                                <strong style="display: block; font-size: 0.75rem; text-transform: uppercase; color: #166534; margin-bottom: 4px;">Comprovantes Enviados:</strong>
+                                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                    <?php foreach ($files as $idx => $f): 
+                                        $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                                        $icon = ($ext === 'pdf') ? 'fa-file-pdf' : 'fa-file-image';
+                                    ?>
+                                        <a href="<?php echo htmlspecialchars($f); ?>" target="_blank" class="btn btn-outline" 
+                                           style="font-size: 0.75rem; padding: 0.4rem 0.8rem; border-color: #198754; color: #198754; background: white; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+                                            <i class="fas <?php echo $icon; ?>"></i> Anexo <?php echo $idx + 1; ?>
+                                        </a>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
                 <div class="form-group">
                     <label>Recenseador Responsável</label>
                     <select name="user_id" required class="form-control">
@@ -337,7 +375,15 @@ $users = $users_stmt->fetchAll();
                 </div>
 
                 <div class="form-group" style="margin-top: 1rem;">
-                    <label><i class="fab fa-google"></i> Link do Google Maps (Local da Vistoria)</label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <label style="margin: 0;"><i class="fab fa-google"></i> Link do Google Maps (Local da Vistoria)</label>
+                        <?php if (!empty($route['maps_url'])): ?>
+                            <a href="<?php echo htmlspecialchars($route['maps_url']); ?>" target="_blank" 
+                               style="font-size: 0.75rem; color: #2563eb; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                <i class="fas fa-external-link-alt"></i> ABRIR NO MAPS
+                            </a>
+                        <?php endif; ?>
+                    </div>
                     <input type="url" name="maps_url" value="<?php echo htmlspecialchars($route['maps_url'] ?? ''); ?>" placeholder="https://www.google.com.br/maps/place/..." class="form-control">
                 </div>
 
