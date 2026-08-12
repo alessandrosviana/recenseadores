@@ -278,6 +278,24 @@ $users = $users_stmt->fetchAll();
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>
+                <?php if ($route['status'] === 'cancelled'): ?>
+                    <div style="background: #fdf2f2; border: 1px solid #fecaca; padding: 1.25rem; border-radius: 6px; margin-bottom: 1.5rem; color: #991b1b; font-size: 0.9rem;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: #b91c1c; display: flex; align-items: center; gap: 6px; font-weight: 700;">
+                            <i class="fas fa-ban" style="font-size: 1.1rem;"></i> Rota Cancelada Administrativamente
+                        </h4>
+                        
+                        <?php if (!empty($route['updated_at'])): ?>
+                            <p style="margin: 0 0 0.75rem 0; font-size: 0.8rem; color: #991b1b; font-weight: 600;">
+                                Cancelada em: <?php echo date('d/m/Y \à\s H:i', strtotime($route['updated_at'])); ?>
+                            </p>
+                        <?php endif; ?>
+
+                        <div>
+                            <strong style="display: block; font-size: 0.75rem; text-transform: uppercase; color: #991b1b; margin-bottom: 2px;">Justificativa do Cancelamento:</strong>
+                            <div style="background: white; padding: 0.75rem; border-radius: 4px; border: 1px solid #fecaca; color: #374151; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['cancellation_reason'] ?? 'Nenhuma justificativa informada.')); ?></div>
+                        </div>
+                    </div>
+                <?php endif; ?>
                 <div class="form-group">
                     <label>Recenseador Responsável</label>
                     <select name="user_id" required class="form-control">
