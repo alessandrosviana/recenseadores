@@ -24,12 +24,16 @@ if (!$route) {
     die("Rota não encontrada.");
 }
 
+// Current values with double fallback for map URL and map file
+$current_maps_url = !empty($route['google_maps_link']) ? $route['google_maps_link'] : (!empty($route['maps_url']) ? $route['maps_url'] : '');
+$current_map_file = !empty($route['ref_image']) ? $route['ref_image'] : (!empty($route['admin_file_1']) ? $route['admin_file_1'] : null);
+
 // Handle Update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = $_POST['user_id'];
     $title = $_POST['title'];
     $desc = $_POST['description'];
-    $maps_url = $_POST['maps_url'];
+    $maps_url = trim($_POST['maps_url'] ?? '');
 
     $cep = $_POST['address_cep'];
     $street = $_POST['address_street'];
@@ -44,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Construct simplified location string just in case
     $full_start_location = "$street, $number - $neighborhood, $city - $state";
 
-    // Handle File Upload for Map Print (admin_file_1)
-    $admin_file_1 = $route['admin_file_1'];
+    // Handle File Upload for Map Print (admin_file_1 / ref_image)
+    $map_file_path = $current_map_file;
     if (isset($_FILES['admin_file_1']) && $_FILES['admin_file_1']['error'] == 0) {
         $uploadDir = '../../uploads/admin_routes/';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
@@ -54,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (in_array(strtolower($ext), ['pdf', 'jpg', 'jpeg', 'png'])) {
             $newName = "admin_route_edit_" . time() . "_1.$ext";
             if (move_uploaded_file($_FILES['admin_file_1']['tmp_name'], $uploadDir . $newName)) {
-                $admin_file_1 = $uploadDir . $newName;
+                $map_file_path = $uploadDir . $newName;
             }
         }
     }
@@ -73,10 +77,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             address_state = ?,
             address_complement = ?,
             maps_url = ?,
+            google_maps_link = ?,
             scheduled_start = ?,
             scheduled_end = ?,
             status = 'pending_acceptance',
             admin_file_1 = ?,
+            ref_image = ?,
             rejected_reason = NULL
             WHERE id = ?";
 
@@ -96,9 +102,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $state,
             $complement,
             $maps_url,
+            $maps_url,
             $_POST['scheduled_start'] ?: null,
             $_POST['scheduled_end'] ?: null,
-            $admin_file_1,
+            $map_file_path,
+            $map_file_path,
             $route_id
         ])
     ) {
@@ -395,22 +403,22 @@ $users = $users_stmt->fetchAll();
                 <div class="form-group" style="margin-top: 1rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <label style="margin: 0;"><i class="fab fa-google"></i> Link do Google Maps (Local da Vistoria)</label>
-                        <?php if (!empty($route['maps_url'])): ?>
-                            <a href="<?php echo htmlspecialchars($route['maps_url']); ?>" target="_blank" 
+                        <?php if (!empty($current_maps_url)): ?>
+                            <a href="<?php echo htmlspecialchars($current_maps_url); ?>" target="_blank" 
                                style="font-size: 0.75rem; color: #2563eb; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
                                 <i class="fas fa-external-link-alt"></i> ABRIR NO MAPS
                             </a>
                         <?php endif; ?>
                     </div>
-                    <input type="url" name="maps_url" value="<?php echo htmlspecialchars($route['maps_url'] ?? ''); ?>" placeholder="https://www.google.com.br/maps/place/..." class="form-control">
+                    <input type="url" name="maps_url" value="<?php echo htmlspecialchars($current_maps_url); ?>" placeholder="https://www.google.com.br/maps/place/..." class="form-control">
                 </div>
 
                 <div class="form-group" style="margin-top: 1rem;">
                     <label><i class="fas fa-image"></i> Arquivo 1 (Print do Mapa)</label>
-                    <?php if (!empty($route['admin_file_1'])): ?>
+                    <?php if (!empty($current_map_file)): ?>
                         <div style="background: #f0fdf4; padding: 0.5rem; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.8rem; color: #166534; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 8px;">
                             <i class="fas fa-check-circle"></i> Já possui print anexado.
-                            <a href="<?php echo $route['admin_file_1']; ?>" target="_blank" style="color: #166534; text-decoration: underline;">Ver atual</a>
+                            <a href="<?php echo htmlspecialchars($current_map_file); ?>" target="_blank" style="color: #166534; text-decoration: underline; font-weight: 600;">Ver atual</a>
                         </div>
                     <?php endif; ?>
                     <input type="file" name="admin_file_1" class="form-control" accept="image/*,.pdf" style="padding: 0.4rem;">
