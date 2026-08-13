@@ -89,6 +89,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // Preserve status unless it was rejected (re-assigning resets to pending_acceptance)
+    $new_status = ($route['status'] === 'rejected') ? 'pending_acceptance' : $route['status'];
+
     $sql = "UPDATE routes SET 
             user_id = ?, 
             title = ?, 
@@ -106,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             google_maps_link = ?,
             scheduled_start = ?,
             scheduled_end = ?,
-            status = 'pending_acceptance',
+            status = ?,
             admin_file_1 = ?,
             ref_image = ?,
             admin_file_2 = ?,
@@ -135,6 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $maps_url,
             $_POST['scheduled_start'] ?: null,
             $_POST['scheduled_end'] ?: null,
+            $new_status,
             $file_1_path,
             $file_1_path,
             $file_2_path,
@@ -144,8 +148,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $route_id
         ])
     ) {
-        // Redirect back to dashboard monitor
-        header("Location: dashboard.php#monitor");
+        // Smart redirect back to dashboard tab based on route state
+        $redirectTab = 'monitor';
+        if (!empty($route['is_archived']) && $route['is_archived'] == 1) {
+            $redirectTab = 'archived';
+        } elseif ($route['status'] === 'cancelled') {
+            $redirectTab = 'cancelled';
+        } elseif ($route['status'] === 'completed') {
+            $redirectTab = 'completed';
+        } elseif ($route['status'] === 'delayed' || (!empty($route['scheduled_end']) && strtotime($route['scheduled_end']) < time())) {
+            $redirectTab = 'expired';
+        }
+
+        header("Location: dashboard.php#$redirectTab");
         exit();
     } else {
         $message = '<div class="alert danger">Erro ao atualizar a rota.</div>';
