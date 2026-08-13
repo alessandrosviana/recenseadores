@@ -24,9 +24,11 @@ if (!$route) {
     die("Rota não encontrada.");
 }
 
-// Current values with double fallback for map URL and map file
+// Current values with double fallback for map URL and admin files 1, 2, 3
 $current_maps_url = !empty($route['google_maps_link']) ? $route['google_maps_link'] : (!empty($route['maps_url']) ? $route['maps_url'] : '');
-$current_map_file = !empty($route['ref_image']) ? $route['ref_image'] : (!empty($route['admin_file_1']) ? $route['admin_file_1'] : null);
+$current_file_1 = !empty($route['ref_image']) ? $route['ref_image'] : (!empty($route['admin_file_1']) ? $route['admin_file_1'] : null);
+$current_file_2 = !empty($route['ref_pdf_1']) ? $route['ref_pdf_1'] : (!empty($route['admin_file_2']) ? $route['admin_file_2'] : null);
+$current_file_3 = !empty($route['ref_pdf_2']) ? $route['ref_pdf_2'] : (!empty($route['admin_file_3']) ? $route['admin_file_3'] : null);
 
 // Handle Update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -48,17 +50,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Construct simplified location string just in case
     $full_start_location = "$street, $number - $neighborhood, $city - $state";
 
-    // Handle File Upload for Map Print (admin_file_1 / ref_image)
-    $map_file_path = $current_map_file;
+    // Handle File Uploads for Admin Files (1, 2, 3)
+    $uploadDir = '../../uploads/admin_routes/';
+
+    $file_1_path = $current_file_1;
     if (isset($_FILES['admin_file_1']) && $_FILES['admin_file_1']['error'] == 0) {
-        $uploadDir = '../../uploads/admin_routes/';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-        
         $ext = pathinfo($_FILES['admin_file_1']['name'], PATHINFO_EXTENSION);
         if (in_array(strtolower($ext), ['pdf', 'jpg', 'jpeg', 'png'])) {
             $newName = "admin_route_edit_" . time() . "_1.$ext";
             if (move_uploaded_file($_FILES['admin_file_1']['tmp_name'], $uploadDir . $newName)) {
-                $map_file_path = $uploadDir . $newName;
+                $file_1_path = $uploadDir . $newName;
+            }
+        }
+    }
+
+    $file_2_path = $current_file_2;
+    if (isset($_FILES['admin_file_2']) && $_FILES['admin_file_2']['error'] == 0) {
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+        $ext = pathinfo($_FILES['admin_file_2']['name'], PATHINFO_EXTENSION);
+        if (in_array(strtolower($ext), ['pdf', 'jpg', 'jpeg', 'png'])) {
+            $newName = "admin_route_edit_" . time() . "_2.$ext";
+            if (move_uploaded_file($_FILES['admin_file_2']['tmp_name'], $uploadDir . $newName)) {
+                $file_2_path = $uploadDir . $newName;
+            }
+        }
+    }
+
+    $file_3_path = $current_file_3;
+    if (isset($_FILES['admin_file_3']) && $_FILES['admin_file_3']['error'] == 0) {
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+        $ext = pathinfo($_FILES['admin_file_3']['name'], PATHINFO_EXTENSION);
+        if (in_array(strtolower($ext), ['pdf', 'jpg', 'jpeg', 'png'])) {
+            $newName = "admin_route_edit_" . time() . "_3.$ext";
+            if (move_uploaded_file($_FILES['admin_file_3']['tmp_name'], $uploadDir . $newName)) {
+                $file_3_path = $uploadDir . $newName;
             }
         }
     }
@@ -83,6 +109,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             status = 'pending_acceptance',
             admin_file_1 = ?,
             ref_image = ?,
+            admin_file_2 = ?,
+            ref_pdf_1 = ?,
+            admin_file_3 = ?,
+            ref_pdf_2 = ?,
             rejected_reason = NULL
             WHERE id = ?";
 
@@ -105,8 +135,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $maps_url,
             $_POST['scheduled_start'] ?: null,
             $_POST['scheduled_end'] ?: null,
-            $map_file_path,
-            $map_file_path,
+            $file_1_path,
+            $file_1_path,
+            $file_2_path,
+            $file_2_path,
+            $file_3_path,
+            $file_3_path,
             $route_id
         ])
     ) {
@@ -415,14 +449,38 @@ $users = $users_stmt->fetchAll();
 
                 <div class="form-group" style="margin-top: 1rem;">
                     <label><i class="fas fa-image"></i> Arquivo 1 (Print do Mapa)</label>
-                    <?php if (!empty($current_map_file)): ?>
+                    <?php if (!empty($current_file_1)): ?>
                         <div style="background: #f0fdf4; padding: 0.5rem; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.8rem; color: #166534; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 8px;">
                             <i class="fas fa-check-circle"></i> Já possui print anexado.
-                            <a href="<?php echo htmlspecialchars($current_map_file); ?>" target="_blank" style="color: #166534; text-decoration: underline; font-weight: 600;">Ver atual</a>
+                            <a href="<?php echo htmlspecialchars($current_file_1); ?>" target="_blank" style="color: #166534; text-decoration: underline; font-weight: 600;">Ver atual</a>
                         </div>
                     <?php endif; ?>
                     <input type="file" name="admin_file_1" class="form-control" accept="image/*,.pdf" style="padding: 0.4rem;">
                     <small class="text-muted">Aparecerá automaticamente no corpo do Termo de Registro.</small>
+                </div>
+
+                <div class="grid-2" style="margin-top: 1rem;">
+                    <div class="form-group">
+                        <label><i class="fas fa-file-pdf"></i> Arquivo 2 (Doc. Complementar / PDF)</label>
+                        <?php if (!empty($current_file_2)): ?>
+                            <div style="background: #f0fdf4; padding: 0.5rem; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.8rem; color: #166534; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-check-circle"></i> Já possui anexo cadastrado.
+                                <a href="<?php echo htmlspecialchars($current_file_2); ?>" target="_blank" style="color: #166534; text-decoration: underline; font-weight: 600;">Ver atual</a>
+                            </div>
+                        <?php endif; ?>
+                        <input type="file" name="admin_file_2" class="form-control" accept="image/*,.pdf" style="padding: 0.4rem;">
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-file-pdf"></i> Arquivo 3 (Doc. Complementar / PDF)</label>
+                        <?php if (!empty($current_file_3)): ?>
+                            <div style="background: #f0fdf4; padding: 0.5rem; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.8rem; color: #166534; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-check-circle"></i> Já possui anexo cadastrado.
+                                <a href="<?php echo htmlspecialchars($current_file_3); ?>" target="_blank" style="color: #166534; text-decoration: underline; font-weight: 600;">Ver atual</a>
+                            </div>
+                        <?php endif; ?>
+                        <input type="file" name="admin_file_3" class="form-control" accept="image/*,.pdf" style="padding: 0.4rem;">
+                    </div>
                 </div>
 
                 <div class="grid-2">

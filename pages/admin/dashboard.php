@@ -1588,7 +1588,36 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                                 <i class="fas fa-map-signs" style="color: #cbd5e1;"></i>
                                                 Área de Atuação
                                             </div>
-                                        <?php endif; ?></div>
+                                        <?php endif; ?>
+
+                                        <!-- Attachments Admin: Compact Pills -->
+                                        <?php 
+                                        $adminFiles = array_filter([
+                                             $route['ref_image'] ?? $route['admin_file_1'] ?? null, 
+                                             $route['ref_pdf_1'] ?? $route['admin_file_2'] ?? null, 
+                                             $route['ref_pdf_2'] ?? $route['admin_file_3'] ?? null
+                                        ]);
+                                        if (!empty($adminFiles)): 
+                                        ?>
+                                        <div style="background: #fffbeb; padding: 0.65rem 0.75rem; border-radius: 6px; border: 1px solid #fef3c7; margin-top: 10px; margin-bottom: 5px;">
+                                            <div style="font-size: 0.6rem; color: #92400e; font-weight: 800; text-transform: uppercase; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 4px;">
+                                                <i class="fas fa-paperclip"></i> Anexos da Rota (Print / Documentos)
+                                            </div>
+                                            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                                <?php foreach ($adminFiles as $idx => $file): 
+                                                    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                                                    $icon = ($ext === 'pdf') ? 'fa-file-pdf' : 'fa-file-image';
+                                                    $label = ($idx === 0 && in_array($ext, ['jpg','jpeg','png'])) ? 'Print do Mapa' : 'Anexo ' . ($idx + 1);
+                                                ?>
+                                                <a href="<?php echo htmlspecialchars($file); ?>" target="_blank" 
+                                                   style="background: white; border: 1px solid #fde68a; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; color: #92400e; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+                                                    <i class="fas <?php echo $icon; ?>"></i> <?php echo $label; ?>
+                                                </a>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        </div>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
 
                                 <!-- Card Footer: Actions -->
@@ -1788,6 +1817,34 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                                 <i class="fas fa-map-signs" style="color: #cbd5e1;"></i>
                                                 Área de Atuação
                                             </div>
+                                        <?php endif; ?>
+
+                                        <!-- Attachments Admin: Compact Pills -->
+                                        <?php 
+                                        $adminFiles = array_filter([
+                                             $route['ref_image'] ?? $route['admin_file_1'] ?? null, 
+                                             $route['ref_pdf_1'] ?? $route['admin_file_2'] ?? null, 
+                                             $route['ref_pdf_2'] ?? $route['admin_file_3'] ?? null
+                                        ]);
+                                        if (!empty($adminFiles)): 
+                                        ?>
+                                        <div style="background: #fffbeb; padding: 0.65rem 0.75rem; border-radius: 6px; border: 1px solid #fef3c7; margin-top: 10px; margin-bottom: 5px;">
+                                            <div style="font-size: 0.6rem; color: #92400e; font-weight: 800; text-transform: uppercase; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 4px;">
+                                                <i class="fas fa-paperclip"></i> Anexos da Rota (Print / Documentos)
+                                            </div>
+                                            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                                <?php foreach ($adminFiles as $idx => $file): 
+                                                    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                                                    $icon = ($ext === 'pdf') ? 'fa-file-pdf' : 'fa-file-image';
+                                                    $label = ($idx === 0 && in_array($ext, ['jpg','jpeg','png'])) ? 'Print do Mapa' : 'Anexo ' . ($idx + 1);
+                                                ?>
+                                                <a href="<?php echo htmlspecialchars($file); ?>" target="_blank" 
+                                                   style="background: white; border: 1px solid #fde68a; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; color: #92400e; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+                                                    <i class="fas <?php echo $icon; ?>"></i> <?php echo $label; ?>
+                                                </a>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        </div>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -3303,6 +3360,34 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                                 <i class="fas fa-map-signs" style="color: #cbd5e1;"></i>
                                                 Área de Atuação
                                             </div>
+                                        <?php endif; ?>
+
+                                        <!-- Attachments Admin: Compact Pills -->
+                                        <?php 
+                                        $adminFiles = array_filter([
+                                             $route['ref_image'] ?? $route['admin_file_1'] ?? null, 
+                                             $route['ref_pdf_1'] ?? $route['admin_file_2'] ?? null, 
+                                             $route['ref_pdf_2'] ?? $route['admin_file_3'] ?? null
+                                        ]);
+                                        if (!empty($adminFiles)): 
+                                        ?>
+                                        <div style="background: #fffbeb; padding: 0.65rem 0.75rem; border-radius: 6px; border: 1px solid #fef3c7; margin-top: 10px; margin-bottom: 5px;">
+                                            <div style="font-size: 0.6rem; color: #92400e; font-weight: 800; text-transform: uppercase; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 4px;">
+                                                <i class="fas fa-paperclip"></i> Anexos da Rota (Print / Documentos)
+                                            </div>
+                                            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                                <?php foreach ($adminFiles as $idx => $file): 
+                                                    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                                                    $icon = ($ext === 'pdf') ? 'fa-file-pdf' : 'fa-file-image';
+                                                    $label = ($idx === 0 && in_array($ext, ['jpg','jpeg','png'])) ? 'Print do Mapa' : 'Anexo ' . ($idx + 1);
+                                                ?>
+                                                <a href="<?php echo htmlspecialchars($file); ?>" target="_blank" 
+                                                   style="background: white; border: 1px solid #fde68a; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; color: #92400e; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+                                                    <i class="fas <?php echo $icon; ?>"></i> <?php echo $label; ?>
+                                                </a>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        </div>
                                         <?php endif; ?>
                                     </div>
                                 </div>
