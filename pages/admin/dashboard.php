@@ -1908,11 +1908,9 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         <i class="fas fa-search"></i> ANALISAR DOCUMENTOS
                                     </a>
                                     
-                                    <form method="post" style="display:flex; align-items:center; gap: 0.5rem;" onsubmit="return confirm('Deseja aprovar este cadastro e documentos?');">
+                                    <form method="post" style="display:flex; align-items:center;" onsubmit="return confirm('Deseja aprovar este cadastro e documentos?');">
                                         <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
                                         <input type="hidden" name="action" value="approve">
-                                        <input type="text" name="processo_sei" placeholder="Processo SEI" class="form-control" style="height: 40px; width: 150px; font-size: 0.8rem; border: 1px solid #ddd; border-radius: 4px; padding: 0 0.5rem;">
-                                        <input type="text" name="contrato" placeholder="Nº do Edital" class="form-control" style="height: 40px; width: 150px; font-size: 0.8rem; border: 1px solid #ddd; border-radius: 4px; padding: 0 0.5rem;">
                                         <button type="submit" class="btn-approve" style="height: 40px; padding: 0 1.2rem; font-size: 0.8rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 700;">
                                             <i class="fas fa-check"></i> APROVAR
                                         </button>
