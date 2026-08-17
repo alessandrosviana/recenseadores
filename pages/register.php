@@ -10,7 +10,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = mb_strtoupper(trim($_POST['name']), 'UTF-8');
     $email = trim($_POST['email']);
     $cpf = trim($_POST['cpf']);
-    $password = $_POST['password']; // You might want this for login later
+    $password = $_POST['password'] ?? '';
+    $confirm_password = $_POST['confirm_password'] ?? '';
     $gender = $_POST['gender'];
     $phone = $_POST['phone'];
     $rg = $_POST['rg'];
@@ -33,8 +34,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $terms_accepted = isset($_POST['terms_accepted']) ? 1 : 0;
 
     // Basic validation
-    if (empty($name) || empty($email) || empty($cpf) || empty($microregion)) {
-        $message = '<div style="color:red; margin-bottom:1rem;">Preencha os campos obrigatórios.</div>';
+    if (empty($name) || empty($email) || empty($cpf) || empty($microregion) || empty($password)) {
+        $message = '<div style="color:red; margin-bottom:1rem; font-weight:bold;"><i class="fas fa-exclamation-circle"></i> Preencha os campos obrigatórios.</div>';
+    } elseif ($password !== $confirm_password) {
+        $message = '<div style="color:red; margin-bottom:1rem; font-weight:bold;"><i class="fas fa-exclamation-triangle"></i> As senhas digitadas não coincidem. Por favor, verifique e tente novamente.</div>';
     } else {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
@@ -306,10 +309,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </select>
                 </div>
 
-                <!-- Senha para acesso futuro -->
-                <div class="form-group" style="background: #f0f7ff; padding: 1rem; border-radius: 4px;">
-                    <label>Crie uma senha para acesso ao sistema</label>
-                    <input type="password" name="password" required placeholder="Sua senha secreta">
+                <!-- Senha e Confirmação de Senha -->
+                <div class="form-group" style="background: #f0f7ff; padding: 1.25rem; border-radius: 6px; border: 1px solid #cce5ff; margin-top: 1.5rem; margin-bottom: 2rem;">
+                    <label style="color: #004085; font-weight: 700; display: block; margin-bottom: 0.75rem;">
+                        <i class="fas fa-lock"></i> Senha de Acesso ao Sistema
+                    </label>
+                    <div class="grid-custom">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.85rem; color: #495057;">Senha *</label>
+                            <div style="position: relative;">
+                                <input type="password" name="password" id="reg_password" required placeholder="Digite sua senha" class="form-control" style="padding-right: 40px; width: 100%;">
+                                <button type="button" onclick="togglePasswordVisibility('reg_password', 'eye_icon_1')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #6c757d; padding: 4px;">
+                                    <i class="fas fa-eye" id="eye_icon_1"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.85rem; color: #495057;">Confirmar Senha *</label>
+                            <div style="position: relative;">
+                                <input type="password" name="confirm_password" id="reg_confirm_password" required placeholder="Repita sua senha" class="form-control" style="padding-right: 40px; width: 100%;">
+                                <button type="button" onclick="togglePasswordVisibility('reg_confirm_password', 'eye_icon_2')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #6c757d; padding: 4px;">
+                                    <i class="fas fa-eye" id="eye_icon_2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="password_match_msg" style="font-size: 0.85rem; margin-top: 0.75rem; font-weight: 600; display: none;"></div>
                 </div>
 
                 <!-- Address -->
@@ -531,6 +556,53 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             let v = e.target.value.replace(/\D/g, '').substring(0, 8);
             if (v.length > 5) v = v.replace(/^(\d{5})(\d)/, "$1-$2");
             e.target.value = v;
+        });
+
+        // Alternar visibilidade da senha
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Validação de coincidência de senhas em tempo real
+        document.addEventListener('DOMContentLoaded', function() {
+            const pass = document.getElementById('reg_password');
+            const confirmPass = document.getElementById('reg_confirm_password');
+            const msg = document.getElementById('password_match_msg');
+
+            function checkMatch() {
+                if (!confirmPass.value && !pass.value) {
+                    msg.style.display = 'none';
+                    confirmPass.style.borderColor = '#ccc';
+                    return;
+                }
+                msg.style.display = 'block';
+                if (pass.value && confirmPass.value && pass.value === confirmPass.value) {
+                    msg.style.color = '#155724';
+                    msg.innerHTML = '<i class="fas fa-check-circle"></i> As senhas coincidem perfeitamente!';
+                    confirmPass.style.borderColor = '#28a745';
+                } else if (confirmPass.value) {
+                    msg.style.color = '#721c24';
+                    msg.innerHTML = '<i class="fas fa-times-circle"></i> As senhas digitadas não coincidem!';
+                    confirmPass.style.borderColor = '#dc3545';
+                } else {
+                    msg.style.display = 'none';
+                }
+            }
+
+            if (pass && confirmPass) {
+                pass.addEventListener('input', checkMatch);
+                confirmPass.addEventListener('input', checkMatch);
+            }
         });
     </script>
 </body>
