@@ -58,10 +58,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'reset_password') {
     try {
-        $new_password_hash = password_hash('123456', PASSWORD_DEFAULT);
+        $custom_pass = trim($_POST['custom_password'] ?? '');
+        $plain_password = !empty($custom_pass) ? $custom_pass : '123456';
+        $new_password_hash = password_hash($plain_password, PASSWORD_DEFAULT);
         $stmt = $pdo->prepare("UPDATE users SET password=? WHERE id=?");
         if ($stmt->execute([$new_password_hash, $user_id])) {
-            $message = '<div class="alert success"><i class="fas fa-key"></i> Senha redefinida para <strong>123456</strong> com sucesso! O recenseador já pode acessar o sistema e alterá-la posteriormente.</div>';
+            $message = '<div class="alert success"><i class="fas fa-key"></i> Senha redefinida para <strong>' . htmlspecialchars($plain_password) . '</strong> com sucesso! O recenseador já pode acessar o sistema com essa senha.</div>';
         } else {
             $message = '<div class="alert danger"><i class="fas fa-times"></i> Nenhuma alteração foi feita ou ocorreu um erro na redefinição de senha.</div>';
         }
@@ -299,17 +301,29 @@ if (!$edit_user) {
                     </select>
                 </div>
 
-                <div style="margin-top: 2rem; display: flex; justify-content: space-between;">
-                    <a href="view_user.php?user_id=<?php echo $edit_user['id']; ?>" class="btn btn-outline"
-                        target="_blank">
+                <!-- Painel de Redefinição de Senha Administrativa -->
+                <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 1.25rem; margin-top: 2rem;">
+                    <h4 style="margin: 0 0 0.5rem 0; color: #334155; font-size: 1rem;">
+                        <i class="fas fa-key"></i> Redefinição de Senha do Recenseador (Administrador)
+                    </h4>
+                    <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
+                        Você pode redefinir a senha deste recenseador diretamente. Digite uma nova senha abaixo ou deixe em branco para redefinir para a senha padrão (<strong>123456</strong>).
+                    </p>
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <input type="text" id="admin_custom_pass" placeholder="Nova senha (deixe em branco p/ 123456)" class="form-control" style="width: 320px; font-size: 0.85rem; padding: 0.6rem;">
+                        <button type="button" class="btn" style="background: #eab308; color: #713f12; font-weight: 700; font-size: 0.85rem; padding: 0.6rem 1.2rem; border: none; border-radius: 4px; cursor: pointer;"
+                                onclick="submitAdminReset()">
+                            <i class="fas fa-sync-alt"></i> Redefinir Senha
+                        </button>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <a href="view_user.php?user_id=<?php echo $edit_user['id']; ?>" class="btn btn-outline" target="_blank">
                         <i class="fas fa-user-circle"></i> Ver Perfil Completo
                     </a>
-                    <button type="button" class="btn btn-primary" style="padding: 0.8rem 2rem;"
-                        onclick="if(confirm('Tem certeza que deseja redefinir a senha deste usuário para 123456?')) { document.getElementById('resetPasswordForm').submit(); }">
-                        <i class="fas fa-key"></i> Redefinir Senha (123456)
-                    </button>
                     <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2rem;">
-                        <i class="fas fa-save"></i> Salvar Alterações
+                        <i class="fas fa-save"></i> Salvar Alterações dos Dados
                     </button>
                 </div>
             </form>
@@ -317,11 +331,21 @@ if (!$edit_user) {
             <!-- Hidden form for resetting password -->
             <form id="resetPasswordForm" method="post" style="display: none;">
                 <input type="hidden" name="action" value="reset_password">
+                <input type="hidden" name="custom_password" id="hidden_custom_password" value="">
             </form>
         </div>
     </main>
 
     <script>
+        function submitAdminReset() {
+            const pass = document.getElementById('admin_custom_pass').value.trim();
+            const passDisplay = pass ? pass : '123456';
+            if (confirm('Tem certeza que deseja redefinir a senha deste usuário para "' + passDisplay + '"?')) {
+                document.getElementById('hidden_custom_password').value = pass;
+                document.getElementById('resetPasswordForm').submit();
+            }
+        }
+
         // Mascara CPF
         const cpfInput = document.getElementById('cpf');
         if (cpfInput) {
