@@ -6,7 +6,7 @@ include 'includes/header.php';
 <!-- Estilos Customizados da Página Principal -->
 <style>
     .hero-wrapper {
-        background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #0d9488 100%);
+        background: linear-gradient(135deg, #007a89 0%, #005b66 60%, #004d56 100%);
         color: white;
         padding: 4rem 0 5rem;
         position: relative;
@@ -19,7 +19,7 @@ include 'includes/header.php';
         right: -50px;
         width: 350px;
         height: 350px;
-        background: rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.1);
         border-radius: 50%;
         filter: blur(50px);
     }
@@ -27,7 +27,7 @@ include 'includes/header.php';
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.18);
         color: #ffffff;
         border: 1px solid rgba(255, 255, 255, 0.35);
         padding: 6px 14px;
@@ -47,11 +47,11 @@ include 'includes/header.php';
         margin-bottom: 1.25rem;
     }
     .hero-title span {
-        color: #bae6fd;
+        color: #b2ebf2;
     }
     .hero-subtitle {
         font-size: 1.15rem;
-        color: #f0f9ff;
+        color: #e0f7fa;
         line-height: 1.6;
         margin-bottom: 2rem;
         max-width: 600px;
