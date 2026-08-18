@@ -3303,6 +3303,16 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                                 <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($route['microregion']); ?>
                                             </p>
                                         <?php endif; ?>
+
+                                        <!-- Motivo do Arquivamento -->
+                                        <div style="background: #f1f5f9; padding: 0.65rem 0.75rem; border-radius: 6px; border: 1px solid #cbd5e1; margin-top: 8px; margin-bottom: 10px;">
+                                            <div style="font-size: 0.65rem; color: #475569; font-weight: 800; text-transform: uppercase; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 4px;">
+                                                <i class="fas fa-archive"></i> Motivo do Arquivamento
+                                            </div>
+                                            <div style="font-size: 0.82rem; color: #1e293b; line-height: 1.4; white-space: pre-line;">
+                                                <?php echo !empty($route['archive_reason']) ? htmlspecialchars(trim($route['archive_reason'])) : 'Arquivada pelo administrador no painel.'; ?>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div style="font-size: 0.8rem; color: #64748b; background: #fdfdfd; padding: 0.5rem 0; border-top: 1px dashed #e2e8f0;">
