@@ -2,11 +2,15 @@
 require_once '../../config/session.php';
 require_once '../../config/database.php';
 
-// Auto-migration for is_archived column if it doesn't exist
+// Auto-migration for is_archived and archive_reason columns if they don't exist
 try {
     $checkColumn = $pdo->query("SHOW COLUMNS FROM routes LIKE 'is_archived'")->fetch();
     if (!$checkColumn) {
         $pdo->exec("ALTER TABLE routes ADD COLUMN is_archived TINYINT(1) NOT NULL DEFAULT 0");
+    }
+    $checkReasonColumn = $pdo->query("SHOW COLUMNS FROM routes LIKE 'archive_reason'")->fetch();
+    if (!$checkReasonColumn) {
+        $pdo->exec("ALTER TABLE routes ADD COLUMN archive_reason TEXT NULL DEFAULT NULL");
     }
 } catch (PDOException $e) {
     // Fail silently
@@ -138,8 +142,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $active_tab = 'monitor';
         } elseif ($action === 'archive_route') {
             $routeId = $_POST['route_id'];
-            $stmt = $pdo->prepare("UPDATE routes SET is_archived = 1 WHERE id = ?");
-            if ($stmt->execute([$routeId])) {
+            $reason = trim($_POST['archive_reason'] ?? '');
+            $stmt = $pdo->prepare("UPDATE routes SET is_archived = 1, archive_reason = ? WHERE id = ?");
+            if ($stmt->execute([$reason, $routeId])) {
                 $message = '<div class="alert success"><i class="fas fa-archive"></i> Rota arquivada com sucesso!</div>';
             }
             $active_tab = $_POST['current_tab'] ?? 'monitor';
@@ -1466,12 +1471,9 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         <button type="button" onclick="openCancelModal(<?php echo $route['id']; ?>, '<?php echo htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8'); ?>')" class="action-btn-circle btn-cancel" title="Cancelar Rota">
                                             <i class="fas fa-ban"></i>
                                         </button>
-                                        <form method="post" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja arquivar esta rota?');">
-                                            <input type="hidden" name="route_id" value="<?php echo $route['id']; ?>">
-                                            <input type="hidden" name="action" value="archive_route">
-                                            <input type="hidden" name="current_tab" value="monitor">
-                                            <button type="submit" class="action-btn-circle btn-archive" title="Arquivar Rota"><i class="fas fa-archive"></i></button>
-                                        </form>
+                                        <button type="button" onclick="openArchiveModal(<?php echo $route['id']; ?>, '<?php echo htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8'); ?>', 'monitor')" class="action-btn-circle btn-archive" title="Arquivar Rota">
+                                            <i class="fas fa-archive"></i>
+                                        </button>
                                     </div>
                                 </div>
 
@@ -1700,12 +1702,9 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         <button type="button" onclick="openCancelModal(<?php echo $route['id']; ?>, '<?php echo htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8'); ?>')" class="action-btn-circle btn-cancel" title="Cancelar Rota">
                                             <i class="fas fa-ban"></i>
                                         </button>
-                                        <form method="post" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja arquivar esta rota?');">
-                                            <input type="hidden" name="route_id" value="<?php echo $route['id']; ?>">
-                                            <input type="hidden" name="action" value="archive_route">
-                                            <input type="hidden" name="current_tab" value="expired">
-                                            <button type="submit" class="action-btn-circle btn-archive" title="Arquivar Rota"><i class="fas fa-archive"></i></button>
-                                        </form>
+                                        <button type="button" onclick="openArchiveModal(<?php echo $route['id']; ?>, '<?php echo htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8'); ?>', 'expired')" class="action-btn-circle btn-archive" title="Arquivar Rota">
+                                            <i class="fas fa-archive"></i>
+                                        </button>
                                     </div>
                                 </div>
 
@@ -3533,6 +3532,45 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
         </div>
     </div>
 
+    <!-- Modal de Confirmação de Arquivamento -->
+    <div id="archive-route-modal" class="modal-backdrop" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9999;">
+        <div class="modal-content" style="background: white; padding: 1.75rem; border-radius: 8px; max-width: 460px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.15); position: relative; margin: 1.5rem; box-sizing: border-box;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+                <h3 style="margin: 0; color: #475569; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-archive"></i> Arquivar Rota
+                </h3>
+                <button type="button" onclick="closeArchiveModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8;">&times;</button>
+            </div>
+            
+            <p style="font-size: 0.88rem; color: #475569; line-height: 1.5; margin-bottom: 1.25rem;">
+                Tem certeza que deseja arquivar a rota <strong id="archive-modal-route-title" style="color: #1e293b;"></strong>? 
+                Esta ação moverá a tarefa para a aba de arquivadas.
+            </p>
+            
+            <form method="post" action="">
+                <input type="hidden" name="action" value="archive_route">
+                <input type="hidden" name="route_id" id="archive-route-id" value="">
+                <input type="hidden" name="current_tab" id="archive-current-tab" value="monitor">
+                
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem; color: #475569;">
+                        Justificativa do Arquivamento (Mínimo de 10 caracteres):
+                    </label>
+                    <textarea name="archive_reason" id="archive-reason-input" required class="form-control" rows="4" 
+                              style="font-size: 0.88rem; border-radius: 6px; padding: 10px; width: 100%; border: 1px solid #cbd5e1; box-sizing: border-box; resize: vertical;" 
+                              placeholder="Descreva o motivo pelo qual esta rota está sendo arquivada..."></textarea>
+                </div>
+                
+                <div class="modal-footer" style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 1rem; width: 100%; box-sizing: border-box; flex-wrap: wrap;">
+                    <button type="button" onclick="closeArchiveModal()" class="btn btn-outline" style="border-color: #cbd5e1; color: #64748b; font-size: 0.8rem; padding: 0.55rem 0.85rem; background: white; border-radius: 4px; cursor: pointer; font-weight: 600; box-sizing: border-box;">MANTER ROTA</button>
+                    <button type="submit" class="btn" style="background: #475569; border-color: #475569; font-size: 0.8rem; padding: 0.55rem 0.85rem; color: white; border-radius: 4px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; box-sizing: border-box;">
+                        <i class="fas fa-archive"></i> CONFIRMAR ARQUIVAMENTO
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function openRenewModal(routeId, routeTitle) {
             document.getElementById('renew-route-id').value = routeId;
@@ -3556,15 +3594,31 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             document.getElementById('cancel-route-modal').style.display = 'none';
         }
 
+        function openArchiveModal(routeId, routeTitle, currentTab) {
+            document.getElementById('archive-route-id').value = routeId;
+            document.getElementById('archive-modal-route-title').innerText = routeTitle;
+            document.getElementById('archive-current-tab').value = currentTab || 'monitor';
+            document.getElementById('archive-reason-input').value = '';
+            document.getElementById('archive-route-modal').style.display = 'flex';
+        }
+
+        function closeArchiveModal() {
+            document.getElementById('archive-route-modal').style.display = 'none';
+        }
+
         // Fechar ao clicar fora do modal
         window.addEventListener('click', function(event) {
             var renewModal = document.getElementById('renew-route-modal');
             var cancelModal = document.getElementById('cancel-route-modal');
+            var archiveModal = document.getElementById('archive-route-modal');
             if (event.target == renewModal) {
                 closeRenewModal();
             }
             if (event.target == cancelModal) {
                 closeCancelModal();
+            }
+            if (event.target == archiveModal) {
+                closeArchiveModal();
             }
         });
     </script>
