@@ -105,11 +105,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         .input-wrapper {
             position: relative;
+            display: flex;
+            align-items: center;
         }
 
         .input-wrapper input {
             width: 100%;
-            padding: 0.75rem 2.5rem 0.75rem 2.5rem;
+            padding-top: 0.75rem !important;
+            padding-bottom: 0.75rem !important;
+            padding-left: 3rem !important;
+            padding-right: 2.75rem !important;
             background: #f8fafc;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
@@ -132,7 +137,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             top: 50%;
             transform: translateY(-50%);
             color: #0d9488;
-            font-size: 0.95rem;
+            font-size: 1rem;
+            z-index: 10;
+            pointer-events: none;
         }
 
         .toggle-password-btn {
@@ -146,6 +153,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             cursor: pointer;
             font-size: 0.9rem;
             padding: 4px;
+            z-index: 10;
         }
 
         .toggle-password-btn:hover {
@@ -237,16 +245,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="form-group">
                     <label for="email">E-mail ou CPF</label>
                     <div class="input-wrapper">
-                        <input type="text" id="email" name="email" required placeholder="seu@email.com ou CPF" autocomplete="username">
                         <i class="fas fa-envelope icon-left"></i>
+                        <input type="text" id="email" name="email" required placeholder="seu@email.com ou CPF" autocomplete="username">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="password">Senha</label>
                     <div class="input-wrapper">
-                        <input type="password" id="password" name="password" required placeholder="Sua senha de acesso" autocomplete="current-password">
                         <i class="fas fa-lock icon-left"></i>
+                        <input type="password" id="password" name="password" required placeholder="Sua senha de acesso" autocomplete="current-password">
                         <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility()" title="Mostrar/ocultar senha">
                             <i class="fas fa-eye" id="toggle-icon"></i>
                         </button>
