@@ -54,41 +54,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .login-card {
             background: #ffffff;
             border: 1px solid #e2e8f0;
-            padding: 2.5rem 2.25rem;
+            padding: 2.25rem;
             box-shadow: 0 20px 35px rgba(0, 0, 0, 0.06);
-            max-width: 440px;
+            max-width: 480px;
             margin: 3.5rem auto 4.5rem;
             border-radius: 16px;
             box-sizing: border-box;
         }
 
         .login-header {
-            text-align: center;
-            margin-bottom: 2rem;
+            text-align: left;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
         }
 
-        .login-icon-badge {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background: #f0fdfa;
-            color: #0d9488;
-            border: 1px solid #ccfbf1;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 4px 10px rgba(13, 148, 136, 0.1);
+        .login-header img {
+            height: 48px;
+            width: auto;
+            display: block;
+            margin-bottom: 1.25rem;
         }
 
         .login-header h2 {
             font-weight: 800;
-            text-transform: uppercase;
             font-size: 1.35rem;
-            color: #0f172a;
-            letter-spacing: 0.03em;
-            margin: 0 0 0.4rem;
+            color: #007a89;
+            line-height: 1.3;
+            letter-spacing: -0.01em;
+            margin: 0 0 0.6rem;
+            text-transform: none;
+        }
+
+        .login-header p {
+            color: #64748b;
+            font-size: 0.88rem;
+            font-weight: 400;
+            line-height: 1.55;
+            margin: 0;
         }
 
         .form-group {
@@ -127,8 +130,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         .input-wrapper input:focus {
             background: #ffffff;
-            border-color: #0d9488;
-            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+            border-color: #007a89;
+            box-shadow: 0 0 0 3px rgba(0, 122, 137, 0.15);
         }
 
         .input-wrapper i.icon-left {
@@ -136,7 +139,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             left: 1rem;
             top: 50%;
             transform: translateY(-50%);
-            color: #0d9488;
+            color: #007a89;
             font-size: 1rem;
             z-index: 10;
             pointer-events: none;
@@ -157,7 +160,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         .toggle-password-btn:hover {
-            color: #0d9488;
+            color: #007a89;
         }
 
         .btn-login-submit {
@@ -166,12 +169,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             font-size: 0.95rem;
             font-weight: 800;
             color: white;
-            background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+            background: linear-gradient(135deg, #007a89 0%, #005b66 100%);
             border: none;
             border-radius: 8px;
             cursor: pointer;
             margin-top: 0.5rem;
-            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 122, 137, 0.3);
             transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
@@ -181,7 +184,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         .btn-login-submit:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(13, 148, 136, 0.4);
+            box-shadow: 0 6px 16px rgba(0, 122, 137, 0.4);
         }
 
         .forgot-password-link {
@@ -196,7 +199,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         .forgot-password-link:hover {
-            color: #0d9488;
+            color: #007a89;
             text-decoration: underline;
         }
 
@@ -210,7 +213,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .register-btn-link {
             display: inline-block;
             margin-top: 0.4rem;
-            color: #0d9488;
+            color: #007a89;
             font-weight: 800;
             font-size: 0.9rem;
             text-decoration: none;
@@ -218,7 +221,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         .register-btn-link:hover {
-            color: #0f766e;
+            color: #005b66;
             text-decoration: underline;
         }
     </style>
@@ -230,12 +233,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <main class="container">
         <div class="login-card">
             <div class="login-header">
-                <div class="login-icon-badge">
-                    <i class="fas fa-user-lock"></i>
-                </div>
-                <h2>Área Restrita</h2>
-                <p style="color: #64748b; font-size: 0.88rem; font-weight: 500; margin: 0;">
-                    Acesse sua conta para continuar no portal
+                <img src="<?php echo BASE_URL; ?>assets/img/logo_caudf.png" alt="CAU/DF - Conselho de Arquitetura e Urbanismo do Distrito Federal">
+                <h2>Criado sob medida para Recenseadores e Arquitetos</h2>
+                <p>
+                    Se for seu primeiro acesso, realize seu cadastro como recenseador. Caso já possua um cadastro aprovado pelo CAUDF, basta acessar o sistema e iniciar o trabalho.
                 </p>
             </div>
 
