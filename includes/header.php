@@ -16,22 +16,22 @@
 
 <body>
     <!-- Top Bar -->
-    <div style="background: #0f172a; color: #94a3b8; padding: 6px 0; font-size: 0.78rem; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: 'Inter', sans-serif;">
+    <div style="background: #005b66; color: #b2ebf2; padding: 6px 0; font-size: 0.78rem; border-bottom: 1px solid rgba(255,255,255,0.1); font-family: 'Inter', sans-serif;">
         <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; gap: 1.25rem; align-items: center;">
-                <a href="https://www.caudf.gov.br" target="_blank" style="color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s;" onmouseover="this.style.color='#2dd4bf';" onmouseout="this.style.color='#cbd5e1';">
-                    <i class="fas fa-headset" style="color: #2dd4bf;"></i> ATENDIMENTO
+                <a href="https://www.caudf.gov.br" target="_blank" style="color: #e0f7fa; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';">
+                    <i class="fas fa-headset" style="color: #80deea;"></i> ATENDIMENTO
                 </a>
-                <a href="#" style="color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s;" onmouseover="this.style.color='#2dd4bf';" onmouseout="this.style.color='#cbd5e1';">
-                    <i class="fas fa-universal-access" style="color: #2dd4bf;"></i> ACESSIBILIDADE
+                <a href="#" style="color: #e0f7fa; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';">
+                    <i class="fas fa-universal-access" style="color: #80deea;"></i> ACESSIBILIDADE
                 </a>
-                <a href="#" style="color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s;" onmouseover="this.style.color='#2dd4bf';" onmouseout="this.style.color='#cbd5e1';">
-                    <i class="fas fa-info-circle" style="color: #2dd4bf;"></i> TRANSPARÊNCIA
+                <a href="#" style="color: #e0f7fa; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';">
+                    <i class="fas fa-info-circle" style="color: #80deea;"></i> TRANSPARÊNCIA
                 </a>
             </div>
             <div style="display: flex; gap: 1rem; align-items: center;">
-                <a href="#" style="color: #cbd5e1; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#2dd4bf';" onmouseout="this.style.color='#cbd5e1';" title="Instagram"><i class="fab fa-instagram"></i></a>
-                <a href="#" style="color: #cbd5e1; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#2dd4bf';" onmouseout="this.style.color='#cbd5e1';" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                <a href="#" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';" title="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
             </div>
         </div>
     </div>
@@ -48,12 +48,12 @@
                     <!-- Search Bar Modern -->
                     <div class="search-container" style="position: relative; max-width: 320px; width: 100%;">
                         <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.9rem;"></i>
-                        <input type="text" placeholder="Pesquisar no portal..." style="width: 100%; padding: 0.65rem 1rem 0.65rem 2.4rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 20px; font-size: 0.88rem; color: #1e293b; outline: none; transition: all 0.2s;" onfocus="this.style.background='#fff'; this.style.borderColor='#0d9488'; this.style.boxShadow='0 0 0 3px rgba(13, 148, 136, 0.15)';" onblur="this.style.background='#f8fafc'; this.style.borderColor='#cbd5e1'; this.style.boxShadow='none';">
+                        <input type="text" placeholder="Pesquisar no portal..." style="width: 100%; padding: 0.65rem 1rem 0.65rem 2.4rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 20px; font-size: 0.88rem; color: #1e293b; outline: none; transition: all 0.2s;" onfocus="this.style.background='#fff'; this.style.borderColor='#007a89'; this.style.boxShadow='0 0 0 3px rgba(0, 122, 137, 0.15)';" onblur="this.style.background='#f8fafc'; this.style.borderColor='#cbd5e1'; this.style.boxShadow='none';">
                     </div>
 
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <div style="display: flex; gap: 0.5rem; align-items: center;">
-                            <a href="<?php echo BASE_URL; ?><?php echo ($_SESSION['role'] === 'admin') ? 'pages/admin/dashboard.php' : 'pages/recenseador/dashboard.php'; ?>" class="btn btn-primary" style="background: #0d9488; color: white; border: none; padding: 0.65rem 1.2rem; font-size: 0.82rem; font-weight: 700; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(13, 148, 136, 0.25);">
+                            <a href="<?php echo BASE_URL; ?><?php echo ($_SESSION['role'] === 'admin') ? 'pages/admin/dashboard.php' : 'pages/recenseador/dashboard.php'; ?>" class="btn btn-primary" style="background: #007a89; color: white; border: none; padding: 0.65rem 1.2rem; font-size: 0.82rem; font-weight: 700; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(0, 122, 137, 0.25);">
                                 <i class="fas fa-user-circle"></i> MINHA ÁREA
                             </a>
                             <a href="<?php echo BASE_URL; ?>logout.php" class="btn btn-outline" style="border: 1px solid #cbd5e1; color: #64748b; padding: 0.65rem 1rem; font-size: 0.82rem; font-weight: 600; border-radius: 8px; text-decoration: none;">
@@ -61,7 +61,7 @@
                             </a>
                         </div>
                     <?php else: ?>
-                        <a href="<?php echo BASE_URL; ?>pages/login.php" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: white; padding: 0.6rem 1.25rem; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(13, 148, 136, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(13, 148, 136, 0.3)';">
+                        <a href="<?php echo BASE_URL; ?>pages/login.php" style="background: linear-gradient(135deg, #007a89 0%, #005b66 100%); color: white; padding: 0.6rem 1.25rem; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0, 122, 137, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(0, 122, 137, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 122, 137, 0.3)';">
                              <div style="background: rgba(255,255,255,0.2); width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                                 <i class="fas fa-lock" style="font-size: 0.95rem; color: white;"></i>
                              </div>
@@ -79,13 +79,13 @@
         <nav style="background: #ffffff; border-top: 1px solid #f1f5f9; padding: 0;">
             <div class="container">
                 <ul style="list-style: none; padding: 0; margin: 0; display: flex; gap: 1.75rem; flex-wrap: wrap; align-items: center;">
-                    <li><a href="<?php echo BASE_URL; ?>" style="display: block; padding: 0.75rem 0; color: #0d9488; font-weight: 800; font-size: 0.82rem; text-decoration: none; border-bottom: 2px solid #0d9488; text-transform: uppercase; letter-spacing: 0.03em;">PORTAL CAUDF</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>#features" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#0d9488';" onmouseout="this.style.color='#475569';">FISCALIZAÇÃO</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>#quick-access" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#0d9488';" onmouseout="this.style.color='#475569';">PARA A SOCIEDADE</a></li>
-                    <li><a href="#" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#0d9488';" onmouseout="this.style.color='#475569';">INSTITUCIONAL</a></li>
-                    <li><a href="#" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#0d9488';" onmouseout="this.style.color='#475569';">LEGISLAÇÃO</a></li>
-                    <li><a href="#" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#0d9488';" onmouseout="this.style.color='#475569';">TRANSPARÊNCIA</a></li>
-                    <li><a href="#" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#0d9488';" onmouseout="this.style.color='#475569';">DADOS ABERTOS</a></li>
+                    <li><a href="<?php echo BASE_URL; ?>" style="display: block; padding: 0.75rem 0; color: #007a89; font-weight: 800; font-size: 0.82rem; text-decoration: none; border-bottom: 2px solid #007a89; text-transform: uppercase; letter-spacing: 0.03em;">PORTAL CAUDF</a></li>
+                    <li><a href="<?php echo BASE_URL; ?>#features" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">FISCALIZAÇÃO</a></li>
+                    <li><a href="<?php echo BASE_URL; ?>#quick-access" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">PARA A SOCIEDADE</a></li>
+                    <li><a href="#" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">INSTITUCIONAL</a></li>
+                    <li><a href="#" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">LEGISLAÇÃO</a></li>
+                    <li><a href="#" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">TRANSPARÊNCIA</a></li>
+                    <li><a href="#" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">DADOS ABERTOS</a></li>
                 </ul>
             </div>
         </nav>
