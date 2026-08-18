@@ -6,7 +6,7 @@ include 'includes/header.php';
 <!-- Estilos Customizados da Página Principal -->
 <style>
     .hero-wrapper {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f766e 100%);
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #0d9488 100%);
         color: white;
         padding: 4rem 0 5rem;
         position: relative;
@@ -17,9 +17,9 @@ include 'includes/header.php';
         position: absolute;
         top: -50px;
         right: -50px;
-        width: 300px;
-        height: 300px;
-        background: rgba(13, 148, 136, 0.15);
+        width: 350px;
+        height: 350px;
+        background: rgba(255, 255, 255, 0.12);
         border-radius: 50%;
         filter: blur(50px);
     }
@@ -27,9 +27,9 @@ include 'includes/header.php';
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        background: rgba(20, 184, 166, 0.2);
-        color: #2dd4bf;
-        border: 1px solid rgba(45, 212, 191, 0.3);
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.35);
         padding: 6px 14px;
         border-radius: 20px;
         font-size: 0.85rem;
@@ -37,6 +37,7 @@ include 'includes/header.php';
         text-transform: uppercase;
         letter-spacing: 0.05em;
         margin-bottom: 1.25rem;
+        backdrop-filter: blur(4px);
     }
     .hero-title {
         font-size: 2.75rem;
@@ -46,14 +47,15 @@ include 'includes/header.php';
         margin-bottom: 1.25rem;
     }
     .hero-title span {
-        color: #2dd4bf;
+        color: #bae6fd;
     }
     .hero-subtitle {
         font-size: 1.15rem;
-        color: #94a3b8;
+        color: #f0f9ff;
         line-height: 1.6;
         margin-bottom: 2rem;
         max-width: 600px;
+        opacity: 0.95;
     }
     .hero-buttons {
         display: flex;
