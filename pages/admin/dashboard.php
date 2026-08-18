@@ -3485,10 +3485,10 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                               placeholder="Descreva detalhadamente o motivo pelo qual esta rota está sendo renovada por mais 7 dias (ex: atrasos justificados, necessidade de revisita, etc.)..."></textarea>
                 </div>
                 
-                <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
-                    <button type="button" onclick="closeRenewModal()" class="btn btn-outline" style="border-color: #cbd5e1; color: #64748b; font-size: 0.85rem; padding: 0.6rem 1.2rem; background: white; border-radius: 4px; cursor: pointer;">Cancelar</button>
-                    <button type="submit" class="btn" style="background: #3b82f6; border-color: #3b82f6; font-size: 0.85rem; padding: 0.6rem 1.2rem; color: white; border-radius: 4px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
-                       <i class="fas fa-redo"></i> Renovar por 7 Dias
+                <div class="modal-footer" style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 1rem; width: 100%; box-sizing: border-box; flex-wrap: wrap;">
+                    <button type="button" onclick="closeRenewModal()" class="btn btn-outline" style="border-color: #cbd5e1; color: #64748b; font-size: 0.8rem; padding: 0.55rem 0.85rem; background: white; border-radius: 4px; cursor: pointer; font-weight: 600; box-sizing: border-box;">MANTER ROTA</button>
+                    <button type="submit" class="btn" style="background: #3b82f6; border-color: #3b82f6; font-size: 0.8rem; padding: 0.55rem 0.85rem; color: white; border-radius: 4px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; box-sizing: border-box;">
+                       <i class="fas fa-redo"></i> RENOVAR POR 7 DIAS
                     </button>
                 </div>
             </form>
@@ -3497,15 +3497,15 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
 
     <!-- Modal de Confirmação de Cancelamento -->
     <div id="cancel-route-modal" class="modal-backdrop" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9999;">
-        <div class="modal-content" style="background: white; padding: 2rem; border-radius: 8px; max-width: 450px; width: 90%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; margin: 1.5rem; box-sizing: border-box;">
-            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+        <div class="modal-content" style="background: white; padding: 1.75rem; border-radius: 8px; max-width: 460px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.15); position: relative; margin: 1.5rem; box-sizing: border-box;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
                 <h3 style="margin: 0; color: #dc2626; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-exclamation-triangle"></i> Cancelar Rota
                 </h3>
                 <button type="button" onclick="closeCancelModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8;">&times;</button>
             </div>
             
-            <p style="font-size: 0.9rem; color: #475569; line-height: 1.5; margin-bottom: 1.5rem;">
+            <p style="font-size: 0.88rem; color: #475569; line-height: 1.5; margin-bottom: 1.25rem;">
                 Tem certeza que deseja cancelar a rota <strong id="cancel-modal-route-title" style="color: #1e293b;"></strong>? 
                 Esta ação mudará o status da rota para cancelada e o recenseador não terá mais acesso a ela.
             </p>
@@ -3514,19 +3514,19 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                 <input type="hidden" name="action" value="cancel_route">
                 <input type="hidden" name="route_id" id="cancel-route-id" value="">
                 
-                <div class="form-group" style="margin-bottom: 1.5rem;">
+                <div class="form-group" style="margin-bottom: 1.25rem;">
                     <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem; color: #475569;">
                         Justificativa do Cancelamento (Mínimo de 10 caracteres):
                     </label>
                     <textarea name="cancellation_reason" id="cancel-reason-input" required class="form-control" rows="4" 
-                              style="font-size: 0.9rem; border-radius: 6px; padding: 10px; width: 100%; border: 1px solid #cbd5e1; box-sizing: border-box; resize: vertical;" 
+                              style="font-size: 0.88rem; border-radius: 6px; padding: 10px; width: 100%; border: 1px solid #cbd5e1; box-sizing: border-box; resize: vertical;" 
                               placeholder="Descreva o motivo do cancelamento desta rota..."></textarea>
                 </div>
                 
-                <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
-                    <button type="button" onclick="closeCancelModal()" class="btn btn-outline" style="border-color: #cbd5e1; color: #64748b; font-size: 0.85rem; padding: 0.6rem 1.2rem; background: white; border-radius: 4px; cursor: pointer;">Manter Rota</button>
-                    <button type="submit" class="btn" style="background: #dc2626; border-color: #dc2626; font-size: 0.85rem; padding: 0.6rem 1.2rem; color: white; border-radius: 4px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
-                        <i class="fas fa-ban"></i> Confirmar Cancelamento
+                <div class="modal-footer" style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 1rem; width: 100%; box-sizing: border-box; flex-wrap: wrap;">
+                    <button type="button" onclick="closeCancelModal()" class="btn btn-outline" style="border-color: #cbd5e1; color: #64748b; font-size: 0.8rem; padding: 0.55rem 0.85rem; background: white; border-radius: 4px; cursor: pointer; font-weight: 600; box-sizing: border-box;">MANTER ROTA</button>
+                    <button type="submit" class="btn" style="background: #dc2626; border-color: #dc2626; font-size: 0.8rem; padding: 0.55rem 0.85rem; color: white; border-radius: 4px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; box-sizing: border-box;">
+                        <i class="fas fa-ban"></i> CONFIRMAR CANCELAMENTO
                     </button>
                 </div>
             </form>
