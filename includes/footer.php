@@ -12,13 +12,13 @@
                     Projeto Recenseadores de Obras e Mapeamento de Fiscalização no DF.
                 </p>
                 <div style="display: flex; gap: 10px;">
-                    <a href="https://www.caudf.gov.br" target="_blank" title="Portal CAU/DF" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); color: #80deea; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='#007a89'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='#80deea';">
+                    <a href="http://www.caudf.gov.br" target="_blank" rel="noopener noreferrer" title="Portal CAU/DF" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); color: #80deea; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='#007a89'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='#80deea';">
                         <i class="fas fa-globe"></i>
                     </a>
-                    <a href="#" title="Instagram CAU/DF" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); color: #80deea; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='#007a89'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='#80deea';">
+                    <a href="https://www.instagram.com/caudfoficial/" target="_blank" rel="noopener noreferrer" title="Instagram CAU/DF" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); color: #80deea; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='#007a89'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='#80deea';">
                         <i class="fab fa-instagram"></i>
                     </a>
-                    <a href="#" title="Atendimento WhatsApp" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); color: #80deea; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='#007a89'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='#80deea';">
+                    <a href="http://www.caudf.gov.br" target="_blank" rel="noopener noreferrer" title="Atendimento CAU/DF" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); color: #80deea; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='#007a89'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='#80deea';">
                         <i class="fab fa-whatsapp"></i>
                     </a>
                 </div>

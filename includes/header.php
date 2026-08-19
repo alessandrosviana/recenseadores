@@ -19,19 +19,19 @@
     <div style="background: #005b66; color: #b2ebf2; padding: 6px 0; font-size: 0.78rem; border-bottom: 1px solid rgba(255,255,255,0.1); font-family: 'Inter', sans-serif;">
         <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; gap: 1.25rem; align-items: center;">
-                <a href="https://www.caudf.gov.br" target="_blank" style="color: #e0f7fa; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';">
+                <a href="http://www.caudf.gov.br" target="_blank" rel="noopener noreferrer" style="color: #e0f7fa; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';">
                     <i class="fas fa-headset" style="color: #80deea;"></i> ATENDIMENTO
                 </a>
-                <a href="#" style="color: #e0f7fa; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';">
+                <a href="http://www.caudf.gov.br" target="_blank" rel="noopener noreferrer" style="color: #e0f7fa; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';">
                     <i class="fas fa-universal-access" style="color: #80deea;"></i> ACESSIBILIDADE
                 </a>
-                <a href="#" style="color: #e0f7fa; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';">
+                <a href="https://transparencia.caudf.gov.br/" target="_blank" rel="noopener noreferrer" style="color: #e0f7fa; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';">
                     <i class="fas fa-info-circle" style="color: #80deea;"></i> TRANSPARÊNCIA
                 </a>
             </div>
             <div style="display: flex; gap: 1rem; align-items: center;">
-                <a href="#" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';" title="Instagram"><i class="fab fa-instagram"></i></a>
-                <a href="#" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                <a href="https://www.instagram.com/caudfoficial/" target="_blank" rel="noopener noreferrer" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';" title="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="http://www.caudf.gov.br" target="_blank" rel="noopener noreferrer" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
             </div>
         </div>
     </div>
@@ -61,7 +61,7 @@
                             </a>
                         </div>
                     <?php else: ?>
-                        <a href="<?php echo BASE_URL; ?>pages/login.php" style="background: linear-gradient(135deg, #007a89 0%, #005b66 100%); color: white; padding: 0.6rem 1.25rem; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0, 122, 137, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(0, 122, 137, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 122, 137, 0.3)';">
+                        <a href="https://acesso.caubr.gov.br/" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(135deg, #007a89 0%, #005b66 100%); color: white; padding: 0.6rem 1.25rem; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0, 122, 137, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(0, 122, 137, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 122, 137, 0.3)';">
                              <div style="background: rgba(255,255,255,0.2); width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                                 <i class="fas fa-lock" style="font-size: 0.95rem; color: white;"></i>
                              </div>
@@ -79,13 +79,13 @@
         <nav style="background: #ffffff; border-top: 1px solid #f1f5f9; padding: 0;">
             <div class="container">
                 <ul style="list-style: none; padding: 0; margin: 0; display: flex; gap: 1.75rem; flex-wrap: wrap; align-items: center;">
-                    <li><a href="<?php echo BASE_URL; ?>" style="display: block; padding: 0.75rem 0; color: #007a89; font-weight: 800; font-size: 0.82rem; text-decoration: none; border-bottom: 2px solid #007a89; text-transform: uppercase; letter-spacing: 0.03em;">PORTAL CAUDF</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>#features" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">FISCALIZAÇÃO</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>#quick-access" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">PARA A SOCIEDADE</a></li>
-                    <li><a href="#" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">INSTITUCIONAL</a></li>
-                    <li><a href="#" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">LEGISLAÇÃO</a></li>
-                    <li><a href="#" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">TRANSPARÊNCIA</a></li>
-                    <li><a href="#" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">DADOS ABERTOS</a></li>
+                    <li><a href="http://www.caudf.gov.br" target="_blank" rel="noopener noreferrer" style="display: block; padding: 0.75rem 0; color: #007a89; font-weight: 800; font-size: 0.82rem; text-decoration: none; border-bottom: 2px solid #007a89; text-transform: uppercase; letter-spacing: 0.03em;">PORTAL CAUDF</a></li>
+                    <li><a href="https://www.caudf.gov.br/sobre-a-fiscalizacao/" target="_blank" rel="noopener noreferrer" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">FISCALIZAÇÃO</a></li>
+                    <li><a href="https://www.caudf.gov.br/como-fazer-uma-denuncia-ao-cau-df/" target="_blank" rel="noopener noreferrer" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">PARA A SOCIEDADE</a></li>
+                    <li><a href="https://www.caudf.gov.br/institucional-conselho-arquitetura-urbanismo-df/" target="_blank" rel="noopener noreferrer" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">INSTITUCIONAL</a></li>
+                    <li><a href="https://www.caudf.gov.br/legislacao-federal/" target="_blank" rel="noopener noreferrer" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">LEGISLAÇÃO</a></li>
+                    <li><a href="https://transparencia.caudf.gov.br/" target="_blank" rel="noopener noreferrer" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">TRANSPARÊNCIA</a></li>
+                    <li><a href="https://cau-df.implanta.net.br/portaltransparencia/api/dadosabertos#/" target="_blank" rel="noopener noreferrer" style="display: block; padding: 0.75rem 0; color: #475569; font-weight: 700; font-size: 0.82rem; text-decoration: none; text-transform: uppercase; letter-spacing: 0.03em; transition: color 0.2s;" onmouseover="this.style.color='#007a89';" onmouseout="this.style.color='#475569';">DADOS ABERTOS</a></li>
                 </ul>
             </div>
         </nav>
