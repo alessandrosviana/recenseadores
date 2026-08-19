@@ -4,7 +4,8 @@ $BackupRoot = "C:\Backups_Sistema_Recenseadores"
 if (!(Test-Path $BackupRoot)) { New-Item -ItemType Directory -Path $BackupRoot }
 
 # Caminhos de Origem
-$LiveFolder = "C:\xampp\htdocs\recenseadores"
+$LiveFolder = $PSScriptRoot
+if (! $LiveFolder) { $LiveFolder = "C:\Users\Alessandro\Documents\recenseadores" }
 $MysqlDumpExe = "C:\xampp\mysql\bin\mysqldump.exe"
 $DbName = "sistema_recenseadores"
 $DbUser = "root"
