@@ -327,7 +327,7 @@ $registered_users = $pdo->query("SELECT * FROM users WHERE status IN ('approved'
 $admin_users = $pdo->query("SELECT * FROM users WHERE role = 'admin' ORDER BY name ASC")->fetchAll();
 
 // Wizard Data (Per Route) - Apenas o que NÃO foi liquidado (Passo < 5)
-$wizard_routes = $pdo->query("SELECT r.*, u.name as user_name, u.cpf as user_cpf, u.processo_sei as user_sei 
+$wizard_routes = $pdo->query("SELECT r.*, r.microregion as route_microregion, u.name as user_name, u.cpf as user_cpf, u.processo_sei as user_sei, u.microregion as user_microregion 
     FROM routes r 
     JOIN users u ON r.user_id = u.id 
     WHERE u.status = 'approved' AND r.status NOT IN ('cancelled', 'rejected') AND (r.wizard_step < 6 OR r.wizard_step IS NULL) AND r.is_archived = 0
@@ -1296,35 +1296,99 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                     <p class="text-muted">Acompanhe o fluxo de cada recenseador, desde a documentação até o pagamento final.</p>
                 </div>
 
-                <div style="background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0;">
+                <!-- Barra de Filtros Dinâmica do Wizard -->
+                <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                    <div style="display: flex; gap: 1.25rem; align-items: flex-end; flex-wrap: wrap; justify-content: space-between;">
+                        
+                        <div style="display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap; flex-grow: 1;">
+                            <!-- Filtro por Macrorregião -->
+                            <div style="min-width: 280px; flex-grow: 1;">
+                                <label style="display: block; font-size: 0.78rem; font-weight: 800; color: #007a89; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 0.35rem;">
+                                    <i class="fas fa-map-marked-alt"></i> Filtrar por Macrorregião
+                                </label>
+                                <select id="wizard_region_filter" onchange="filterWizardRoutes()" style="width: 100%; padding: 0.65rem 0.85rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; color: #0f172a; font-weight: 600; outline: none; cursor: pointer;">
+                                    <option value="">Todas as Macrorregiões (Visão Geral)</option>
+                                    <option value="Macrorregião 1">Macrorregião 1 (Sobradinho, Planaltina, Fercal, Arapoanga)</option>
+                                    <option value="Macrorregião 2">Macrorregião 2 (Lago Norte, Varjão, Paranoá, Itapoã)</option>
+                                    <option value="Macrorregião 3">Macrorregião 3 (Lago Sul, Jardim Botânico, São Sebastião)</option>
+                                    <option value="Macrorregião 4">Macrorregião 4 (Plano Piloto, Cruzeiro, Sudoeste, SIA, Estrutural, Noroeste)</option>
+                                    <option value="Macrorregião 5">Macrorregião 5 (Gama, Santa Maria, Água Quente)</option>
+                                    <option value="Macrorregião 6">Macrorregião 6 (Riacho Fundo, Park Way, Candangolândia, Bandeirante, Recanto das Emas)</option>
+                                    <option value="Macrorregião 7">Macrorregião 7 (Ceilândia, Sol Nascente, Taguatinga, Samambaia, Brazlândia)</option>
+                                    <option value="Macrorregião 8">Macrorregião 8 (Guará, Águas Claras, Vicente Pires, Arniqueiras)</option>
+                                </select>
+                            </div>
+
+                            <!-- Busca Rápida por Cidade / Recenseador / CPF -->
+                            <div style="min-width: 280px; flex-grow: 1;">
+                                <label style="display: block; font-size: 0.78rem; font-weight: 800; color: #007a89; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 0.35rem;">
+                                    <i class="fas fa-search"></i> Buscar Cidade/RA, Nome ou CPF
+                                </label>
+                                <input type="text" id="wizard_search_input" onkeyup="filterWizardRoutes()" placeholder="Digite a cidade/RA, nome ou CPF..." style="width: 100%; padding: 0.65rem 0.85rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; color: #0f172a; outline: none; box-sizing: border-box;">
+                            </div>
+                        </div>
+
+                        <!-- Botão Limpar e Contador -->
+                        <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
+                            <button type="button" onclick="resetWizardFilters()" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 0.65rem 1rem; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0';" onmouseout="this.style.background='#f1f5f9';">
+                                <i class="fas fa-undo"></i> Limpar Filtros
+                            </button>
+                            
+                            <div id="wizard_counter_badge" style="background: #f0fdfa; color: #007a89; border: 1px solid #ccfbf1; font-weight: 800; font-size: 0.82rem; padding: 0.6rem 1rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-list-ol"></i> Exibindo <span id="wizard_visible_count"><?php echo count($wizard_routes); ?></span> de <?php echo count($wizard_routes); ?> tarefas
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div style="background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
                     <table style="width: 100%; border-collapse: collapse;">
-                        <thead style="background: #f8f9fa;">
+                        <thead style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
                             <tr>
-                                <th style="padding:1rem; text-align: left;">Recenseador</th>
-                                <th style="padding:1rem; text-align: left;">Fluxo de Progresso</th>
-                                <th style="padding:1rem; text-align: center;">Ações</th>
+                                <th style="padding:1rem; text-align: left; color: #334155; font-size: 0.85rem; font-weight: 800;">Recenseador & Rota</th>
+                                <th style="padding:1rem; text-align: left; color: #334155; font-size: 0.85rem; font-weight: 800;">Fluxo de Progresso</th>
+                                <th style="padding:1rem; text-align: center; color: #334155; font-size: 0.85rem; font-weight: 800;">Ações</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <?php foreach ($wizard_routes as $r): ?>
-                                <tr style="border-bottom: 1px solid #eee;">
-                                    <td style="padding:1rem; width: 250px;">
-                                        <div style="font-weight: 600; color: #333;">
+                        <tbody id="wizard_table_body">
+                            <?php foreach ($wizard_routes as $r): 
+                                $macroRegion = !empty($r['route_microregion']) ? $r['route_microregion'] : (!empty($r['user_microregion']) ? $r['user_microregion'] : '');
+                                $searchData = mb_strtolower(($r['title'] ?? '') . ' ' . ($r['user_name'] ?? '') . ' ' . ($r['user_cpf'] ?? '') . ' ' . ($r['cities'] ?? '') . ' ' . $macroRegion, 'UTF-8');
+                            ?>
+                                <tr class="wizard-row" data-region="<?php echo htmlspecialchars($macroRegion); ?>" data-search="<?php echo htmlspecialchars($searchData); ?>" style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s ease;">
+                                    <td style="padding:1.1rem; width: 280px; vertical-align: top;">
+                                        <div style="font-weight: 800; color: #0f172a; font-size: 0.95rem; line-height: 1.3; margin-bottom: 0.3rem;">
                                             <?php echo htmlspecialchars($r['title']); ?>
                                         </div>
-                                        <div style="font-size: 0.85rem; color: var(--primary-teal); margin: 0.2rem 0; font-weight: 600;">
-                                            <i class="fas fa-user"></i> <?php echo mb_strtoupper(htmlspecialchars($r['user_name']), 'UTF-8'); ?>
+
+                                        <div style="font-size: 0.85rem; color: #007a89; margin: 0.2rem 0; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                                            <i class="fas fa-user-circle"></i> <?php echo mb_strtoupper(htmlspecialchars($r['user_name']), 'UTF-8'); ?>
                                         </div>
-                                        <div style="font-size: 0.75rem; color: #666;">
+
+                                        <div style="font-size: 0.78rem; color: #64748b; margin-bottom: 0.4rem;">
                                             CPF: <?php echo htmlspecialchars($r['user_cpf'] ?? ''); ?>
                                         </div>
+
+                                        <?php if (!empty($macroRegion)): ?>
+                                            <div style="font-size: 0.72rem; font-weight: 800; color: #007a89; background: #f0fdfa; border: 1px solid #ccfbf1; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px; margin-bottom: 4px;">
+                                                <i class="fas fa-map-marked-alt"></i> <?php echo htmlspecialchars($macroRegion); ?>
+                                            </div>
+                                        <?php endif; ?>
+
+                                        <?php if (!empty($r['cities'])): ?>
+                                            <div style="font-size: 0.72rem; font-weight: 600; color: #475569; background: #f1f5f9; border: 1px solid #e2e8f0; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
+                                                <i class="fas fa-city" style="color: #64748b;"></i> <?php echo htmlspecialchars($r['cities']); ?>
+                                            </div>
+                                        <?php endif; ?>
+
                                         <?php if (!empty($r['user_sei'])): ?>
-                                            <div style="font-size: 0.75rem; color: #999; margin-top: 5px;">
+                                            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">
                                                 <strong>SEI (Cad):</strong> <?php echo htmlspecialchars($r['user_sei']); ?>
                                             </div>
                                         <?php endif; ?>
                                     </td>
-                                    <td style="padding:1rem;">
+                                    <td style="padding:1.1rem; vertical-align: top;">
                                         <div style="margin-bottom: 0.8rem;">
                                             <div class="wizard-stepper" style="display: flex; justify-content: space-between; position: relative; margin: 20px 0;">
                                             <div style="position: absolute; top: 15px; left: 0; right: 0; height: 4px; background: #e0e0e0; z-index: 1;"></div>
@@ -1383,7 +1447,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             </div>
                                         <?php endif; ?>
                                     </td>
-                                    <td style="padding:1rem; text-align: center;">
+                                    <td style="padding:1.1rem; text-align: center; vertical-align: top;">
                                         <form method="post" style="display: inline-block;">
                                             <input type="hidden" name="action" value="update_wizard">
                                             <input type="hidden" name="route_id" value="<?php echo $r['id']; ?>">
@@ -1408,6 +1472,14 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
+
+                            <tr id="wizard_no_results_row" style="display: none;">
+                                <td colspan="3" style="padding: 2.5rem; text-align: center; color: #64748b; font-size: 0.9rem;">
+                                    <i class="fas fa-search" style="font-size: 2rem; color: #cbd5e1; display: block; margin-bottom: 0.75rem;"></i>
+                                    <strong>Nenhuma tarefa encontrada para os filtros selecionados.</strong><br>
+                                    Tente selecionar outra macrorregião ou limpar a busca.
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -3631,6 +3703,58 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                 closeArchiveModal();
             }
         });
+
+        // Função de Filtragem Dinâmica por Região e Busca no Wizard de Andamento
+        function filterWizardRoutes() {
+            var regionSelect = document.getElementById('wizard_region_filter');
+            var searchInput = document.getElementById('wizard_search_input');
+
+            if (!regionSelect || !searchInput) return;
+
+            var selectedRegion = regionSelect.value.toLowerCase().trim();
+            var searchStr = searchInput.value.toLowerCase().trim();
+
+            var rows = document.querySelectorAll('.wizard-row');
+            var visibleCount = 0;
+            var totalCount = rows.length;
+
+            rows.forEach(function(row) {
+                var rowRegion = (row.getAttribute('data-region') || '').toLowerCase().trim();
+                var rowSearch = (row.getAttribute('data-search') || '').toLowerCase().trim();
+
+                var matchesRegion = (selectedRegion === '' || rowRegion.indexOf(selectedRegion) !== -1);
+                var matchesSearch = (searchStr === '' || rowSearch.indexOf(searchStr) !== -1);
+
+                if (matchesRegion && matchesSearch) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            var countSpan = document.getElementById('wizard_visible_count');
+            if (countSpan) {
+                countSpan.innerText = visibleCount;
+            }
+
+            var noResultsRow = document.getElementById('wizard_no_results_row');
+            if (noResultsRow) {
+                if (visibleCount === 0 && totalCount > 0) {
+                    noResultsRow.style.display = '';
+                } else {
+                    noResultsRow.style.display = 'none';
+                }
+            }
+        }
+
+        function resetWizardFilters() {
+            var regionSelect = document.getElementById('wizard_region_filter');
+            var searchInput = document.getElementById('wizard_search_input');
+            if (regionSelect) regionSelect.value = '';
+            if (searchInput) searchInput.value = '';
+            filterWizardRoutes();
+        }
     </script>
 </body>
 
