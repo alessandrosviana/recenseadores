@@ -1353,10 +1353,39 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         </thead>
                         <tbody id="wizard_table_body">
                             <?php foreach ($wizard_routes as $r): 
-                                $macroRegion = !empty($r['route_microregion']) ? $r['route_microregion'] : (!empty($r['user_microregion']) ? $r['user_microregion'] : '');
-                                $searchData = mb_strtolower(($r['title'] ?? '') . ' ' . ($r['user_name'] ?? '') . ' ' . ($r['user_cpf'] ?? '') . ' ' . ($r['cities'] ?? '') . ' ' . $macroRegion, 'UTF-8');
+                                $userMacro = $r['user_microregion'] ?? '';
+                                $routeMicro = $r['route_microregion'] ?? '';
+                                
+                                // Mapeamento Inteligente de Cidades/RAs para Macrorregiões
+                                $inferredMacro = '';
+                                $routeText = mb_strtolower($routeMicro . ' ' . ($r['description'] ?? '') . ' ' . ($r['title'] ?? ''), 'UTF-8');
+                                
+                                if (preg_match('/sobradinho|planaltina|fercal|arapoanga/i', $routeText)) {
+                                    $inferredMacro = 'Macrorregião 1';
+                                } elseif (preg_match('/lago norte|varjão|varjao|paranoá|paranoa|itapoã|itapoa/i', $routeText)) {
+                                    $inferredMacro = 'Macrorregião 2';
+                                } elseif (preg_match('/lago sul|jardim botânico|jardim botanico|são sebastião|sao sebastiao/i', $routeText)) {
+                                    $inferredMacro = 'Macrorregião 3';
+                                } elseif (preg_match('/plano piloto|cruzeiro|sudoeste|sia|estrutural|noroeste/i', $routeText)) {
+                                    $inferredMacro = 'Macrorregião 4';
+                                } elseif (preg_match('/gama|santa maria|água quente|agua quente/i', $routeText)) {
+                                    $inferredMacro = 'Macrorregião 5';
+                                } elseif (preg_match('/riacho fundo|park way|candangolândia|candangolandia|bandeirante|recanto das emas/i', $routeText)) {
+                                    $inferredMacro = 'Macrorregião 6';
+                                } elseif (preg_match('/ceilândia|ceilandia|sol nascente|taguatinga|samambaia|brazlândia|brazlandia/i', $routeText)) {
+                                    $inferredMacro = 'Macrorregião 7';
+                                } elseif (preg_match('/guará|guara|águas claras|aguas claras|vicente pires|arniqueiras/i', $routeText)) {
+                                    $inferredMacro = 'Macrorregião 8';
+                                }
+
+                                // Combina todas as macrorregiões associadas (do recenseador, da rota e inferida)
+                                $allMacros = array_filter(array_unique([$userMacro, $inferredMacro]));
+                                $macroDisplay = !empty($allMacros) ? implode(' / ', $allMacros) : (!empty($routeMicro) ? $routeMicro : 'Macrorregião Geral');
+
+                                $dataRegionAttr = mb_strtolower(implode(' ', array_merge($allMacros, [$routeMicro, $userMacro])), 'UTF-8');
+                                $searchData = mb_strtolower(($r['title'] ?? '') . ' ' . ($r['user_name'] ?? '') . ' ' . ($r['user_cpf'] ?? '') . ' ' . ($r['description'] ?? '') . ' ' . $routeMicro . ' ' . $userMacro . ' ' . $macroDisplay, 'UTF-8');
                             ?>
-                                <tr class="wizard-row" data-region="<?php echo htmlspecialchars($macroRegion); ?>" data-search="<?php echo htmlspecialchars($searchData); ?>" style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s ease;">
+                                <tr class="wizard-row" data-region="<?php echo htmlspecialchars($dataRegionAttr); ?>" data-search="<?php echo htmlspecialchars($searchData); ?>" style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s ease;">
                                     <td style="padding:1.1rem; width: 280px; vertical-align: top;">
                                         <div style="font-weight: 800; color: #0f172a; font-size: 0.95rem; line-height: 1.3; margin-bottom: 0.3rem;">
                                             <?php echo htmlspecialchars($r['title']); ?>
@@ -1370,15 +1399,15 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             CPF: <?php echo htmlspecialchars($r['user_cpf'] ?? ''); ?>
                                         </div>
 
-                                        <?php if (!empty($macroRegion)): ?>
+                                        <?php if (!empty($macroDisplay)): ?>
                                             <div style="font-size: 0.72rem; font-weight: 800; color: #007a89; background: #f0fdfa; border: 1px solid #ccfbf1; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px; margin-bottom: 4px;">
-                                                <i class="fas fa-map-marked-alt"></i> <?php echo htmlspecialchars($macroRegion); ?>
+                                                <i class="fas fa-map-marked-alt"></i> <?php echo htmlspecialchars($macroDisplay); ?>
                                             </div>
                                         <?php endif; ?>
 
-                                        <?php if (!empty($r['cities'])): ?>
+                                        <?php if (!empty($routeMicro) && $routeMicro !== $macroDisplay): ?>
                                             <div style="font-size: 0.72rem; font-weight: 600; color: #475569; background: #f1f5f9; border: 1px solid #e2e8f0; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
-                                                <i class="fas fa-city" style="color: #64748b;"></i> <?php echo htmlspecialchars($r['cities']); ?>
+                                                <i class="fas fa-city" style="color: #64748b;"></i> <?php echo htmlspecialchars($routeMicro); ?>
                                             </div>
                                         <?php endif; ?>
 
@@ -3704,6 +3733,10 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             }
         });
 
+        function normalizeStr(str) {
+            return (str || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+        }
+
         // Função de Filtragem Dinâmica por Região e Busca no Wizard de Andamento
         function filterWizardRoutes() {
             var regionSelect = document.getElementById('wizard_region_filter');
@@ -3711,16 +3744,16 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
 
             if (!regionSelect || !searchInput) return;
 
-            var selectedRegion = regionSelect.value.toLowerCase().trim();
-            var searchStr = searchInput.value.toLowerCase().trim();
+            var selectedRegion = normalizeStr(regionSelect.value);
+            var searchStr = normalizeStr(searchInput.value);
 
             var rows = document.querySelectorAll('.wizard-row');
             var visibleCount = 0;
             var totalCount = rows.length;
 
             rows.forEach(function(row) {
-                var rowRegion = (row.getAttribute('data-region') || '').toLowerCase().trim();
-                var rowSearch = (row.getAttribute('data-search') || '').toLowerCase().trim();
+                var rowRegion = normalizeStr(row.getAttribute('data-region'));
+                var rowSearch = normalizeStr(row.getAttribute('data-search'));
 
                 var matchesRegion = (selectedRegion === '' || rowRegion.indexOf(selectedRegion) !== -1);
                 var matchesSearch = (searchStr === '' || rowSearch.indexOf(searchStr) !== -1);
