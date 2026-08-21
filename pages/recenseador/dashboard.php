@@ -554,6 +554,21 @@ $user_docs = $docs_stmt->fetchAll();
                                                     <div style="line-height: 1.4; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['renewal_reason'])); ?></div>
                                                 </div>
                                             <?php endif; ?>
+                                            
+                                             <!-- Alerta de Conclusão Rejeitada pelo Admin (Retrabalho) -->
+                                             <?php if (!empty($route['rejection_reason'])): ?>
+                                                 <div style="background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #dc2626; padding: 0.85rem 1rem; border-radius: 6px; margin-top: 8px; margin-bottom: 8px;">
+                                                     <div style="font-size: 0.72rem; color: #b91c1c; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; gap: 5px;">
+                                                         <i class="fas fa-exclamation-triangle"></i> Conclusão Rejeitada pelo CAU/DF (Ajustes Necessários)
+                                                     </div>
+                                                     <div style="font-size: 0.82rem; color: #991b1b; line-height: 1.45; font-weight: 500;">
+                                                         <?php echo nl2br(htmlspecialchars($route['rejection_reason'])); ?>
+                                                     </div>
+                                                     <div style="font-size: 0.72rem; color: #7f1d1d; margin-top: 6px; font-weight: 600;">
+                                                         <i class="fas fa-info-circle"></i> Por favor, corrija os itens apontados acima e reenvie a conclusão quando concluir a coleta.
+                                                     </div>
+                                                 </div>
+                                             <?php endif; ?>
                                         </div>
                                         <?php endif; ?>
 

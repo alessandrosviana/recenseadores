@@ -189,6 +189,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Mensagem removida a pedido
             }
             $active_tab = ($step == 6) ? 'paid' : 'wizard';
+        } elseif ($action === 'reject_completion') {
+            $routeId = intval($_POST['route_id']);
+            $reason = trim($_POST['rejection_reason'] ?? '');
+            
+            if (!empty($reason) && mb_strlen($reason) >= 10) {
+                // Retorna a rota para o Passo 2 (Rota Disponível), status 'accepted' e limpa completed_at, gravando a justificativa
+                $stmt = $pdo->prepare("UPDATE routes SET wizard_step = 2, status = 'accepted', rejection_reason = ?, completed_at = NULL WHERE id = ?");
+                if ($stmt->execute([$reason, $routeId])) {
+                    $message = '<div class="alert warning" style="background: #fffbe6; color: #b45309; border: 1px solid #fef3c7; padding: 0.85rem 1rem; border-radius: 8px; font-weight: 700; margin-bottom: 1.25rem;"><i class="fas fa-undo"></i> Conclusão da Rota rejeitada! A tarefa retornou para o Passo 2 (Rota Disponível) para correção pelo recenseador.</div>';
+                }
+            } else {
+                $message = '<div class="alert danger"><i class="fas fa-exclamation-circle"></i> A justificativa da rejeição é obrigatória e deve conter pelo menos 10 caracteres.</div>';
+            }
+            $active_tab = 'wizard';
         } elseif ($action === 'upload_payment_pdf') {
             $routeId = (int) $_POST['route_id'];
             $uploadDir = '../../uploads/payments/';
@@ -1494,10 +1508,16 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                                 <input type="text" name="sei_pagamento" value="<?php echo htmlspecialchars($r['sei_pagamento'] ?? ''); ?>" placeholder="SEI de Pagamento" class="form-control" style="font-size: 0.8rem; padding: 0.3rem; width: 150px;">
                                             </div>
                                             
-                                            <button type="submit" class="btn btn-primary" style="font-size: 0.75rem; padding: 0.3rem 0.8rem; width: 100%;">
+                                            <button type="submit" class="btn btn-primary" style="font-size: 0.75rem; padding: 0.3rem 0.8rem; width: 100%; margin-bottom: 6px;">
                                                 Atualizar
                                             </button>
                                         </form>
+
+                                        <?php if ($r['wizard_step'] >= 4): ?>
+                                            <button type="button" onclick="openRejectCompletionModal(<?php echo $r['id']; ?>, '<?php echo htmlspecialchars($r['title'], ENT_QUOTES, 'UTF-8'); ?>', '<?php echo htmlspecialchars($r['user_name'], ENT_QUOTES, 'UTF-8'); ?>')" class="btn" style="font-size: 0.72rem; padding: 0.35rem 0.6rem; width: 100%; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='#dc2626'; this.style.color='#fff';" onmouseout="this.style.background='#fee2e2'; this.style.color='#b91c1c';" title="Rejeitar Conclusão da Rota e retornar para o Passo 2">
+                                                <i class="fas fa-undo"></i> Rejeitar Conclusão
+                                            </button>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -3788,7 +3808,64 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             if (searchInput) searchInput.value = '';
             filterWizardRoutes();
         }
+
+        function openRejectCompletionModal(routeId, routeTitle, userName) {
+            document.getElementById('reject-completion-route-id').value = routeId;
+            document.getElementById('reject-completion-route-title').innerText = routeTitle;
+            document.getElementById('reject-completion-user-name').innerText = userName;
+            document.getElementById('reject-completion-reason-input').value = '';
+            document.getElementById('reject-completion-modal').style.display = 'flex';
+        }
+
+        function closeRejectCompletionModal() {
+            document.getElementById('reject-completion-modal').style.display = 'none';
+        }
+
+        // Adiciona fechamento ao clicar fora do modal de rejeicao de conclusao
+        window.addEventListener('click', function(event) {
+            var rejectCompModal = document.getElementById('reject-completion-modal');
+            if (event.target == rejectCompModal) {
+                closeRejectCompletionModal();
+            }
+        });
     </script>
+
+    <!-- Modal de Rejeição de Conclusão da Rota -->
+    <div id="reject-completion-modal" class="modal-backdrop" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9999;">
+        <div class="modal-content" style="background: white; padding: 1.75rem; border-radius: 12px; max-width: 520px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; margin: 1.5rem; box-sizing: border-box;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+                <h3 style="margin: 0; color: #b91c1c; font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-undo"></i> Rejeitar Conclusão da Rota
+                </h3>
+                <button type="button" onclick="closeRejectCompletionModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8;">&times;</button>
+            </div>
+            
+            <div style="background: #fffbe6; border-left: 4px solid #f59e0b; padding: 0.85rem 1rem; border-radius: 0 8px 8px 0; margin-bottom: 1.25rem; font-size: 0.85rem; color: #856404; line-height: 1.5;">
+                <i class="fas fa-exclamation-triangle"></i> <strong>Atenção:</strong> Ao rejeitar a conclusão da rota <strong id="reject-completion-route-title" style="color: #1e293b;"></strong> do recenseador <strong id="reject-completion-user-name" style="color: #1e293b;"></strong>, a tarefa retornará para o <strong>Passo 2 (Rota Disponível)</strong> para que o recenseador realize os ajustes apontados.
+            </div>
+
+            <form method="post" action="">
+                <input type="hidden" name="action" value="reject_completion">
+                <input type="hidden" name="route_id" id="reject-completion-route-id" value="">
+                
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label style="display: block; font-weight: 800; font-size: 0.85rem; margin-bottom: 0.5rem; color: #334155;">
+                        Justificativa da Rejeição (Mínimo de 10 caracteres) *
+                    </label>
+                    <textarea name="rejection_reason" id="reject-completion-reason-input" required class="form-control" rows="4" 
+                              style="font-size: 0.88rem; border-radius: 8px; padding: 10px; width: 100%; border: 1px solid #cbd5e1; box-sizing: border-box; resize: vertical;" 
+                              placeholder="Descreva o motivo da rejeição da conclusão (ex: Foto da fachada ilegível, faltam detalhes do lote X)..."></textarea>
+                </div>
+                
+                <div class="modal-footer" style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 1rem; width: 100%; box-sizing: border-box; flex-wrap: wrap;">
+                    <button type="button" onclick="closeRejectCompletionModal()" class="btn btn-outline" style="border-color: #cbd5e1; color: #64748b; font-size: 0.82rem; padding: 0.6rem 1rem; background: white; border-radius: 6px; cursor: pointer; font-weight: 700; box-sizing: border-box;">MANTER COMO CONCLUÍDA</button>
+                    <button type="submit" class="btn" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); border: none; font-size: 0.82rem; padding: 0.6rem 1.1rem; color: white; border-radius: 6px; cursor: pointer; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">
+                        <i class="fas fa-undo"></i> REJEITAR E RETORNAR PARA PASSO 2
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 
 </html>
