@@ -22,6 +22,10 @@ if (Test-Path $MysqlDumpExe) {
     # Usando cmd.exe para evitar que o PowerShell mude o encoding do output (isso evita quebrar os acentos)
     cmd.exe /c "`"$MysqlDumpExe`" -u $DbUser --default-character-set=utf8mb4 $DbName > `"$DbBackupFile`""
     if ($LASTEXITCODE -eq 0) {
+        # Insere a desativação de chaves estrangeiras no topo do SQL para compatibilidade total na HostGator (#1215)
+        $SqlContent = Get-Content -Path $DbBackupFile -Raw -Encoding UTF8
+        $FixedContent = "SET FOREIGN_KEY_CHECKS = 0;`r`n" + $SqlContent + "`r`nSET FOREIGN_KEY_CHECKS = 1;"
+        Set-Content -Path $DbBackupFile -Value $FixedContent -Encoding UTF8
         Write-Host " -> Banco exportado com sucesso!" -ForegroundColor Green
     } else {
         Write-Host " -> FALHA ao exportar banco. Verifique se o MySQL esta rodando." -ForegroundColor Red
