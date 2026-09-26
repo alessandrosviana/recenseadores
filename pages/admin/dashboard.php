@@ -393,6 +393,34 @@ foreach ($macro_mapping as $macro => $ras) {
     }
 }
 $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5a5c69', '#2c3e50'];
+
+// KPIs de Microrregião para rotas com prazo encerrado (aba expired)
+$expired_macro_report = [];
+foreach ($macro_mapping as $macro => $ras) {
+    $expired_macro_report[$macro] = 0;
+}
+$expired_micro_count = [];
+foreach ($expired_routes as $route) {
+    $micro = trim($route['microregion'] ?? '');
+    if (!empty($micro)) {
+        $expired_micro_count[$micro] = ($expired_micro_count[$micro] ?? 0) + 1;
+    }
+    foreach ($macro_mapping as $macro => $ras) {
+        if (in_array($micro, $ras)) {
+            $expired_macro_report[$macro] = ($expired_macro_report[$macro] ?? 0) + 1;
+            break;
+        }
+    }
+}
+$active_expired_macros = count(array_filter($expired_macro_report, function ($v) { return $v > 0; }));
+$expired_micro_unique = count($expired_micro_count);
+$top_expired_macro = '—';
+if (!empty($expired_macro_report)) {
+    $max_val = max($expired_macro_report);
+    if ($max_val > 0) {
+        $top_expired_macro = str_replace('Macrorregião ', 'MR ', array_keys($expired_macro_report, $max_val)[0]);
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -1820,6 +1848,64 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                     <h2><i class="ph ph-hourglass-high"></i> Tarefas com Prazo Encerrado</h2>
                     <p class="text-muted">Acompanhe as coletas ativas que excederam o prazo estipulado.</p>
                 </div>
+
+                <?php if (count($expired_routes) > 0): ?>
+                    <!-- KPIs por Microrregião -->
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: var(--danger-light); color: var(--danger);">
+                                <i class="ph ph-hourglass-high"></i>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-value"><?php echo count($expired_routes); ?></span>
+                                <span class="kpi-label">Prazos Encerrados</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: var(--petrol-tint); color: var(--petrol);">
+                                <i class="ph ph-stack"></i>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-value"><?php echo $active_expired_macros; ?></span>
+                                <span class="kpi-label">Macrorregiões Afetadas</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: var(--warning-light); color: var(--warning);">
+                                <i class="ph ph-map-pin"></i>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-value"><?php echo $expired_micro_unique; ?></span>
+                                <span class="kpi-label">Microrregiões</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: var(--danger-light); color: var(--danger);">
+                                <i class="ph ph-chart-line-up"></i>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-value" style="font-size: 1rem; line-height: 1.2;"><?php echo $top_expired_macro; ?></span>
+                                <span class="kpi-label">Maior Volume</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Distribuição compacta por Macrorregião -->
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-bottom: 1.25rem; padding: 0.6rem 0.75rem; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+                        <span style="font-size: 0.68rem; font-weight: 800; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em; margin-right: 0.25rem;">Macrorregiões:</span>
+                        <?php
+                        $i = 0;
+                        foreach ($expired_macro_report as $macro => $total):
+                            $color = $colors[$i % count($colors)];
+                            $mrLabel = str_replace('Macrorregião ', 'MR ', $macro);
+                        ?>
+                            <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 600; padding: 3px 9px; border-radius: 9999px; border: 1px solid <?php echo $color; ?>30; background: <?php echo $color; ?>0d; color: <?php echo $color; ?>;" title="<?php echo $macro; ?>">
+                                <?php echo $mrLabel; ?>
+                                <strong style="font-size: 0.78rem; color: var(--ink-primary);"><?php echo $total; ?></strong>
+                            </span>
+                        <?php $i++; endforeach; ?>
+                    </div>
+                <?php endif; ?>
 
                 <?php if (count($expired_routes) > 0): ?>
                     <div class="grid grid-2">
