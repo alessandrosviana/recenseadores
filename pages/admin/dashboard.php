@@ -2,20 +2,6 @@
 require_once '../../config/session.php';
 require_once '../../config/database.php';
 
-// Auto-migration for is_archived and archive_reason columns if they don't exist
-try {
-    $checkColumn = $pdo->query("SHOW COLUMNS FROM routes LIKE 'is_archived'")->fetch();
-    if (!$checkColumn) {
-        $pdo->exec("ALTER TABLE routes ADD COLUMN is_archived TINYINT(1) NOT NULL DEFAULT 0");
-    }
-    $checkReasonColumn = $pdo->query("SHOW COLUMNS FROM routes LIKE 'archive_reason'")->fetch();
-    if (!$checkReasonColumn) {
-        $pdo->exec("ALTER TABLE routes ADD COLUMN archive_reason TEXT NULL DEFAULT NULL");
-    }
-} catch (PDOException $e) {
-    // Fail silently
-}
-
 // Force login check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: ../login.php");
@@ -27,6 +13,7 @@ $active_tab = 'monitor'; // Default tab
 
 // Handle Actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     if (isset($_POST['action'])) {
         $userId = $_POST['user_id'] ?? 0;
         $action = $_POST['action'];
@@ -39,12 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $contrato = $_POST['contrato'] ?? '';
                 $stmt = $pdo->prepare("UPDATE users SET status = ?, processo_sei = ?, contrato = ?, wizard_step = 1, approved_at = NOW() WHERE id = ?");
                 if ($stmt->execute([$status, $processo_sei, $contrato, $userId])) {
-                    $message = '<div class="alert success"><i class="fas fa-check"></i> Cadastro aprovado com sucesso! Andamento iniciado.</div>';
+                    $message = '<div class="alert success"><i class="ph ph-check"></i> Cadastro aprovado com sucesso! Andamento iniciado.</div>';
                 }
             } else {
                 $stmt = $pdo->prepare("UPDATE users SET status = ? WHERE id = ?");
                 if ($stmt->execute([$status, $userId])) {
-                    $message = '<div class="alert success"><i class="fas fa-check"></i> Cadastro reprovado!</div>';
+                    $message = '<div class="alert success"><i class="ph ph-check"></i> Cadastro reprovado!</div>';
                 }
             }
             $active_tab = 'pending';
@@ -77,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (isset($_FILES[$key]) && $_FILES[$key]['error'] == 0) {
                         $ext = pathinfo($_FILES[$key]['name'], PATHINFO_EXTENSION);
                         if (in_array(strtolower($ext), ['pdf', 'jpg', 'jpeg', 'png'])) {
+                            if ($_FILES[$key]['size'] > 10 * 1024 * 1024) continue;
                             $newName = "admin_route_" . time() . "_$i.$ext";
                             if (move_uploaded_file($_FILES[$key]['tmp_name'], $uploadDir . $newName)) {
                                 $adminFiles[$i] = $uploadDir . $newName;
@@ -90,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $checkStmt->execute([$userId, $title]);
                 
                 if ($checkStmt->fetch()) {
-                    $message = '<div class="alert warning"><i class="fas fa-exclamation-triangle"></i> Atenção: Este recenseador já possui uma rota aberta com este exato título. A atribuição duplicada foi bloqueada.</div>';
+                    $message = '<div class="alert warning"><i class="ph ph-warning"></i> Atenção: Este recenseador já possui uma rota aberta com este exato título. A atribuição duplicada foi bloqueada.</div>';
                 } else {
                     $routeData = [
                         'user_id' => $userId,
@@ -127,7 +115,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $message = '<div class="alert success">Rota atribuída com sucesso!</div>';
                         }
                     } catch (PDOException $e) {
-                        $message = '<div class="alert danger">Erro ao atribuir rota: ' . $e->getMessage() . '</div>';
+                        log_error($e->getMessage(), __FILE__, __LINE__);
+                        $message = '<div class="alert danger">Erro ao atribuir rota. Tente novamente.</div>';
                     }
                 }
             }
@@ -137,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $reason = trim($_POST['cancellation_reason'] ?? '');
             $stmt = $pdo->prepare("UPDATE routes SET status = 'cancelled', cancellation_reason = ? WHERE id = ?");
             if ($stmt->execute([$reason, $routeId])) {
-                $message = '<div class="alert danger"><i class="fas fa-ban"></i> Rota cancelada com sucesso!</div>';
+                $message = '<div class="alert danger"><i class="ph ph-prohibit"></i> Rota cancelada com sucesso!</div>';
             }
             $active_tab = 'monitor';
         } elseif ($action === 'archive_route') {
@@ -145,21 +134,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $reason = trim($_POST['archive_reason'] ?? '');
             $stmt = $pdo->prepare("UPDATE routes SET is_archived = 1, archive_reason = ? WHERE id = ?");
             if ($stmt->execute([$reason, $routeId])) {
-                $message = '<div class="alert success"><i class="fas fa-archive"></i> Rota arquivada com sucesso!</div>';
+                $message = '<div class="alert success"><i class="ph ph-archive"></i> Rota arquivada com sucesso!</div>';
             }
             $active_tab = $_POST['current_tab'] ?? 'monitor';
         } elseif ($action === 'unarchive_route') {
             $routeId = $_POST['route_id'];
             $stmt = $pdo->prepare("UPDATE routes SET is_archived = 0 WHERE id = ?");
             if ($stmt->execute([$routeId])) {
-                $message = '<div class="alert success"><i class="fas fa-box-open"></i> Rota desarquivada com sucesso!</div>';
+                $message = '<div class="alert success"><i class="ph ph-cube"></i> Rota desarquivada com sucesso!</div>';
             }
             $active_tab = 'archived';
         } elseif ($action === 'mark_delayed') {
             $routeId = $_POST['route_id'];
             $stmt = $pdo->prepare("UPDATE routes SET status = 'delayed' WHERE id = ?");
             if ($stmt->execute([$routeId])) {
-                $message = '<div class="alert warning"><i class="fas fa-clock"></i> Rota marcada como atrasada.</div>';
+                $message = '<div class="alert warning"><i class="ph ph-clock"></i> Rota marcada como atrasada.</div>';
             }
             $active_tab = 'monitor';
         } elseif ($action === 'renew_route') {
@@ -167,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $reason = trim($_POST['renewal_reason'] ?? '');
             $stmt = $pdo->prepare("UPDATE routes SET scheduled_end = DATE_ADD(NOW(), INTERVAL 7 DAY), status = 'in_progress', renewal_reason = ? WHERE id = ?");
             if ($stmt->execute([$reason, $routeId])) {
-                $message = '<div class="alert success"><i class="fas fa-history"></i> Rota renovada com sucesso por mais 7 dias!</div>';
+                $message = '<div class="alert success"><i class="ph ph-clock-counter-clockwise"></i> Rota renovada com sucesso por mais 7 dias!</div>';
             }
             $active_tab = 'expired';
         } elseif ($action === 'update_wizard') {
@@ -197,10 +186,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Retorna a rota para o Passo 2 (Rota Disponível), status 'accepted' e limpa completed_at, gravando a justificativa
                 $stmt = $pdo->prepare("UPDATE routes SET wizard_step = 2, status = 'accepted', rejection_reason = ?, completed_at = NULL WHERE id = ?");
                 if ($stmt->execute([$reason, $routeId])) {
-                    $message = '<div class="alert warning" style="background: #fffbe6; color: #b45309; border: 1px solid #fef3c7; padding: 0.85rem 1rem; border-radius: 8px; font-weight: 700; margin-bottom: 1.25rem;"><i class="fas fa-undo"></i> Conclusão da Rota rejeitada! A tarefa retornou para o Passo 2 (Rota Disponível) para correção pelo recenseador.</div>';
+                    $message = '<div class="alert warning" style="background: #fffbe6; color: #b45309; border: 1px solid #fef3c7; padding: 0.85rem 1rem; border-radius: 8px; font-weight: 700; margin-bottom: 1.25rem;"><i class="ph ph-arrow-counter-clockwise"></i> Conclusão da Rota rejeitada! A tarefa retornou para o Passo 2 (Rota Disponível) para correção pelo recenseador.</div>';
                 }
             } else {
-                $message = '<div class="alert danger"><i class="fas fa-exclamation-circle"></i> A justificativa da rejeição é obrigatória e deve conter pelo menos 10 caracteres.</div>';
+                $message = '<div class="alert danger"><i class="ph ph-exclamation-mark"></i> A justificativa da rejeição é obrigatória e deve conter pelo menos 10 caracteres.</div>';
             }
             $active_tab = 'wizard';
         } elseif ($action === 'upload_payment_pdf') {
@@ -211,13 +200,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($_FILES['payment_pdf']) && $_FILES['payment_pdf']['error'] == 0) {
                 $ext = pathinfo($_FILES['payment_pdf']['name'], PATHINFO_EXTENSION);
                 if (strtolower($ext) === 'pdf') {
+                    if ($_FILES['payment_pdf']['size'] <= 10 * 1024 * 1024 && validate_upload_mime($_FILES['payment_pdf']['tmp_name'], ['application/pdf'])) {
                     $newName = "payment_" . $routeId . "_" . time() . ".pdf";
                     if (move_uploaded_file($_FILES['payment_pdf']['tmp_name'], $uploadDir . $newName)) {
                         $filePath = $uploadDir . $newName;
                         $stmt = $pdo->prepare("UPDATE routes SET payment_pdf = ?, wizard_step = 6 WHERE id = ?");
                         if ($stmt->execute([$filePath, $routeId])) {
-                            $message = '<div class="alert success"><i class="fas fa-check"></i> Comprovante de pagamento enviado com sucesso! Rota Liquidada.</div>';
+                            $message = '<div class="alert success"><i class="ph ph-check"></i> Comprovante de pagamento enviado com sucesso! Rota Liquidada.</div>';
                         }
+                    }
                     }
                 }
             }
@@ -228,21 +219,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $password = $_POST['password'];
 
             if (empty($name) || empty($email) || empty($password)) {
-                $message = '<div class="alert danger"><i class="fas fa-times"></i> Preencha todos os campos.</div>';
+                $message = '<div class="alert danger"><i class="ph ph-x"></i> Preencha todos os campos.</div>';
             } elseif (!preg_match('/@caudf\.gov\.br$/', $email)) {
-                $message = '<div class="alert danger"><i class="fas fa-times"></i> Erro: Apenas e-mails do domínio <strong>@caudf.gov.br</strong> são permitidos.</div>';
+                $message = '<div class="alert danger"><i class="ph ph-x"></i> Erro: Apenas e-mails do domínio <strong>@caudf.gov.br</strong> são permitidos.</div>';
             } else {
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
                 try {
                     $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role, status, cpf) VALUES (?, ?, ?, 'admin', 'approved', NULL)");
                     if ($stmt->execute([$name, $email, $hashed_password])) {
-                        $message = '<div class="alert success"><i class="fas fa-check"></i> Administrador criado com sucesso!</div>';
+                        $message = '<div class="alert success"><i class="ph ph-check"></i> Administrador criado com sucesso!</div>';
                     }
                 } catch (PDOException $e) {
                     if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
-                        $message = '<div class="alert danger"><i class="fas fa-times"></i> Erro: Este e-mail já está cadastrado.</div>';
+                        $message = '<div class="alert danger"><i class="ph ph-x"></i> Erro: Este e-mail já está cadastrado.</div>';
                     } else {
-                        $message = '<div class="alert danger"><i class="fas fa-times"></i> Erro ao criar admin: ' . $e->getMessage() . '</div>';
+                        log_error($e->getMessage(), __FILE__, __LINE__);
+                        $message = '<div class="alert danger"><i class="ph ph-x"></i> Erro ao criar admin. Tente novamente.</div>';
                     }
                 }
             }
@@ -252,10 +244,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $seiPagamento = trim($_POST['sei_pagamento'] ?? '');
 
             if ($routeId <= 0) {
-                $message = '<div class="alert danger"><i class="fas fa-exclamation-triangle"></i> Erro: Você precisa selecionar uma rota concluída para realizar o cálculo.</div>';
+                $message = '<div class="alert danger"><i class="ph ph-warning"></i> Erro: Você precisa selecionar uma rota concluída para realizar o cálculo.</div>';
                 $active_tab = 'calculator';
             } elseif (empty($seiPagamento)) {
-                $message = '<div class="alert danger"><i class="fas fa-exclamation-triangle"></i> Erro: O número do SEI de Pagamento é obrigatório para liquidar a rota.</div>';
+                $message = '<div class="alert danger"><i class="ph ph-warning"></i> Erro: O número do SEI de Pagamento é obrigatório para liquidar a rota.</div>';
                 $active_tab = 'calculator';
             } else {
                 $data = [
@@ -302,11 +294,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt = $pdo->prepare($sql);
                     $data['id'] = $routeId;
                     if ($stmt->execute($data)) {
-                        $message = '<div class="alert success"><i class="fas fa-check"></i> Cálculo salvo e Pagamento Liquidado com sucesso! Rota movida para o histórico de pagamentos.</div>';
+                        $message = '<div class="alert success"><i class="ph ph-check"></i> Cálculo salvo e Pagamento Liquidado com sucesso! Rota movida para o histórico de pagamentos.</div>';
                         echo "<script>alert('Pagamento Liquidado com sucesso!');</script>";
                     }
                 } catch (PDOException $e) {
-                    $message = '<div class="alert danger">Erro ao salvar cálculo: ' . $e->getMessage() . '</div>';
+                    log_error($e->getMessage(), __FILE__, __LINE__);
+                    $message = '<div class="alert danger">Erro ao salvar cálculo. Tente novamente.</div>';
                 }
                 $active_tab = 'paid';
             }
@@ -316,7 +309,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare("UPDATE users SET is_active = ? WHERE id = ?");
             if ($stmt->execute([$new_status, $userId])) {
                 $status_msg = $new_status ? 'ativado' : 'desativado';
-                $message = '<div class="alert success"><i class="fas fa-power-off"></i> Recenseador ' . $status_msg . ' com sucesso!</div>';
+                $message = '<div class="alert success"><i class="ph ph-power"></i> Recenseador ' . $status_msg . ' com sucesso!</div>';
             }
             $active_tab = 'users';
         }
@@ -410,7 +403,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Administrativo - CAU/DF</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
 
@@ -639,8 +632,9 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Section Specifics */
-        .section-header { margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
-        .section-header h2 { color: var(--primary-teal); font-size: 1.5rem; margin: 0; }
+        .section-header { margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.85rem; }
+        .section-header h2 { color: var(--petrol); font-size: 1.15rem; margin: 0; font-weight: 800; letter-spacing: -0.01em; }
+        .section-header p { font-size: 0.82rem; }
 
         /* Alerts & Badges */
         .alert { padding: 1rem; margin-bottom: 1rem; border-radius: var(--radius-sm); border: 1px solid transparent; }
@@ -756,76 +750,76 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             </div>
 
             <a href="#" class="sidebar-link active" id="link-monitor" onclick="showTab('monitor'); return false;">
-                <i class="fas fa-chart-line"></i>
+                <i class="ph ph-chart-line-up"></i>
                 <span class="link-label">Monitoramento</span>
                 <span class="counter"><?php echo count($active_routes); ?></span>
             </a>
             <a href="#" class="sidebar-link" id="link-expired" onclick="showTab('expired'); return false;">
-                <i class="fas fa-hourglass-end" style="color: #dc3545;"></i>
+                <i class="ph ph-hourglass-high" style="color: #dc3545;"></i>
                 <span class="link-label">Prazos Encerrados</span>
                 <?php if (count($expired_routes) > 0): ?>
                     <span class="counter" style="background: #dc3545; color: white;"><?php echo count($expired_routes); ?></span>
                 <?php endif; ?>
             </a>
             <a href="#" class="sidebar-link" id="link-wizard" onclick="showTab('wizard'); return false;">
-                <i class="fas fa-tasks"></i>
+                <i class="ph ph-list-checks"></i>
                 <span class="link-label">Wizard de Andamento</span>
             </a>
             <a href="#" class="sidebar-link" id="link-approvals" onclick="showTab('approvals'); return false;">
-                <i class="fas fa-user-check"></i>
+                <i class="ph ph-user-check"></i>
                 <span class="link-label">Aprovações</span>
                 <span id="pending-counter" class="counter" style="background: #f0ad4e; color: white; display: <?php echo (count($pending_users) > 0) ? 'inline-block' : 'none'; ?>;"><?php echo count($pending_users); ?></span>
             </a>
             <a href="#" class="sidebar-link" id="link-routes" onclick="showTab('routes'); return false;">
-                <i class="fas fa-map-marked-alt"></i>
+                <i class="ph ph-crosshair"></i>
                 <span class="link-label">Atribuir Rota</span>
             </a>
             <a href="#" class="sidebar-link" id="link-users" onclick="showTab('users'); return false;">
-                <i class="fas fa-users"></i>
+                <i class="ph ph-users"></i>
                 <span class="link-label">Recenseadores</span>
             </a>
             <a href="#" class="sidebar-link" id="link-completed" onclick="showTab('completed'); return false;">
-                <i class="fas fa-check-double"></i>
+                <i class="ph ph-checks"></i>
                 <span class="link-label">Tarefas Concluídas</span>
                 <span class="counter" style="background: #5bc0de; color: white;"><?php echo count($completed_routes); ?></span>
             </a>
             <a href="#" class="sidebar-link" id="link-cancelled" onclick="showTab('cancelled'); return false;">
-                <i class="fas fa-ban"></i>
+                <i class="ph ph-prohibit"></i>
                 <span class="link-label">Tarefas Canceladas</span>
                 <?php if (count($cancelled_routes) > 0): ?>
                     <span class="counter" style="background: #6c757d; color: white;"><?php echo count($cancelled_routes); ?></span>
                 <?php endif; ?>
             </a>
             <a href="#" class="sidebar-link" id="link-report" onclick="showTab('report'); return false;">
-                <i class="fas fa-file-contract"></i>
+                <i class="ph ph-file-text"></i>
                 <span class="link-label">Relatório Geral</span>
             </a>
             <a href="#" class="sidebar-link" id="link-micro-report" onclick="showTab('micro-report'); return false;">
-                <i class="fas fa-chart-pie"></i>
+                <i class="ph ph-chart-pie"></i>
                 <span class="link-label">Relatório Microrregião</span>
             </a>
             <a href="#" class="sidebar-link" id="link-paid" onclick="showTab('paid'); return false;">
-                <i class="fas fa-hand-holding-usd"></i>
+                <i class="ph ph-hand-coins"></i>
                 <span class="link-label">Pagamentos Liquidados</span>
                 <span class="counter" style="background: #28a745; color: white;"><?php echo count($paid_routes); ?></span>
             </a>
             <a href="#" class="sidebar-link" id="link-rejected" onclick="showTab('rejected'); return false;">
-                <i class="fas fa-user-times"></i>
+                <i class="ph ph-user-minus"></i>
                 <span class="link-label">Rotas Rejeitadas</span>
                 <?php if (count($rejected_routes) > 0): ?>
                     <span class="counter" style="background: #dc3545; color: white;"><?php echo count($rejected_routes); ?></span>
                 <?php endif; ?>
             </a>
             <a href="#" class="sidebar-link" id="link-task-calculator" onclick="showTab('task_calculator'); return false;">
-                <i class="fas fa-clipboard-check"></i>
+                <i class="ph ph-check-square"></i>
                 <span class="link-label">Calculadora de Tarefas</span>
             </a>
             <a href="#" class="sidebar-link" id="link-admins" onclick="showTab('admins'); return false;">
-                <i class="fas fa-user-shield"></i>
+                <i class="ph ph-shield-check"></i>
                 <span class="link-label">Gestão de Admins</span>
             </a>
             <a href="#" class="sidebar-link" id="link-archived" onclick="showTab('archived'); return false;">
-                <i class="fas fa-archive"></i>
+                <i class="ph ph-archive"></i>
                 <span class="link-label">Tarefas Arquivadas</span>
                 <?php if (count($archived_routes) > 0): ?>
                     <span class="counter" style="background: #6c757d; color: white;"><?php echo count($archived_routes); ?></span>
@@ -840,7 +834,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <!-- SEÇÃO: CALCULADORA DE TAREFAS (NOVA) -->
             <div id="task_calculator" class="tab-content" style="display: none;">
                 <div class="section-header">
-                    <h2><i class="fas fa-clipboard-check"></i> Calculadora de Tarefas</h2>
+                    <h2><i class="ph ph-check-square"></i> Calculadora de Tarefas</h2>
                     <p class="text-muted">Valores e Composição da Remuneração de Registro de Demanda</p>
                     <p style="font-size: 0.9rem; color: #555; margin-top: 0.5rem;">O CAUDF, representado pela GERFISC - Gerência de Fiscalização, formaliza a distribuição da demanda para pagamento.</p>
                 </div>
@@ -911,6 +905,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                     </script>
 
                     <form method="post" id="task_calculator_form">
+                        <?php echo csrf_field(); ?>
                         <input type="hidden" name="action" value="save_calculation">
                         <input type="hidden" name="total_fixed" id="task_hidden_total_fixed">
                         <input type="hidden" name="total_variable" id="task_hidden_total_variable">
@@ -919,7 +914,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         <!-- SELEÇÃO NO-PRINT -->
                         <div class="no-print" style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem; border: 1px solid #eee;">
                             <div style="display: flex; align-items: center; gap: 1.5rem;">
-                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="fas fa-user-tag" style="color: var(--primary-teal); margin-right: 5px;"></i> Vincular Recenseador:</div>
+                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="ph ph-user-rectangle" style="color: var(--primary-teal); margin-right: 5px;"></i> Vincular Recenseador:</div>
                                 <div style="flex-grow: 1;">
                                     <select id="task_calc_user" class="form-control" style="font-weight: 600; color: #333; border: 2px solid #ddd; width: 100%; padding: 0.5rem;" onchange="taskUpdateCalcRouteSelect()">
                                         <option value="">-- Selecione o recenseador --</option>
@@ -938,7 +933,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 1.5rem;">
-                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="fas fa-map-marked-alt" style="color: var(--primary-teal); margin-right: 5px;"></i> Selecionar Rota:</div>
+                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="ph ph-crosshair" style="color: var(--primary-teal); margin-right: 5px;"></i> Selecionar Rota:</div>
                                 <div style="flex-grow: 1;">
                                     <select id="task_calc_route" name="route_id" class="form-control" style="font-weight: 600; color: #333; border: 2px solid #ddd; width: 100%; padding: 0.5rem;" onchange="taskLoadSavedCalculation()">
                                         <option value="">-- Escolha primeiro o recenseador --</option>
@@ -946,7 +941,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 </div>
                             </div>
                             <div id="task_sei_pagamento_container" style="display: none; align-items: center; gap: 1.5rem;">
-                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="fas fa-file-invoice-dollar" style="color: var(--primary-teal); margin-right: 5px;"></i> SEI de Pagamento: <span style="color:red;">*</span></div>
+                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="ph ph-receipt" style="color: var(--primary-teal); margin-right: 5px;"></i> SEI de Pagamento: <span style="color:red;">*</span></div>
                                 <div style="flex-grow: 1;">
                                     <input type="text" name="sei_pagamento" id="task_calc_sei_pagamento" required class="form-control" placeholder="Informe o SEI para liquidação" style="font-weight: 600; color: #333; border: 2px solid #ddd; width: 100%; padding: 0.5rem;">
                                 </div>
@@ -961,7 +956,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 <input type="number" id="task_gas_price" name="gas_price" value="6.36" step="0.001" class="form-control" style="padding-left: 40px; font-weight: 800; color: var(--primary-teal); border: 2px solid #ddd; width: 100%;" oninput="taskUpdateFromGasoline()">
                             </div>
                             <div style="font-size: 0.85rem; color: #777;">
-                                <i class="fas fa-info-circle"></i> Ajuste a gasolina para atualizar os valores de KM automaticamente.
+                                <i class="ph ph-info"></i> Ajuste a gasolina para atualizar os valores de KM automaticamente.
                             </div>
                         </div>
 
@@ -1066,11 +1061,11 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         
                         <div style="display: flex; gap: 1rem;">
                             <button type="button" onclick="taskPrintCalculatorReport()" class="btn btn-outline" style="padding: 0.8rem 1.5rem;">
-                                <i class="fas fa-file-pdf"></i> Visualizar Relatório
+                                <i class="ph ph-file-pdf"></i> Visualizar Relatório
                             </button>
                             
                             <button type="submit" class="btn btn-primary" style="padding: 0.8rem 1.5rem; background: #28a745; border-color: #28a745;">
-                                <i class="fas fa-save"></i> Salvar e Liquidar Pagamento
+                                <i class="ph ph-floppy-disk"></i> Salvar e Liquidar Pagamento
                             </button>
                         </div>
                     </div>
@@ -1306,7 +1301,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <!-- SECTION 1.5: WIZARD DE ANDAMENTO -->
             <div id="wizard" class="tab-content">
                 <div class="section-header">
-                    <h2><i class="fas fa-magic"></i> Wizard de Andamento</h2>
+                    <h2><i class="ph ph-magic-wand"></i> Wizard de Andamento</h2>
                     <p class="text-muted">Acompanhe o fluxo de cada recenseador, desde a documentação até o pagamento final.</p>
                 </div>
 
@@ -1318,7 +1313,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                             <!-- Filtro por Macrorregião -->
                             <div style="min-width: 280px; flex-grow: 1;">
                                 <label style="display: block; font-size: 0.78rem; font-weight: 800; color: #007a89; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 0.35rem;">
-                                    <i class="fas fa-map-marked-alt"></i> Filtrar por Macrorregião
+                                    <i class="ph ph-crosshair"></i> Filtrar por Macrorregião
                                 </label>
                                 <select id="wizard_region_filter" onchange="filterWizardRoutes()" style="width: 100%; padding: 0.65rem 0.85rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; color: #0f172a; font-weight: 600; outline: none; cursor: pointer;">
                                     <option value="">Todas as Macrorregiões (Visão Geral)</option>
@@ -1336,7 +1331,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                             <!-- Busca Rápida por Cidade / Recenseador / CPF -->
                             <div style="min-width: 280px; flex-grow: 1;">
                                 <label style="display: block; font-size: 0.78rem; font-weight: 800; color: #007a89; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 0.35rem;">
-                                    <i class="fas fa-search"></i> Buscar Cidade/RA, Nome ou CPF
+                                    <i class="ph ph-magnifying-glass"></i> Buscar Cidade/RA, Nome ou CPF
                                 </label>
                                 <input type="text" id="wizard_search_input" onkeyup="filterWizardRoutes()" placeholder="Digite a cidade/RA, nome ou CPF..." style="width: 100%; padding: 0.65rem 0.85rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; color: #0f172a; outline: none; box-sizing: border-box;">
                             </div>
@@ -1345,11 +1340,11 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         <!-- Botão Limpar e Contador -->
                         <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
                             <button type="button" onclick="resetWizardFilters()" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 0.65rem 1rem; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0';" onmouseout="this.style.background='#f1f5f9';">
-                                <i class="fas fa-undo"></i> Limpar Filtros
+                                <i class="ph ph-arrow-counter-clockwise"></i> Limpar Filtros
                             </button>
                             
                             <div id="wizard_counter_badge" style="background: #f0fdfa; color: #007a89; border: 1px solid #ccfbf1; font-weight: 800; font-size: 0.82rem; padding: 0.6rem 1rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
-                                <i class="fas fa-list-ol"></i> Exibindo <span id="wizard_visible_count"><?php echo count($wizard_routes); ?></span> de <?php echo count($wizard_routes); ?> tarefas
+                                <i class="ph ph-list-numbers"></i> Exibindo <span id="wizard_visible_count"><?php echo count($wizard_routes); ?></span> de <?php echo count($wizard_routes); ?> tarefas
                             </div>
                         </div>
 
@@ -1406,7 +1401,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         </div>
 
                                         <div style="font-size: 0.85rem; color: #007a89; margin: 0.2rem 0; font-weight: 700; display: flex; align-items: center; gap: 6px;">
-                                            <i class="fas fa-user-circle"></i> <?php echo mb_strtoupper(htmlspecialchars($r['user_name']), 'UTF-8'); ?>
+                                            <i class="ph ph-user-circle"></i> <?php echo mb_strtoupper(htmlspecialchars($r['user_name']), 'UTF-8'); ?>
                                         </div>
 
                                         <div style="font-size: 0.78rem; color: #64748b; margin-bottom: 0.4rem;">
@@ -1415,13 +1410,13 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
 
                                         <?php if (!empty($macroDisplay)): ?>
                                             <div style="font-size: 0.72rem; font-weight: 800; color: #007a89; background: #f0fdfa; border: 1px solid #ccfbf1; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px; margin-bottom: 4px;">
-                                                <i class="fas fa-map-marked-alt"></i> <?php echo htmlspecialchars($macroDisplay); ?>
+                                                <i class="ph ph-crosshair"></i> <?php echo htmlspecialchars($macroDisplay); ?>
                                             </div>
                                         <?php endif; ?>
 
                                         <?php if (!empty($routeMicro) && $routeMicro !== $macroDisplay): ?>
                                             <div style="font-size: 0.72rem; font-weight: 600; color: #475569; background: #f1f5f9; border: 1px solid #e2e8f0; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
-                                                <i class="fas fa-city" style="color: #64748b;"></i> <?php echo htmlspecialchars($routeMicro); ?>
+                                                <i class="ph ph-city" style="color: #64748b;"></i> <?php echo htmlspecialchars($routeMicro); ?>
                                             </div>
                                         <?php endif; ?>
 
@@ -1469,7 +1464,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
 
                                         <?php if ($r['wizard_step'] >= 3): ?>
                             <div style="background: #fdfdfd; padding: 0.8rem; border-radius: 4px; border-left: 3px solid #198754; font-size: 0.85rem; color: #555; margin-top: 10px;">
-                                                <strong><i class="fas fa-comment-dots"></i> Relatório do Recenseador:</strong><br>
+                                                <strong><i class="ph ph-chat-dots"></i> Relatório do Recenseador:</strong><br>
                                                 <?php echo nl2br(htmlspecialchars($r['observation'] ?? 'Sem observações.')); ?>
 
                                                 <?php
@@ -1492,6 +1487,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                     </td>
                                     <td style="padding:1.1rem; text-align: center; vertical-align: top;">
                                         <form method="post" style="display: inline-block;">
+                                            <?php echo csrf_field(); ?>
                                             <input type="hidden" name="action" value="update_wizard">
                                             <input type="hidden" name="route_id" value="<?php echo $r['id']; ?>">
                                             
@@ -1515,7 +1511,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
 
                                         <?php if ($r['wizard_step'] >= 4): ?>
                                             <button type="button" onclick="openRejectCompletionModal(<?php echo $r['id']; ?>, '<?php echo htmlspecialchars($r['title'], ENT_QUOTES, 'UTF-8'); ?>', '<?php echo htmlspecialchars($r['user_name'], ENT_QUOTES, 'UTF-8'); ?>')" class="btn" style="font-size: 0.72rem; padding: 0.35rem 0.6rem; width: 100%; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='#dc2626'; this.style.color='#fff';" onmouseout="this.style.background='#fee2e2'; this.style.color='#b91c1c';" title="Rejeitar Conclusão da Rota e retornar para o Passo 2">
-                                                <i class="fas fa-undo"></i> Rejeitar Conclusão
+                                                <i class="ph ph-arrow-counter-clockwise"></i> Rejeitar Conclusão
                                             </button>
                                         <?php endif; ?>
                                     </td>
@@ -1524,7 +1520,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
 
                             <tr id="wizard_no_results_row" style="display: none;">
                                 <td colspan="3" style="padding: 2.5rem; text-align: center; color: #64748b; font-size: 0.9rem;">
-                                    <i class="fas fa-search" style="font-size: 2rem; color: #cbd5e1; display: block; margin-bottom: 0.75rem;"></i>
+                                    <i class="ph ph-magnifying-glass" style="font-size: 2rem; color: #cbd5e1; display: block; margin-bottom: 0.75rem;"></i>
                                     <strong>Nenhuma tarefa encontrada para os filtros selecionados.</strong><br>
                                     Tente selecionar outra macrorregião ou limpar a busca.
                                 </td>
@@ -1537,8 +1533,47 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <!-- SECTION 1: MONITORAMENTO -->
             <div id="monitor" class="tab-content">
                 <div class="section-header">
-                    <h2><i class="fas fa-satellite-dish"></i> Monitoramento de Rotas</h2>
+                    <h2><i class="ph ph-broadcast"></i> Monitoramento de Rotas</h2>
                     <p class="text-muted">Acompanhe em tempo real as coletas iniciadas.</p>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background: var(--petrol-tint); color: var(--petrol);">
+                            <i class="ph ph-broadcast"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-value"><?php echo count($active_routes); ?></span>
+                            <span class="kpi-label">Rotas Ativas</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background: var(--danger-light); color: var(--danger);">
+                            <i class="ph ph-hourglass-high"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-value"><?php echo count($expired_routes); ?></span>
+                            <span class="kpi-label">Prazos Encerrados</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background: var(--success-light); color: var(--success);">
+                            <i class="ph ph-checks"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-value"><?php echo count($completed_routes); ?></span>
+                            <span class="kpi-label">Concluídas</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background: var(--petrol-tint); color: var(--petrol);">
+                            <i class="ph ph-hand-coins"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-value"><?php echo count($paid_routes); ?></span>
+                            <span class="kpi-label">Liquidadas</span>
+                        </div>
+                    </div>
                 </div>
 
                 <?php if (count($active_routes) > 0): ?>
@@ -1551,7 +1586,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         <?php 
                                             $demandLabel = "Específica";
                                             $demandColor = "#3b82f6"; // Blue
-                                            $demandIcon = "location-dot";
+                                            $demandIcon = "map-pin";
                                             
                                             if (($route['demand_type'] ?? '') === 'padrao') {
                                                 $demandLabel = "Padrão";
@@ -1560,40 +1595,41 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             } elseif (($route['demand_type'] ?? '') === 'mista') {
                                                 $demandLabel = "Mista";
                                                 $demandColor = "#f59e0b"; // Orange
-                                                $demandIcon = "layer-group";
+                                                $demandIcon = "stack";
                                             }
                                         ?>
-                                        <span style="background: <?php echo $demandColor; ?>15; color: <?php echo $demandColor; ?>; font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 10px; border: 1px solid <?php echo $demandColor; ?>40; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; margin-right: 5px; vertical-align: middle;">
-                                            <i class="fas fa-<?php echo $demandIcon; ?>" style="font-size: 0.7rem;"></i> <?php echo $demandLabel; ?>
+                                        <span style="background: <?php echo $demandColor; ?>15; color: <?php echo $demandColor; ?>; font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; border: 1px solid <?php echo $demandColor; ?>40; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; margin-right: 5px; vertical-align: middle;">
+                                            <i class="ph ph-<?php echo $demandIcon; ?>" style="font-size: 0.7rem;"></i> <?php echo $demandLabel; ?>
                                         </span>
                                         <?php if ($route['status'] == 'delayed'): ?>
-                                            <span style="font-size: 0.65rem; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 10px; border: 1px solid #fecaca;"><i class="fas fa-exclamation-triangle"></i> ATRASADA</span>
+                                            <span style="font-size: 0.65rem; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 4px; border: 1px solid #fecaca;"><i class="ph ph-warning"></i> ATRASADA</span>
                                         <?php elseif ($route['status'] == 'pending_acceptance'): ?>
-                                            <span style="font-size: 0.65rem; font-weight: 800; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 10px; border: 1px solid #fde68a;"><i class="fas fa-clock"></i> PENDENTE ACEITE</span>
+                                            <span style="font-size: 0.65rem; font-weight: 800; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; border: 1px solid #fde68a;"><i class="ph ph-clock"></i> PENDENTE ACEITE</span>
                                         <?php elseif ($route['status'] == 'accepted'): ?>
-                                            <span style="font-size: 0.65rem; font-weight: 800; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 10px; border: 1px solid #bae6fd;"><i class="fas fa-check-double"></i> ACEITA</span>
+                                            <span style="font-size: 0.65rem; font-weight: 800; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; border: 1px solid #bae6fd;"><i class="ph ph-checks"></i> ACEITA</span>
                                         <?php elseif ($route['status'] == 'rejected'): ?>
-                                            <span style="font-size: 0.65rem; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 10px; border: 1px solid #fecaca;"><i class="fas fa-times"></i> REJEITADA (Motivo: <?php echo htmlspecialchars($route['rejection_reason'] ?? 'Não informado'); ?>)</span>
+                                            <span style="font-size: 0.65rem; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 4px; border: 1px solid #fecaca;"><i class="ph ph-x"></i> REJEITADA (Motivo: <?php echo htmlspecialchars($route['rejection_reason'] ?? 'Não informado'); ?>)</span>
                                         <?php else: ?>
-                                            <span style="font-size: 0.65rem; font-weight: 800; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 10px; border: 1px solid #bbf7d0;"><i class="fas fa-spinner fa-spin"></i> EM ANDAMENTO</span>
+                                            <span style="font-size: 0.65rem; font-weight: 800; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 4px; border: 1px solid #bbf7d0;"><i class="ph ph-circle-notch fa-spin"></i> EM ANDAMENTO</span>
                                         <?php endif; ?>
                                     </div>
-                                    <div style="display: flex; gap: 8px;">
-                                        <a href="edit_route.php?id=<?php echo $route['id']; ?>" class="action-btn-circle btn-edit" title="Editar Rota"><i class="fas fa-edit"></i></a>
+                                    <div style="display: flex; gap: 10px; flex-shrink: 0;">
+                                        <a href="edit_route.php?id=<?php echo $route['id']; ?>" class="action-btn-circle btn-edit" title="Editar Rota"><i class="ph ph-pencil-simple-line"></i></a>
 
                                         <?php if ($route['status'] == 'in_progress'): ?>
                                             <form method="post" style="display:inline;">
+                                                <?php echo csrf_field(); ?>
                                                 <input type="hidden" name="route_id" value="<?php echo $route['id']; ?>">
                                                 <input type="hidden" name="action" value="mark_delayed">
-                                                <button type="submit" class="action-btn-circle btn-reset" title="Marcar Atraso"><i class="fas fa-history"></i></button>
+                                                <button type="submit" class="action-btn-circle btn-reset" title="Marcar Atraso"><i class="ph ph-clock-counter-clockwise"></i></button>
                                             </form>
                                         <?php endif; ?>
 
                                         <button type="button" onclick="openCancelModal(<?php echo $route['id']; ?>, '<?php echo htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8'); ?>')" class="action-btn-circle btn-cancel" title="Cancelar Rota">
-                                            <i class="fas fa-ban"></i>
+                                            <i class="ph ph-prohibit"></i>
                                         </button>
                                         <button type="button" onclick="openArchiveModal(<?php echo $route['id']; ?>, '<?php echo htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8'); ?>', 'monitor')" class="action-btn-circle btn-archive" title="Arquivar Rota">
-                                            <i class="fas fa-archive"></i>
+                                            <i class="ph ph-archive"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -1601,29 +1637,29 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 <!-- Card Body -->
                                 <div style="padding: 1.25rem;">
                                     <!-- Date Timeline Box -->
-                                    <div style="background: #f8fafc; border-radius: 8px; padding: 0.75rem; margin-bottom: 1.25rem; border: 1px solid #f1f5f9; display: grid; gap: 0.4rem;">
+                                    <div style="background: rgba(0, 122, 137, 0.03); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; border-left: 3px solid #007a89; display: grid; gap: 0.4rem;">
                                         <div style="font-size: 0.75rem; color: #64748b; display: flex; align-items: center; gap: 8px;">
-                                            <i class="fas fa-play-circle" style="color: #22c55e; width: 14px;"></i> 
+                                            <i class="ph ph-play-circle" style="color: #22c55e; width: 14px;"></i> 
                                             <span>Início: <strong><?php echo ($route['start_time']) ? date('d/m/Y H:i', strtotime($route['start_time'])) : 'Aguardando início da rota pelo recenseador'; ?></strong></span>
                                         </div>
                                         <div style="font-size: 0.7rem; color: #94a3b8; display: flex; align-items: center; gap: 8px;">
-                                            <i class="fas fa-calendar-alt" style="width: 14px;"></i> 
+                                            <i class="ph ph-calendar-blank" style="width: 14px;"></i> 
                                             <span>Atribuída em: <?php echo date('d/m/Y H:i', strtotime($route['created_at'])); ?></span>
                                         </div>
                                         <?php if (!empty($route['accepted_at'])): ?>
                                             <div style="font-size: 0.75rem; color: #0284c7; display: flex; align-items: center; gap: 8px; font-weight: 600;">
-                                                <i class="fas fa-check-circle" style="color: #0284c7; width: 14px;"></i> 
+                                                <i class="ph ph-check-circle" style="color: #0284c7; width: 14px;"></i> 
                                                 <span>Aceita em: <strong><?php echo date('d/m/Y H:i', strtotime($route['accepted_at'])); ?></strong></span>
                                             </div>
                                         <?php endif; ?>
                                         <?php if (!empty($route['scheduled_end'])): ?>
                                             <div style="font-size: 0.75rem; color: #ef4444; display: flex; align-items: center; gap: 8px; font-weight: 700; margin-top: 2px;">
-                                                <i class="fas fa-flag-checkered" style="width: 14px;"></i> 
+                                                <i class="ph ph-flag-checkered" style="width: 14px;"></i> 
                                                 <span>Prazo Final: <span style="background: #fee2e2; padding: 1px 6px; border-radius: 4px;"><?php echo date('d/m/Y H:i', strtotime($route['scheduled_end'])); ?></span></span>
                                             </div>
                                             <?php if (in_array($route['status'], ['pending_acceptance', 'accepted', 'in_progress', 'delayed'])): ?>
                                                 <div class="countdown-container" data-deadline="<?php echo $route['scheduled_end']; ?>" style="border-radius: 6px; padding: 0.6rem 0.8rem; margin-top: 0.5rem; display: flex; justify-content: center; align-items: center; gap: 6px; background: #f0f9ff; border: 1px solid #bae6fd; color: #0284c7; font-size: 0.85rem; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.02); width: 100%;">
-                                                    <i class="fas fa-hourglass-half" style="color: #0284c7; font-size: 0.8rem;"></i>
+                                                    <i class="ph ph-hourglass" style="color: #0284c7; font-size: 0.8rem;"></i>
                                                     <div class="countdown-timer">00:00:00</div>
                                                 </div>
                                             <?php endif; ?>
@@ -1637,9 +1673,9 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                     
                                     <div style="margin-bottom: 0.75rem;">
                                         <!-- Nome do Recenseador em destaque -->
-                                        <p style="margin:0 0 4px; color: #1e40af; font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 6px;">
-                                            <i class="fas fa-user-circle" style="color: #3b82f6; font-size: 1rem;"></i>
-                                            <?php echo mb_strtoupper(htmlspecialchars($route['user_name']), 'UTF-8'); ?>
+                                        <p style="margin:0 0 4px; color: #334155; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                            <i class="ph ph-user-circle" style="color: #007a89; font-size: 0.95rem;"></i>
+                                            <?php echo htmlspecialchars($route['user_name']); ?>
                                         </p>
                                         <!-- Macrorregião do usuário -->
                                         <?php 
@@ -1647,19 +1683,19 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             $macroDisp = preg_replace('/Macrorregi.*?o/i', 'Macrorregião', $macroDisp);
                                         ?>
                                         <?php if (!empty($macroDisp)): ?>
-                                            <span style="display: inline-block; margin-bottom: 4px; background: #eff6ff; color: #1d4ed8; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; border: 1px solid #bfdbfe;">
-                                                <i class="fas fa-layer-group"></i> <?php echo htmlspecialchars($macroDisp); ?>
+                                            <span style="display: inline-block; margin-bottom: 4px; background: #f0fdfa; color: #007a89; font-size: 0.75rem; font-weight: 600; padding: 2px 9px; border-radius: 9999px; border: 1px solid rgba(0, 122, 137, 0.15);">
+                                                <i class="ph ph-stack"></i> <?php echo htmlspecialchars($macroDisp); ?>
                                             </span>
                                         <?php endif; ?>
                                         <!-- Cidade/RA da rota -->
                                         <?php if (!empty($route['microregion'])): ?>
-                                            <p style="margin: 2px 0 0; color: #059669; font-weight: 700; font-size: 0.8rem;">
-                                                <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($route['microregion']); ?>
+                                            <p style="margin: 2px 0 0; color: #64748b; font-weight: 500; font-size: 0.8rem;">
+                                                <i class="ph ph-map-pin"></i> <?php echo htmlspecialchars($route['microregion']); ?>
                                             </p>
                                         <?php endif; ?>
                                     </div>
 
-                                    <div style="font-size: 0.8rem; color: #64748b; background: #fdfdfd; padding: 0.5rem 0; border-top: 1px dashed #e2e8f0;">
+                                    <div style="font-size: 0.8rem; color: #64748b; background: #fdfdfd; padding: 0.5rem 0; border-top: 1px solid rgba(15, 23, 42, 0.06);">
                                         <!-- Seção de Instruções e Detalhamento da Rota -->
                                         <?php 
                                         $showDesc = !empty($route['description']);
@@ -1670,7 +1706,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         ?>
                                         <div style="background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
                                             <h4 style="font-size: 0.65rem; color: #475569; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; display: flex; align-items: center; gap: 6px;">
-                                                <i class="fas fa-info-circle"></i> Instruções da Rota
+                                                <i class="ph ph-info"></i> Instruções da Rota
                                             </h4>
                                             
                                             <?php if ($showArea): ?>
@@ -1690,7 +1726,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             <?php if ($showRenewal): ?>
                                                 <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.8rem; color: #1e40af; margin-top: 4px;">
                                                     <small style="font-size: 0.6rem; color: #1e3a8a; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">
-                                                        <i class="fas fa-history"></i> Motivo da Prorrogação
+                                                        <i class="ph ph-clock-counter-clockwise"></i> Motivo da Prorrogação
                                                     </small>
                                                     <div style="line-height: 1.4; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['renewal_reason'])); ?></div>
                                                 </div>
@@ -1703,12 +1739,12 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             if (!empty($cleanLoc)): 
                                         ?>
                                             <div style="display: flex; align-items: center; gap: 6px; padding: 0 8px;">
-                                                <i class="fas fa-map-signs" style="color: #cbd5e1;"></i>
+                                                <i class="ph ph-signpost" style="color: #cbd5e1;"></i>
                                                 <?php echo htmlspecialchars($route['start_location']); ?>
                                             </div>
                                         <?php elseif (empty($route['area_details']) || $route['area_details'] === '<p><br></p>'): ?>
                                             <div style="display: flex; align-items: center; gap: 6px; padding: 0 8px;">
-                                                <i class="fas fa-map-signs" style="color: #cbd5e1;"></i>
+                                                <i class="ph ph-signpost" style="color: #cbd5e1;"></i>
                                                 Área de Atuação
                                             </div>
                                         <?php endif; ?>
@@ -1724,7 +1760,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         ?>
                                         <div style="background: #fffbeb; padding: 0.65rem 0.75rem; border-radius: 6px; border: 1px solid #fef3c7; margin-top: 10px; margin-bottom: 5px;">
                                             <div style="font-size: 0.6rem; color: #92400e; font-weight: 800; text-transform: uppercase; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 4px;">
-                                                <i class="fas fa-paperclip"></i> Anexos da Rota (Print / Documentos)
+                                                <i class="ph ph-paperclip"></i> Anexos da Rota (Print / Documentos)
                                             </div>
                                             <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                                                 <?php foreach ($adminFiles as $idx => $file): 
@@ -1747,7 +1783,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 <div style="padding: 1rem; border-top: 1px solid #f1f5f9; background: #fff;">
                                     <?php if (!in_array($route['status'], ['pending_acceptance', 'rejected'])): ?>
                                         <a href="../recenseador/generate_contract.php?route_id=<?php echo $route['id']; ?>" target="_blank" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: white; background: #28a745; border-color: #28a745; padding: 0.6rem; margin-bottom: 0.5rem;" title="Baixar Termo de Registro de Demanda assinado pelo recenseador">
-                                            <i class="fas fa-file-signature"></i> TERMO DE ACEITE (PDF)
+                                            <i class="ph ph-file-text"></i> TERMO DE ACEITE (PDF)
                                         </a>
                                     <?php endif; ?>
                                     
@@ -1756,7 +1792,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         if ($mapUrl): 
                                      ?>
                                          <a href="<?php echo htmlspecialchars($mapUrl); ?>" target="_blank" class="btn btn-outline" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: #2563eb; border-color: #dbeafe; background: #fdfdfd; padding: 0.6rem;">
-                                            <i class="fab fa-google"></i> ABRIR NO GOOGLE MAPS
+                                            <i class="ph ph-google-logo"></i> ABRIR NO GOOGLE MAPS
                                         </a>
                                     <?php else: ?>
                                         <div style="font-size: 0.75rem; color: #cbd5e1; text-align: center; font-style: italic;">
@@ -1769,7 +1805,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                     </div>
                 <?php else: ?>
                     <div class="text-center py-5" style="border: 2px dashed #eee; border-radius: 8px;">
-                        <i class="fas fa-check-circle" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+                        <i class="ph ph-check-circle" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
                         <p class="text-muted">Nenhuma rota ativa ou atrasada no momento.</p>
                     </div>
                 <?php endif; ?>
@@ -1778,7 +1814,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <!-- SECTION 1.2: TAREFAS COM PRAZO ENCERRADO -->
             <div id="expired" class="tab-content">
                 <div class="section-header">
-                    <h2><i class="fas fa-hourglass-end"></i> Tarefas com Prazo Encerrado</h2>
+                    <h2><i class="ph ph-hourglass-high"></i> Tarefas com Prazo Encerrado</h2>
                     <p class="text-muted">Acompanhe as coletas ativas que excederam o prazo estipulado.</p>
                 </div>
 
@@ -1792,7 +1828,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         <?php 
                                             $demandLabel = "Específica";
                                             $demandColor = "#3b82f6"; // Blue
-                                            $demandIcon = "location-dot";
+                                            $demandIcon = "map-pin";
                                             
                                             if (($route['demand_type'] ?? '') === 'padrao') {
                                                 $demandLabel = "Padrão";
@@ -1801,30 +1837,31 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             } elseif (($route['demand_type'] ?? '') === 'mista') {
                                                 $demandLabel = "Mista";
                                                 $demandColor = "#f59e0b"; // Orange
-                                                $demandIcon = "layer-group";
+                                                $demandIcon = "stack";
                                             }
                                         ?>
-                                        <span style="background: <?php echo $demandColor; ?>15; color: <?php echo $demandColor; ?>; font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 10px; border: 1px solid <?php echo $demandColor; ?>40; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; margin-right: 5px; vertical-align: middle;">
-                                            <i class="fas fa-<?php echo $demandIcon; ?>" style="font-size: 0.7rem;"></i> <?php echo $demandLabel; ?>
+                                        <span style="background: <?php echo $demandColor; ?>15; color: <?php echo $demandColor; ?>; font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; border: 1px solid <?php echo $demandColor; ?>40; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; margin-right: 5px; vertical-align: middle;">
+                                            <i class="ph ph-<?php echo $demandIcon; ?>" style="font-size: 0.7rem;"></i> <?php echo $demandLabel; ?>
                                         </span>
-                                        <span style="font-size: 0.65rem; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 10px; border: 1px solid #fecaca;"><i class="fas fa-exclamation-triangle"></i> PRAZO ENCERRADO</span>
+                                        <span style="font-size: 0.65rem; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 4px; border: 1px solid #fecaca;"><i class="ph ph-warning"></i> PRAZO ENCERRADO</span>
                                     </div>
-                                    <div style="display: flex; gap: 8px;">
-                                        <a href="edit_route.php?id=<?php echo $route['id']; ?>" class="action-btn-circle btn-edit" title="Editar Rota"><i class="fas fa-edit"></i></a>
+                                    <div style="display: flex; gap: 10px; flex-shrink: 0;">
+                                        <a href="edit_route.php?id=<?php echo $route['id']; ?>" class="action-btn-circle btn-edit" title="Editar Rota"><i class="ph ph-pencil-simple-line"></i></a>
 
                                         <?php if ($route['status'] == 'in_progress'): ?>
                                             <form method="post" style="display:inline;">
+                                                <?php echo csrf_field(); ?>
                                                 <input type="hidden" name="route_id" value="<?php echo $route['id']; ?>">
                                                 <input type="hidden" name="action" value="mark_delayed">
-                                                <button type="submit" class="action-btn-circle btn-reset" title="Marcar Atraso"><i class="fas fa-history"></i></button>
+                                                <button type="submit" class="action-btn-circle btn-reset" title="Marcar Atraso"><i class="ph ph-clock-counter-clockwise"></i></button>
                                             </form>
                                         <?php endif; ?>
 
                                         <button type="button" onclick="openCancelModal(<?php echo $route['id']; ?>, '<?php echo htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8'); ?>')" class="action-btn-circle btn-cancel" title="Cancelar Rota">
-                                            <i class="fas fa-ban"></i>
+                                            <i class="ph ph-prohibit"></i>
                                         </button>
                                         <button type="button" onclick="openArchiveModal(<?php echo $route['id']; ?>, '<?php echo htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8'); ?>', 'expired')" class="action-btn-circle btn-archive" title="Arquivar Rota">
-                                            <i class="fas fa-archive"></i>
+                                            <i class="ph ph-archive"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -1832,28 +1869,28 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 <!-- Card Body -->
                                 <div style="padding: 1.25rem;">
                                     <!-- Date Timeline Box -->
-                                    <div style="background: #f8fafc; border-radius: 8px; padding: 0.75rem; margin-bottom: 1.25rem; border: 1px solid #f1f5f9; display: grid; gap: 0.4rem;">
+                                    <div style="background: rgba(0, 122, 137, 0.03); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; border-left: 3px solid #007a89; display: grid; gap: 0.4rem;">
                                         <div style="font-size: 0.75rem; color: #64748b; display: flex; align-items: center; gap: 8px;">
-                                            <i class="fas fa-play-circle" style="color: #22c55e; width: 14px;"></i> 
+                                            <i class="ph ph-play-circle" style="color: #22c55e; width: 14px;"></i> 
                                             <span>Início: <strong><?php echo ($route['start_time']) ? date('d/m/Y H:i', strtotime($route['start_time'])) : 'Aguardando início da rota pelo recenseador'; ?></strong></span>
                                         </div>
                                         <div style="font-size: 0.7rem; color: #94a3b8; display: flex; align-items: center; gap: 8px;">
-                                            <i class="fas fa-calendar-alt" style="width: 14px;"></i> 
+                                            <i class="ph ph-calendar-blank" style="width: 14px;"></i> 
                                             <span>Atribuída em: <?php echo date('d/m/Y H:i', strtotime($route['created_at'])); ?></span>
                                         </div>
                                         <?php if (!empty($route['accepted_at'])): ?>
                                             <div style="font-size: 0.75rem; color: #0284c7; display: flex; align-items: center; gap: 8px; font-weight: 600;">
-                                                <i class="fas fa-check-circle" style="color: #0284c7; width: 14px;"></i> 
+                                                <i class="ph ph-check-circle" style="color: #0284c7; width: 14px;"></i> 
                                                 <span>Aceita em: <strong><?php echo date('d/m/Y H:i', strtotime($route['accepted_at'])); ?></strong></span>
                                             </div>
                                         <?php endif; ?>
                                         <?php if (!empty($route['scheduled_end'])): ?>
                                             <div style="font-size: 0.75rem; color: #ef4444; display: flex; align-items: center; gap: 8px; font-weight: 700; margin-top: 2px;">
-                                                <i class="fas fa-flag-checkered" style="width: 14px;"></i> 
+                                                <i class="ph ph-flag-checkered" style="width: 14px;"></i> 
                                                 <span>Prazo Final: <span style="background: #fee2e2; padding: 1px 6px; border-radius: 4px;"><?php echo date('d/m/Y H:i', strtotime($route['scheduled_end'])); ?></span></span>
                                             </div>
                                             <div class="countdown-container" data-deadline="<?php echo $route['scheduled_end']; ?>" style="border-radius: 6px; padding: 0.6rem 0.8rem; margin-top: 0.5rem; display: flex; justify-content: center; align-items: center; gap: 6px; background: #ffebeb; border: 1px solid #fecaca; color: #dc3545; font-size: 0.85rem; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.02); width: 100%;">
-                                                <i class="fas fa-hourglass-end" style="color: #dc3545; font-size: 0.8rem;"></i>
+                                                <i class="ph ph-hourglass-high" style="color: #dc3545; font-size: 0.8rem;"></i>
                                                 <div class="countdown-timer">PRAZO ENCERRADO</div>
                                             </div>
                                         <?php endif; ?>
@@ -1865,27 +1902,27 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                     </h3>
                                     
                                     <div style="margin-bottom: 0.75rem;">
-                                        <p style="margin:0 0 4px; color: #1e40af; font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 6px;">
-                                            <i class="fas fa-user-circle" style="color: #3b82f6; font-size: 1rem;"></i>
-                                            <?php echo mb_strtoupper(htmlspecialchars($route['user_name']), 'UTF-8'); ?>
+                                        <p style="margin:0 0 4px; color: #334155; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                            <i class="ph ph-user-circle" style="color: #007a89; font-size: 0.95rem;"></i>
+                                            <?php echo htmlspecialchars($route['user_name']); ?>
                                         </p>
                                         <?php 
                                             $macroDisp = $route['user_macroregion'] ?? '';
                                             $macroDisp = preg_replace('/Macrorregi.*?o/i', 'Macrorregião', $macroDisp);
                                         ?>
                                         <?php if (!empty($macroDisp)): ?>
-                                            <span style="display: inline-block; margin-bottom: 4px; background: #eff6ff; color: #1d4ed8; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; border: 1px solid #bfdbfe;">
-                                                <i class="fas fa-layer-group"></i> <?php echo htmlspecialchars($macroDisp); ?>
+                                            <span style="display: inline-block; margin-bottom: 4px; background: #f0fdfa; color: #007a89; font-size: 0.75rem; font-weight: 600; padding: 2px 9px; border-radius: 9999px; border: 1px solid rgba(0, 122, 137, 0.15);">
+                                                <i class="ph ph-stack"></i> <?php echo htmlspecialchars($macroDisp); ?>
                                             </span>
                                         <?php endif; ?>
                                         <?php if (!empty($route['microregion'])): ?>
-                                            <p style="margin: 2px 0 0; color: #059669; font-weight: 700; font-size: 0.8rem;">
-                                                <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($route['microregion']); ?>
+                                            <p style="margin: 2px 0 0; color: #64748b; font-weight: 500; font-size: 0.8rem;">
+                                                <i class="ph ph-map-pin"></i> <?php echo htmlspecialchars($route['microregion']); ?>
                                             </p>
                                         <?php endif; ?>
                                     </div>
 
-                                    <div style="font-size: 0.8rem; color: #64748b; background: #fdfdfd; padding: 0.5rem 0; border-top: 1px dashed #e2e8f0;">
+                                    <div style="font-size: 0.8rem; color: #64748b; background: #fdfdfd; padding: 0.5rem 0; border-top: 1px solid rgba(15, 23, 42, 0.06);">
                                         <!-- Seção de Instruções e Detalhamento da Rota -->
                                         <?php 
                                         $showDesc = !empty($route['description']);
@@ -1896,7 +1933,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         ?>
                                         <div style="background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
                                             <h4 style="font-size: 0.65rem; color: #475569; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; display: flex; align-items: center; gap: 6px;">
-                                                <i class="fas fa-info-circle"></i> Instruções da Rota
+                                                <i class="ph ph-info"></i> Instruções da Rota
                                             </h4>
                                             
                                             <?php if ($showArea): ?>
@@ -1916,7 +1953,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             <?php if ($showRenewal): ?>
                                                 <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.8rem; color: #1e40af; margin-top: 4px;">
                                                     <small style="font-size: 0.6rem; color: #1e3a8a; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">
-                                                        <i class="fas fa-history"></i> Motivo da Prorrogação
+                                                        <i class="ph ph-clock-counter-clockwise"></i> Motivo da Prorrogação
                                                     </small>
                                                     <div style="line-height: 1.4; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['renewal_reason'])); ?></div>
                                                 </div>
@@ -1929,12 +1966,12 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             if (!empty($cleanLoc)): 
                                         ?>
                                             <div style="display: flex; align-items: center; gap: 6px; padding: 0 8px;">
-                                                <i class="fas fa-map-signs" style="color: #cbd5e1;"></i>
+                                                <i class="ph ph-signpost" style="color: #cbd5e1;"></i>
                                                 <?php echo htmlspecialchars($route['start_location']); ?>
                                             </div>
                                         <?php elseif (empty($route['area_details']) || $route['area_details'] === '<p><br></p>'): ?>
                                             <div style="display: flex; align-items: center; gap: 6px; padding: 0 8px;">
-                                                <i class="fas fa-map-signs" style="color: #cbd5e1;"></i>
+                                                <i class="ph ph-signpost" style="color: #cbd5e1;"></i>
                                                 Área de Atuação
                                             </div>
                                         <?php endif; ?>
@@ -1950,7 +1987,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         ?>
                                         <div style="background: #fffbeb; padding: 0.65rem 0.75rem; border-radius: 6px; border: 1px solid #fef3c7; margin-top: 10px; margin-bottom: 5px;">
                                             <div style="font-size: 0.6rem; color: #92400e; font-weight: 800; text-transform: uppercase; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 4px;">
-                                                <i class="fas fa-paperclip"></i> Anexos da Rota (Print / Documentos)
+                                                <i class="ph ph-paperclip"></i> Anexos da Rota (Print / Documentos)
                                             </div>
                                             <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                                                 <?php foreach ($adminFiles as $idx => $file): 
@@ -1973,12 +2010,12 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 <div style="padding: 1rem; border-top: 1px solid #f1f5f9; background: #fff;">
                                     <?php if (!in_array($route['status'], ['pending_acceptance', 'rejected'])): ?>
                                         <a href="../recenseador/generate_contract.php?route_id=<?php echo $route['id']; ?>" target="_blank" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: white; background: #28a745; border-color: #28a745; padding: 0.6rem; margin-bottom: 0.5rem;" title="Baixar Termo de Registro de Demanda assinado pelo recenseador">
-                                            <i class="fas fa-file-signature"></i> TERMO DE ACEITE (PDF)
+                                            <i class="ph ph-file-text"></i> TERMO DE ACEITE (PDF)
                                         </a>
                                     <?php endif; ?>
 
                                     <button type="button" class="btn" onclick="openRenewModal(<?php echo $route['id']; ?>, '<?php echo htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8'); ?>')" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: white; background: #3b82f6; border-color: #3b82f6; padding: 0.6rem; margin-bottom: 0.5rem;">
-                                        <i class="fas fa-redo"></i> RENOVAR TAREFA (7 DIAS)
+                                        <i class="ph ph-arrow-clockwise"></i> RENOVAR TAREFA (7 DIAS)
                                     </button>
                                     
                                     <?php 
@@ -1986,7 +2023,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         if ($mapUrl): 
                                      ?>
                                          <a href="<?php echo htmlspecialchars($mapUrl); ?>" target="_blank" class="btn btn-outline" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: #2563eb; border-color: #dbeafe; background: #fdfdfd; padding: 0.6rem;">
-                                            <i class="fab fa-google"></i> ABRIR NO GOOGLE MAPS
+                                            <i class="ph ph-google-logo"></i> ABRIR NO GOOGLE MAPS
                                         </a>
                                     <?php else: ?>
                                         <div style="font-size: 0.75rem; color: #cbd5e1; text-align: center; font-style: italic;">
@@ -1999,7 +2036,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                     </div>
                 <?php else: ?>
                     <div class="text-center py-5" style="border: 2px dashed #eee; border-radius: 8px;">
-                        <i class="fas fa-check-circle" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+                        <i class="ph ph-check-circle" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
                         <p class="text-muted">Nenhuma rota atrasada no momento.</p>
                     </div>
                 <?php endif; ?>
@@ -2008,7 +2045,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <!-- SECTION 2: APROVAÇÕES PENDENTES -->
             <div id="approvals" class="tab-content">
                 <div class="section-header">
-                    <h2><i class="fas fa-user-clock"></i> Aprovações Pendentes</h2>
+                    <h2><i class="ph ph-clock-user"></i> Aprovações Pendentes</h2>
                 </div>
                 <div id="pending-list">
                     <?php if (count($pending_users) > 0): ?>
@@ -2019,28 +2056,30 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         <?php echo mb_strtoupper(htmlspecialchars($user['name']), 'UTF-8'); ?>
                                     </h4>
                                     <p style="margin: 0.2rem 0; color: var(--text-muted); font-size: 0.9rem;">
-                                        <i class="fas fa-envelope"></i> <?php echo htmlspecialchars($user['email']); ?>
+                                        <i class="ph ph-envelope"></i> <?php echo htmlspecialchars($user['email']); ?>
                                     </p>
                                 </div>
                                 <div class="pending-actions">
                                     <a href="../view_docs.php?user_id=<?php echo $user['id']; ?>" target="_blank"
                                         class="btn btn-outline" style="height: 40px; padding: 0 1rem; font-size: 0.8rem;">
-                                        <i class="fas fa-search"></i> ANALISAR DOCUMENTOS
+                                        <i class="ph ph-magnifying-glass"></i> ANALISAR DOCUMENTOS
                                     </a>
                                     
                                     <form method="post" style="display:flex; align-items:center;" onsubmit="return confirm('Deseja aprovar este cadastro e documentos?');">
+                                        <?php echo csrf_field(); ?>
                                         <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
                                         <input type="hidden" name="action" value="approve">
                                         <button type="submit" class="btn-approve" style="height: 40px; padding: 0 1.2rem; font-size: 0.8rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 700;">
-                                            <i class="fas fa-check"></i> APROVAR
+                                            <i class="ph ph-check"></i> APROVAR
                                         </button>
                                     </form>
 
                                     <form method="post" onsubmit="return confirm('Tem certeza que deseja reprovar este cadastro?');">
+                                        <?php echo csrf_field(); ?>
                                         <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
                                         <input type="hidden" name="action" value="reject">
                                         <button type="submit" class="btn-reject" title="Reprovar Cadastro">
-                                            <i class="fas fa-times"></i>
+                                            <i class="ph ph-x"></i>
                                         </button>
                                     </form>
                                 </div>
@@ -2057,11 +2096,12 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <!-- SECTION 3: ATRIBUIR ROTA -->
             <div id="routes" class="tab-content">
                 <div class="section-header">
-                    <h2><i class="fas fa-map-marked-alt"></i> Atribuir Nova Rota</h2>
+                    <h2><i class="ph ph-crosshair"></i> Atribuir Nova Rota</h2>
                 </div>
                 <div
                     style="background: white; padding: 2rem; border-radius: 8px; border: 1px solid #e0e0e0; max-width: 800px;">
                     <form method="post" enctype="multipart/form-data">
+                        <?php echo csrf_field(); ?>
                         <input type="hidden" name="action" value="assign_route">
                         <div class="form-group mb-4"><label>Selecione o Recenseador</label><select name="user_id"
                                 required class="form-control"
@@ -2098,13 +2138,13 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                             <label>Tipo de Demanda</label>
                             <div class="demand-type-selector">
                                 <button type="button" class="demand-btn" data-type="padrao" onclick="setDemandType('padrao')">
-                                    <i class="fas fa-map"></i> Padrão
+                                    <i class="ph ph-crosshair"></i> Padrão
                                 </button>
                                 <button type="button" class="demand-btn active" data-type="especifica" onclick="setDemandType('especifica')">
-                                    <i class="fas fa-location-dot"></i> Específica
+                                    <i class="ph ph-map-pin"></i> Específica
                                 </button>
                                 <button type="button" class="demand-btn" data-type="mista" onclick="setDemandType('mista')">
-                                    <i class="fas fa-layer-group"></i> Mista
+                                    <i class="ph ph-stack"></i> Mista
                                 </button>
                             </div>
                             <input type="hidden" name="demand_type" id="demand_type_input" value="especifica">
@@ -2198,21 +2238,21 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         </div>
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-bottom:1rem;">
                             <div class="form-group">
-                                <label><i class="fas fa-calendar-plus"></i> Data de Início</label>
+                                <label><i class="ph ph-calendar-plus"></i> Data de Início</label>
                                 <input type="datetime-local" name="scheduled_start" class="form-control" style="padding:0.8rem; border:1px solid #ccc;">
                             </div>
                             <div class="form-group">
-                                <label><i class="fas fa-calendar-check"></i> Data Final (Prazo)</label>
+                                <label><i class="ph ph-calendar-check"></i> Data Final (Prazo)</label>
                                 <input type="datetime-local" name="scheduled_end" class="form-control" style="padding:0.8rem; border:1px solid #ccc;">
                             </div>
                         </div>
 
                         <div class="form-group mb-4">
-                            <label><i class="fab fa-google"></i> Link do Google Maps (Local da Vistoria)</label>
+                            <label><i class="ph ph-google-logo"></i> Link do Google Maps (Local da Vistoria)</label>
                             <input type="url" name="maps_url" class="form-control" placeholder="https://www.google.com.br/maps/place/..." style="width: 100%; padding:0.8rem; border:1px solid #ccc;">
                         </div>
                          <div class="form-group mb-4 area-only" style="display:none;">
-                            <label><i class="fas fa-align-left"></i> Descrição da Área de Atuação</label>
+                            <label><i class="ph ph-text-align-left"></i> Descrição da Área de Atuação</label>
                             <div id="editor-container" style="height: 200px; background: #fff; border-radius: 4px;"></div>
                             <input type="hidden" name="area_details" id="area_details_input">
                         </div>
@@ -2222,23 +2262,23 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 style="width: 100%; padding:0.8rem; border:1px solid #ccc;"></textarea></div>
 
                         <div class="form-group mb-4">
-                            <label><i class="fas fa-paperclip"></i> Anexar Arquivos para o Recenseador (PDF ou Imagens)</label>
+                            <label><i class="ph ph-paperclip"></i> Anexar Arquivos para o Recenseador (PDF ou Imagens)</label>
                             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px;">
                                 <?php for ($i = 1; $i <= 3; $i++): 
                                     $label = ($i === 1) ? "Anexo 1 (Print do Mapa)" : "Anexo $i";
                                 ?>
                                     <div style="position: relative;">
                                         <label for="admin_file_<?php echo $i; ?>" class="btn btn-outline" style="width: 100%; font-size: 0.75rem; padding: 0.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; border: 1px dashed #ccc; background: #fafafa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                            <i class="fas fa-paperclip" id="admin_icon_<?php echo $i; ?>"></i> <span id="admin_label_<?php echo $i; ?>"><?php echo $label; ?></span>
+                                            <i class="ph ph-paperclip" id="admin_icon_<?php echo $i; ?>"></i> <span id="admin_label_<?php echo $i; ?>"><?php echo $label; ?></span>
                                         </label>
-                                        <input type="file" name="admin_file_<?php echo $i; ?>" id="admin_file_<?php echo $i; ?>" accept=".pdf,image/*" style="display: none;" onchange="if(this.files.length > 0) { document.getElementById('admin_label_<?php echo $i; ?>').innerText = this.files[0].name; const lbl = this.parentElement.querySelector('label'); lbl.style.borderStyle = 'solid'; lbl.style.borderColor = 'var(--primary-teal)'; lbl.style.color = 'var(--primary-teal)'; document.getElementById('admin_icon_<?php echo $i; ?>').className = 'fas fa-check-circle'; }">
+                                        <input type="file" name="admin_file_<?php echo $i; ?>" id="admin_file_<?php echo $i; ?>" accept=".pdf,image/*" style="display: none;" onchange="if(this.files.length > 0) { document.getElementById('admin_label_<?php echo $i; ?>').innerText = this.files[0].name; const lbl = this.parentElement.querySelector('label'); lbl.style.borderStyle = 'solid'; lbl.style.borderColor = 'var(--primary-teal)'; lbl.style.color = 'var(--primary-teal)'; document.getElementById('admin_icon_<?php echo $i; ?>').className = 'ph ph-check-circle'; }">
                                     </div>
                                 <?php endfor; ?>
                             </div>
                             <small class="text-muted">Dica: O <strong>Anexo 1</strong> aparece automaticamente como imagem no Termo de Registro se for um print do mapa.</small>
                         </div>
 
-                        <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2rem;" onclick="this.disabled=true; this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Gravando...'; this.form.submit();">Confirmar</button>
+                        <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2rem;" onclick="this.disabled=true; this.innerHTML='<i class=\'ph ph-circle-notch fa-spin\'></i> Gravando...'; this.form.submit();">Confirmar</button>
                     </form>
                 </div>
             </div>
@@ -2246,7 +2286,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <!-- SECTION 4: USERS LIST -->
             <div id="users" class="tab-content">
                 <div class="section-header">
-                    <h2><i class="fas fa-users"></i> Recenseadores</h2>
+                    <h2><i class="ph ph-users"></i> Recenseadores</h2>
                 </div>
                 <div style="background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0;">
                     <table style="width: 100%; border-collapse: collapse;">
@@ -2264,13 +2304,13 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                     <td style="padding:1rem;">
                                         <div style="font-weight: 600; color: #333; display: flex; align-items: center; gap: 8px;">
                                             <?php if ($u['is_active'] == 0): ?>
-                                                <i class="fas fa-user-slash" style="color: #dc3545;" title="Acesso Desativado"></i>
+                                                <i class="ph ph-user-minus" style="color: #dc3545;" title="Acesso Desativado"></i>
                                             <?php endif; ?>
                                             <?php echo mb_strtoupper(htmlspecialchars($u['name']), 'UTF-8'); ?>
                                         </div>
                                         <?php if (!empty($u['microregion'])): ?>
                                             <div style="font-size: 0.85rem; color: var(--primary-teal); margin-top: 0.2rem;">
-                                                <i class="fas fa-map-marker-alt"></i>
+                                                <i class="ph ph-map-pin"></i>
                                                 <?php echo htmlspecialchars($u['microregion']); ?>
                                             </div>
                                         <?php endif; ?>
@@ -2289,6 +2329,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                     </td>
                                     <td style="padding:1rem;">
                                         <form method="post" style="display: flex; align-items: center; gap: 10px;">
+                                            <?php echo csrf_field(); ?>
                                             <input type="hidden" name="action" value="toggle_active">
                                             <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
                                             <input type="hidden" name="is_active" value="<?php echo $u['is_active'] ? 0 : 1; ?>">
@@ -2306,7 +2347,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         <div style="display: flex; justify-content: center; gap: 0.5rem;">
                                             <a href="../view_docs.php?user_id=<?php echo $u['id']; ?>"
                                                     class="btn btn-outline"
-                                                    style="padding: 0.3rem 0.6rem; font-size: 0.85rem; background: #f0fdfa; color: var(--primary-teal); border-color: var(--primary-teal);"><i class="fas fa-user-circle"></i> Perfil</a>
+                                                    style="padding: 0.3rem 0.6rem; font-size: 0.85rem; background: #f0fdfa; color: var(--primary-teal); border-color: var(--primary-teal);"><i class="ph ph-user-circle"></i> Perfil</a>
                                             
                                             <?php if ($u['status'] === 'approved'): ?>
                                                 <a href="user_routes.php?user_id=<?php echo $u['id']; ?>"
@@ -2316,7 +2357,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             
                                             <a href="edit_user.php?user_id=<?php echo $u['id']; ?>" class="btn btn-outline"
                                                 style="color:#0d6efd; border-color:#0d6efd; padding: 0.3rem 0.6rem; font-size: 0.85rem;"><i
-                                                    class="fas fa-edit"></i> Editar</a>
+                                                    class="ph ph-pencil-simple-line"></i> Editar</a>
                                         </div>
                                     </td>
                                 </tr>
@@ -2329,17 +2370,17 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <!-- SECTION 5: TAREFAS CONCLUÍDAS -->
             <div id="completed" class="tab-content">
                 <div class="section-header">
-                    <h2><i class="fas fa-check-double"></i> Tarefas Concluídas</h2>
+                    <h2><i class="ph ph-checks"></i> Tarefas Concluídas</h2>
                     <p class="text-muted">Abaixo estão as Macrorregiões com rotas concluídas aguardando revisão e pagamento.</p>
                 </div>
 
                 <!-- Aviso Fiscal -->
                 <div style="background: #e7f3ff; color: #004085; border: 1px solid #b8daff; padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem; display: flex; align-items: flex-start; gap: 1rem;">
-                    <i class="fas fa-exclamation-circle" style="font-size: 1.4rem; margin-top: 3px;"></i>
+                    <i class="ph ph-exclamation-mark" style="font-size: 1.4rem; margin-top: 3px;"></i>
                     <div>
                         <p style="margin: 0; font-weight: 500; margin-bottom: 0.5rem;">As rotas concluídas listadas abaixo ainda serão revisadas pelo fiscal e serão encaminhadas para pagamento posteriormente.</p>
                         <p style="margin: 0; font-size: 0.9rem; line-height: 1.4;">
-                            <strong style="color: #004085;"><i class="fas fa-info-circle"></i> Importante:</strong> 
+                            <strong style="color: #004085;"><i class="ph ph-info"></i> Importante:</strong> 
                             As rotas que aparecem aqui são rotas ainda não revisadas pelo fiscal e não liquidadas no pagamento.
                             O Fiscal validará a tarefa no Wizard de Andamento, enviará para o Passo 4 e subsequente 5 (Envio para Pagamento). Após o Passo 5, a rota sumirá desta lista e aparecerá em <strong>Pagamentos Liquidados</strong>.
                         </p>
@@ -2374,7 +2415,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 <div style="font-size: 1.8rem; font-weight: bold; color: #333; margin: 0.3rem 0;"><?php echo $count; ?></div>
                                 <div style="font-size: 0.75rem; color: #888;">Pendentes de Pgto</div>
                                 <?php if ($count > 0): ?>
-                                    <div style="font-size: 0.65rem; color: var(--primary-teal); font-weight: 700; margin-top: 5px;"><i class="fas fa-eye"></i> Ver Detalhes</div>
+                                    <div style="font-size: 0.65rem; color: var(--primary-teal); font-weight: 700; margin-top: 5px;"><i class="ph ph-eye"></i> Ver Detalhes</div>
                                 <?php else: ?>
                                     <div style="font-size: 0.65rem; color: #ccc; margin-top: 5px;">Nada pendente</div>
                                 <?php endif; ?>
@@ -2389,7 +2430,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                     ?>
                         <div id="table-<?php echo $safeId; ?>" class="completed-macro-table" style="display: none; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0; margin-top: 1rem; animation: fadeIn 0.3s;">
                             <div style="background: #f8f9fa; padding: 1rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-                                <h3 style="margin: 0; font-size: 1rem; color: var(--primary-teal);"><i class="fas fa-map-marker-alt"></i> Detalhes: <?php echo $macro; ?></h3>
+                                <h3 style="margin: 0; font-size: 1rem; color: var(--primary-teal);"><i class="ph ph-map-pin"></i> Detalhes: <?php echo $macro; ?></h3>
                                 <button onclick="filterCompleted(null)" class="btn" style="padding: 0.2rem 0.5rem; font-size: 0.7rem; background: #eee; border: none;">Fechar</button>
                             </div>
                             <table style="width: 100%; border-collapse: collapse;">
@@ -2436,7 +2477,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                     <?php endforeach; ?>
                 <?php else: ?>
                     <div class="text-center py-5" style="border: 2px dashed #eee; border-radius: 8px; background: white;">
-                        <i class="fas fa-folder-open" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+                        <i class="ph ph-folder-open" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
                         <p class="text-muted">Nenhuma tarefa foi concluída até o momento.</p>
                     </div>
                 <?php endif; ?>
@@ -2445,7 +2486,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <!-- SECTION 6: TAREFAS CANCELADAS -->
             <div id="cancelled" class="tab-content">
                 <div class="section-header">
-                    <h2><i class="fas fa-ban"></i> Tarefas Canceladas</h2>
+                    <h2><i class="ph ph-prohibit"></i> Tarefas Canceladas</h2>
                     <p class="text-muted">Rotas que foram canceladas administrativamente.</p>
                 </div>
 
@@ -2469,11 +2510,11 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         <td style="padding:1rem;">
                                             <div style="font-weight: 600;"><?php echo htmlspecialchars($r['title']); ?></div>
                                             <div style="font-size: 0.85rem; color: #666; margin-top: 2px;">
-                                                <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($r['microregion'] ?? 'N/A'); ?>
+                                                <i class="ph ph-map-pin"></i> <?php echo htmlspecialchars($r['microregion'] ?? 'N/A'); ?>
                                             </div>
                                             <?php if (!empty($r['cancellation_reason'])): ?>
                                                 <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; color: #991b1b; margin-top: 5px; display: inline-block; max-width: 350px;">
-                                                    <i class="fas fa-ban"></i> Motivo: <?php echo htmlspecialchars($r['cancellation_reason']); ?>
+                                                    <i class="ph ph-prohibit"></i> Motivo: <?php echo htmlspecialchars($r['cancellation_reason']); ?>
                                                 </div>
                                             <?php endif; ?>
                                         </td>
@@ -2482,7 +2523,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         </td>
                                         <td style="padding:1rem; text-align: center;">
                                             <a href="edit_route.php?id=<?php echo $r['id']; ?>" class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.85rem;">
-                                                <i class="fas fa-edit"></i> Editar/Reativar
+                                                <i class="ph ph-pencil-simple-line"></i> Editar/Reativar
                                             </a>
                                         </td>
                                     </tr>
@@ -2492,7 +2533,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                     </div>
                 <?php else: ?>
                     <div class="text-center py-5" style="border: 2px dashed #eee; border-radius: 8px; background: white;">
-                        <i class="fas fa-check-circle" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+                        <i class="ph ph-check-circle" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
                         <p class="text-muted">Nenhuma rota cancelada no momento.</p>
                     </div>
                 <?php endif; ?>
@@ -2502,7 +2543,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <!-- SECTION 6.5: ROTAS REJEITADAS -->
             <div id="rejected" class="tab-content">
                 <div class="section-header">
-                    <h2><i class="fas fa-user-times"></i> Rotas Rejeitadas</h2>
+                    <h2><i class="ph ph-user-minus"></i> Rotas Rejeitadas</h2>
                     <p class="text-muted">Lista de rotas que foram oficialmente rejeitadas pelos recenseadores com justificativa.</p>
                 </div>
 
@@ -2534,7 +2575,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         </td>
                                         <td style="padding:1rem; text-align: center;">
                                             <a href="edit_route.php?id=<?php echo $r['id']; ?>" class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.85rem;">
-                                                <i class="fas fa-edit"></i> Reatribuir
+                                                <i class="ph ph-pencil-simple-line"></i> Reatribuir
                                             </a>
                                         </td>
                                     </tr>
@@ -2544,7 +2585,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                     </div>
                 <?php else: ?>
                     <div class="text-center py-5" style="border: 2px dashed #eee; border-radius: 8px; background: white;">
-                        <i class="fas fa-check-circle" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+                        <i class="ph ph-check-circle" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
                         <p class="text-muted">Nenhuma rota foi rejeitada até o momento.</p>
                     </div>
                 <?php endif; ?>
@@ -2553,7 +2594,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <!-- SECTION 8: PAGAMENTOS LIQUIDADOS -->
             <div id="paid" class="tab-content">
                 <div class="section-header">
-                    <h2><i class="fas fa-hand-holding-usd"></i> Pagamentos Liquidados</h2>
+                    <h2><i class="ph ph-hand-coins"></i> Pagamentos Liquidados</h2>
                     <p class="text-muted">Histórico de rotas concluídas e com pagamento devidamente processado.</p>
                 </div>
 
@@ -2577,7 +2618,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         <td style="padding:1rem;">
                                             <div style="font-weight: 600; color: #333;"><?php echo htmlspecialchars($p['title']); ?></div>
                                             <div style="font-size: 0.85rem; color: var(--primary-teal); font-weight: 600;">
-                                                <i class="fas fa-user"></i> <?php echo mb_strtoupper(htmlspecialchars($p['user_name']), 'UTF-8'); ?>
+                                                <i class="ph ph-user"></i> <?php echo mb_strtoupper(htmlspecialchars($p['user_name']), 'UTF-8'); ?>
                                             </div>
                                             <div style="font-size: 0.75rem; color: #999;">CPF: <?php echo htmlspecialchars($p['user_cpf']); ?></div>
                                         </td>
@@ -2594,26 +2635,27 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         </td>
                                         <td style="padding:1rem; text-align: center;">
                                             <a href="generate_memory_pdf.php?route_id=<?php echo $p['id']; ?>" target="_blank" class="btn" style="font-size: 0.75rem; padding: 0.6rem 1rem; color: white; background: #28a745; border-color: #28a745; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: bold; width: 100%; box-sizing: border-box;" title="Visualizar e Imprimir Memória de Cálculo">
-                                                <i class="fas fa-file-invoice-dollar"></i> MEMÓRIA (PDF)
+                                                <i class="ph ph-receipt"></i> MEMÓRIA (PDF)
                                             </a>
                                         </td>
                                         <td style="padding:1rem; text-align: center;">
                                             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem;">
                                                 <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-                                                    <i class="fas fa-check-circle" style="color: #28a745; font-size: 1.1rem;"></i>
+                                                    <i class="ph ph-check-circle" style="color: #28a745; font-size: 1.1rem;"></i>
                                                     <span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; white-space: nowrap;">Liquidado</span>
                                                 </div>
                                                 <button onclick="viewCalculationMemory(<?php echo $p['id']; ?>)" class="btn btn-primary" style="font-size: 0.7rem; padding: 0.3rem 0.6rem; background: #5c6bc0; border: none;">
-                                                    <i class="fas fa-file-invoice"></i> Memória de Cálculo
+                                                    <i class="ph ph-receipt"></i> Memória de Cálculo
                                                 </button>
                                             </div>
                                         </td>
                                         <td style="padding:1rem; text-align: center;">
                                             <div style="display: flex; justify-content: center; gap: 0.5rem;">
                                                 <a href="edit_route.php?id=<?php echo $p['id']; ?>" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.3rem 0.6rem;">
-                                                    <i class="fas fa-search"></i> Ver Rota
+                                                    <i class="ph ph-magnifying-glass"></i> Ver Rota
                                                 </a>
                                                 <form method="post" style="display: inline;" onsubmit="return confirm('Mover de volta para o Wizard de Andamento?');">
+                                                    <?php echo csrf_field(); ?>
                                                     <input type="hidden" name="action" value="update_wizard">
                                                     <input type="hidden" name="route_id" value="<?php echo $p['id']; ?>">
                                                     <input type="hidden" name="step" value="5">
@@ -2628,7 +2670,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                     </div>
                 <?php else: ?>
                     <div class="text-center py-5" style="border: 2px dashed #eee; border-radius: 8px; background: white;">
-                        <i class="fas fa-hand-holding-usd" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+                        <i class="ph ph-hand-coins" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
                         <p class="text-muted">Ainda não há pagamentos liquidados no sistema.</p>
                     </div>
                 <?php endif; ?>
@@ -2670,14 +2712,15 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <!-- SECTION 10: GESTÃO DE ADMINISTRADORES -->
             <div id="admins" class="tab-content">
                 <div class="section-header">
-                    <h2><i class="fas fa-user-shield"></i> Gestão de Administradores</h2>
+                    <h2><i class="ph ph-shield-check"></i> Gestão de Administradores</h2>
                     <p class="text-muted">Adicione novos usuários com permissões de acesso ao painel administrativo.</p>
                 </div>
                 <div class="grid grid-2" style="gap: 2rem; align-items: start;">
                     <!-- Form Creation -->
                     <div style="background: white; padding: 2rem; border-radius: 8px; border: 1px solid #e0e0e0;">
-                        <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.1rem; color: #333;"><i class="fas fa-user-plus"></i> Novo Administrador</h3>
+                        <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.1rem; color: #333;"><i class="ph ph-user-plus"></i> Novo Administrador</h3>
                         <form method="post">
+                            <?php echo csrf_field(); ?>
                             <input type="hidden" name="action" value="create_admin">
                             <div class="form-group mb-3">
                                 <label>Nome Completo</label>
@@ -2692,7 +2735,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 <input type="password" name="password" required class="form-control" placeholder="Clique para digitar" style="width: 100%; padding:0.8rem; border:1px solid #ccc;">
                             </div>
                             <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.8rem;">
-                                <i class="fas fa-save"></i> Criar Administrador
+                                <i class="ph ph-floppy-disk"></i> Criar Administrador
                             </button>
                         </form>
                     </div>
@@ -2700,7 +2743,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                     <!-- List Admins -->
                     <div style="background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0;">
                         <div style="background: #f8f9fa; padding: 1rem; border-bottom: 1px solid #eee;">
-                            <h3 style="margin: 0; font-size: 1rem; color: #333;"><i class="fas fa-list"></i> Administradores Atuais</h3>
+                            <h3 style="margin: 0; font-size: 1rem; color: #333;"><i class="ph ph-list"></i> Administradores Atuais</h3>
                         </div>
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
@@ -2731,7 +2774,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <!-- SECTION 9: RELATÓRIO POR MACRORREGIÃO -->
             <div id="micro-report" class="tab-content">
                 <div class="section-header">
-                    <h2><i class="fas fa-chart-pie"></i> Relatório por Microrregião</h2>
+                    <h2><i class="ph ph-chart-pie"></i> Relatório por Microrregião</h2>
                     <p class="text-muted">Quantidade total de rotas atribuídas por Macrorregião (excluindo canceladas e rejeitadas).</p>
                 </div>
 
@@ -2776,7 +2819,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <!-- SECTION 7: RELATÓRIO GERAL DE RECENSEADORES -->
             <div id="report" class="tab-content">
                 <div class="section-header">
-                    <h2><i class="fas fa-file-contract"></i> Relatório Geral de Recenseadores</h2>
+                    <h2><i class="ph ph-file-text"></i> Relatório Geral de Recenseadores</h2>
                     <p class="text-muted">Desempenho e dados de contratação por recenseador.</p>
                 </div>
 
@@ -2831,7 +2874,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                     </div>
                 <?php else: ?>
                     <div class="text-center py-5" style="border: 2px dashed #eee; border-radius: 8px; background: white;">
-                        <i class="fas fa-chart-line" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+                        <i class="ph ph-chart-line-up" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
                         <p class="text-muted">Não há dados suficientes para gerar o relatório.</p>
                     </div>
                 <?php endif; ?>
@@ -2840,7 +2883,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <!-- SEÇÃO: CALCULADORA FINANCEIRA (ANEXO III) -->
             <div id="calculator" class="tab-content" style="display: none;">
                 <div class="section-header">
-                    <h2><i class="fas fa-calculator"></i> Calculadora Financeira</h2>
+                    <h2><i class="ph ph-calculator"></i> Calculadora Financeira</h2>
                     <p class="text-muted">Valores e Composição da Remuneração de Registro de Demanda</p>
                     <p style="font-size: 0.9rem; color: #555; margin-top: 0.5rem;">O CAUDF, representado pela GERFISC - Gerência de Fiscalização, formaliza a distribuição da demanda para pagamento.</p>
                 </div>
@@ -2911,6 +2954,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                     </script>
 
                     <form method="post" id="calculator_form">
+                        <?php echo csrf_field(); ?>
                         <input type="hidden" name="action" value="save_calculation">
                         <input type="hidden" name="total_fixed" id="hidden_total_fixed">
                         <input type="hidden" name="total_variable" id="hidden_total_variable">
@@ -2919,7 +2963,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         <!-- SELEÇÃO NO-PRINT -->
                         <div class="no-print" style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem; border: 1px solid #eee;">
                             <div style="display: flex; align-items: center; gap: 1.5rem;">
-                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="fas fa-user-tag" style="color: var(--primary-teal); margin-right: 5px;"></i> Vincular Recenseador:</div>
+                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="ph ph-user-rectangle" style="color: var(--primary-teal); margin-right: 5px;"></i> Vincular Recenseador:</div>
                                 <div style="flex-grow: 1;">
                                     <select id="calc_user" class="form-control" style="font-weight: 600; color: #333; border: 2px solid #ddd; width: 100%; padding: 0.5rem;" onchange="updateCalcRouteSelect()">
                                         <option value="">-- Selecione o recenseador --</option>
@@ -2938,7 +2982,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 1.5rem;">
-                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="fas fa-map-marked-alt" style="color: var(--primary-teal); margin-right: 5px;"></i> Selecionar Rota:</div>
+                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="ph ph-crosshair" style="color: var(--primary-teal); margin-right: 5px;"></i> Selecionar Rota:</div>
                                 <div style="flex-grow: 1;">
                                     <select id="calc_route" name="route_id" class="form-control" style="font-weight: 600; color: #333; border: 2px solid #ddd; width: 100%; padding: 0.5rem;" onchange="loadSavedCalculation()">
                                         <option value="">-- Escolha primeiro o recenseador --</option>
@@ -2946,7 +2990,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 </div>
                             </div>
                             <div id="sei_pagamento_container" style="display: none; align-items: center; gap: 1.5rem;">
-                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="fas fa-file-invoice-dollar" style="color: var(--primary-teal); margin-right: 5px;"></i> SEI de Pagamento: <span style="color:red;">*</span></div>
+                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="ph ph-receipt" style="color: var(--primary-teal); margin-right: 5px;"></i> SEI de Pagamento: <span style="color:red;">*</span></div>
                                 <div style="flex-grow: 1;">
                                     <input type="text" name="sei_pagamento" id="calc_sei_pagamento" required class="form-control" placeholder="Informe o SEI para liquidação" style="font-weight: 600; color: #333; border: 2px solid #ddd; width: 100%; padding: 0.5rem;">
                                 </div>
@@ -2961,7 +3005,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 <input type="number" id="gas_price" name="gas_price" value="6.36" step="0.001" class="form-control" style="padding-left: 40px; font-weight: 800; color: var(--primary-teal); border: 2px solid #ddd; width: 100%;" oninput="updateFromGasoline()">
                             </div>
                             <div style="font-size: 0.85rem; color: #777;">
-                                <i class="fas fa-info-circle"></i> Ajuste a gasolina para atualizar os valores de KM automaticamente.
+                                <i class="ph ph-info"></i> Ajuste a gasolina para atualizar os valores de KM automaticamente.
                             </div>
                         </div>
 
@@ -3066,11 +3110,11 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         
                         <div style="display: flex; gap: 1rem;">
                             <button type="button" onclick="printCalculatorReport()" class="btn btn-outline" style="padding: 0.8rem 1.5rem;">
-                                <i class="fas fa-file-pdf"></i> Visualizar Relatório
+                                <i class="ph ph-file-pdf"></i> Visualizar Relatório
                             </button>
                             
                             <button type="submit" class="btn btn-primary" style="padding: 0.8rem 1.5rem; background: #28a745; border-color: #28a745;">
-                                <i class="fas fa-save"></i> Salvar e Liquidar Pagamento
+                                <i class="ph ph-floppy-disk"></i> Salvar e Liquidar Pagamento
                             </button>
                         </div>
                     </div>
@@ -3306,7 +3350,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <!-- SECTION: TAREFAS ARQUIVADAS -->
             <div id="archived" class="tab-content" style="display: none;">
                 <div class="section-header">
-                    <h2><i class="fas fa-archive"></i> Tarefas Arquivadas</h2>
+                    <h2><i class="ph ph-archive"></i> Tarefas Arquivadas</h2>
                     <p class="text-muted">Visualização de rotas arquivadas pelo administrador.</p>
                 </div>
 
@@ -3320,7 +3364,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         <?php 
                                             $demandLabel = "Específica";
                                             $demandColor = "#3b82f6"; // Blue
-                                            $demandIcon = "location-dot";
+                                            $demandIcon = "map-pin";
                                             
                                             if (($route['demand_type'] ?? '') === 'padrao') {
                                                 $demandLabel = "Padrão";
@@ -3329,44 +3373,46 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             } elseif (($route['demand_type'] ?? '') === 'mista') {
                                                 $demandLabel = "Mista";
                                                 $demandColor = "#f59e0b"; // Orange
-                                                $demandIcon = "layer-group";
+                                                $demandIcon = "stack";
                                             }
                                         ?>
-                                        <span style="background: <?php echo $demandColor; ?>15; color: <?php echo $demandColor; ?>; font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 10px; border: 1px solid <?php echo $demandColor; ?>40; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; margin-right: 5px; vertical-align: middle;">
-                                            <i class="fas fa-<?php echo $demandIcon; ?>" style="font-size: 0.7rem;"></i> <?php echo $demandLabel; ?>
+                                        <span style="background: <?php echo $demandColor; ?>15; color: <?php echo $demandColor; ?>; font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; border: 1px solid <?php echo $demandColor; ?>40; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; margin-right: 5px; vertical-align: middle;">
+                                            <i class="ph ph-<?php echo $demandIcon; ?>" style="font-size: 0.7rem;"></i> <?php echo $demandLabel; ?>
                                         </span>
                                         <?php if ($route['status'] == 'delayed'): ?>
-                                            <span style="font-size: 0.65rem; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 10px; border: 1px solid #fecaca;"><i class="fas fa-exclamation-triangle"></i> ATRASADA</span>
+                                            <span style="font-size: 0.65rem; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 4px; border: 1px solid #fecaca;"><i class="ph ph-warning"></i> ATRASADA</span>
                                         <?php elseif ($route['status'] == 'pending_acceptance'): ?>
-                                            <span style="font-size: 0.65rem; font-weight: 800; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 10px; border: 1px solid #fde68a;"><i class="fas fa-clock"></i> PENDENTE ACEITE</span>
+                                            <span style="font-size: 0.65rem; font-weight: 800; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; border: 1px solid #fde68a;"><i class="ph ph-clock"></i> PENDENTE ACEITE</span>
                                         <?php elseif ($route['status'] == 'accepted'): ?>
-                                            <span style="font-size: 0.65rem; font-weight: 800; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 10px; border: 1px solid #bae6fd;"><i class="fas fa-check-double"></i> ACEITA</span>
+                                            <span style="font-size: 0.65rem; font-weight: 800; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; border: 1px solid #bae6fd;"><i class="ph ph-checks"></i> ACEITA</span>
                                         <?php elseif ($route['status'] == 'rejected'): ?>
-                                            <span style="font-size: 0.65rem; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 10px; border: 1px solid #fecaca;"><i class="fas fa-times"></i> REJEITADA (Motivo: <?php echo htmlspecialchars($route['rejection_reason'] ?? 'Não informado'); ?>)</span>
+                                            <span style="font-size: 0.65rem; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 4px; border: 1px solid #fecaca;"><i class="ph ph-x"></i> REJEITADA (Motivo: <?php echo htmlspecialchars($route['rejection_reason'] ?? 'Não informado'); ?>)</span>
                                         <?php else: ?>
-                                            <span style="font-size: 0.65rem; font-weight: 800; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 10px; border: 1px solid #bbf7d0;"><i class="fas fa-spinner fa-spin"></i> EM ANDAMENTO</span>
+                                            <span style="font-size: 0.65rem; font-weight: 800; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 4px; border: 1px solid #bbf7d0;"><i class="ph ph-circle-notch fa-spin"></i> EM ANDAMENTO</span>
                                         <?php endif; ?>
-                                        <span style="font-size: 0.65rem; font-weight: 800; background: #e2e8f0; color: #475569; padding: 2px 8px; border-radius: 10px; border: 1px solid #cbd5e1;"><i class="fas fa-archive"></i> ARQUIVADA</span>
+                                        <span style="font-size: 0.65rem; font-weight: 800; background: #e2e8f0; color: #475569; padding: 2px 8px; border-radius: 4px; border: 1px solid #cbd5e1;"><i class="ph ph-archive"></i> ARQUIVADA</span>
                                     </div>
-                                    <div style="display: flex; gap: 8px;">
-                                        <a href="edit_route.php?id=<?php echo $route['id']; ?>" class="action-btn-circle btn-edit" title="Editar Rota"><i class="fas fa-edit"></i></a>
+                                    <div style="display: flex; gap: 10px; flex-shrink: 0;">
+                                        <a href="edit_route.php?id=<?php echo $route['id']; ?>" class="action-btn-circle btn-edit" title="Editar Rota"><i class="ph ph-pencil-simple-line"></i></a>
 
                                         <?php if ($route['status'] == 'in_progress'): ?>
                                             <form method="post" style="display:inline;">
+                                                <?php echo csrf_field(); ?>
                                                 <input type="hidden" name="route_id" value="<?php echo $route['id']; ?>">
                                                 <input type="hidden" name="action" value="mark_delayed">
-                                                <button type="submit" class="action-btn-circle btn-reset" title="Marcar Atraso"><i class="fas fa-history"></i></button>
+                                                <button type="submit" class="action-btn-circle btn-reset" title="Marcar Atraso"><i class="ph ph-clock-counter-clockwise"></i></button>
                                             </form>
                                         <?php endif; ?>
 
                                         <button type="button" onclick="openCancelModal(<?php echo $route['id']; ?>, '<?php echo htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8'); ?>')" class="action-btn-circle btn-cancel" title="Cancelar Rota">
-                                            <i class="fas fa-ban"></i>
+                                            <i class="ph ph-prohibit"></i>
                                         </button>
 
                                         <form method="post" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja desarquivar esta rota?');">
+                                            <?php echo csrf_field(); ?>
                                             <input type="hidden" name="route_id" value="<?php echo $route['id']; ?>">
                                             <input type="hidden" name="action" value="unarchive_route">
-                                            <button type="submit" class="action-btn-circle btn-unarchive" title="Desarquivar Rota"><i class="fas fa-box-open"></i></button>
+                                            <button type="submit" class="action-btn-circle btn-unarchive" title="Desarquivar Rota"><i class="ph ph-cube"></i></button>
                                         </form>
                                     </div>
                                 </div>
@@ -3374,23 +3420,23 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 <!-- Card Body -->
                                 <div style="padding: 1.25rem;">
                                     <!-- Date Timeline Box -->
-                                    <div style="background: #f8fafc; border-radius: 8px; padding: 0.75rem; margin-bottom: 1.25rem; border: 1px solid #f1f5f9; display: grid; gap: 0.4rem;">
+                                    <div style="background: rgba(0, 122, 137, 0.03); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; border-left: 3px solid #007a89; display: grid; gap: 0.4rem;">
                                         <div style="font-size: 0.75rem; color: #64748b; display: flex; align-items: center; gap: 8px;">
-                                            <i class="fas fa-play-circle" style="color: #22c55e; width: 14px;"></i> 
+                                            <i class="ph ph-play-circle" style="color: #22c55e; width: 14px;"></i> 
                                             <span>Início: <strong><?php echo ($route['start_time']) ? date('d/m/Y H:i', strtotime($route['start_time'])) : 'Aguardando início da rota pelo recenseador'; ?></strong></span>
                                         </div>
                                         <div style="font-size: 0.7rem; color: #94a3b8; display: flex; align-items: center; gap: 8px;">
-                                            <i class="fas fa-calendar-alt" style="width: 14px;"></i> 
+                                            <i class="ph ph-calendar-blank" style="width: 14px;"></i> 
                                             <span>Atribuída em: <?php echo date('d/m/Y H:i', strtotime($route['created_at'])); ?></span>
                                         </div>
                                         <?php if (!empty($route['scheduled_end'])): ?>
                                             <div style="font-size: 0.75rem; color: #ef4444; display: flex; align-items: center; gap: 8px; font-weight: 700; margin-top: 2px;">
-                                                <i class="fas fa-flag-checkered" style="width: 14px;"></i> 
+                                                <i class="ph ph-flag-checkered" style="width: 14px;"></i> 
                                                 <span>Prazo Final: <span style="background: #fee2e2; padding: 1px 6px; border-radius: 4px;"><?php echo date('d/m/Y H:i', strtotime($route['scheduled_end'])); ?></span></span>
                                             </div>
                                             <?php if (in_array($route['status'], ['pending_acceptance', 'accepted', 'in_progress', 'delayed'])): ?>
                                                 <div class="countdown-container" data-deadline="<?php echo $route['scheduled_end']; ?>" style="border-radius: 6px; padding: 0.6rem 0.8rem; margin-top: 0.5rem; display: flex; justify-content: center; align-items: center; gap: 6px; background: #f0f9ff; border: 1px solid #bae6fd; color: #0284c7; font-size: 0.85rem; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.02); width: 100%;">
-                                                    <i class="fas fa-hourglass-half" style="color: #0284c7; font-size: 0.8rem;"></i>
+                                                    <i class="ph ph-hourglass" style="color: #0284c7; font-size: 0.8rem;"></i>
                                                     <div class="countdown-timer">00:00:00</div>
                                                 </div>
                                             <?php endif; ?>
@@ -3404,9 +3450,9 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                     
                                     <div style="margin-bottom: 0.75rem;">
                                         <!-- Nome do Recenseador em destaque -->
-                                        <p style="margin:0 0 4px; color: #1e40af; font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 6px;">
-                                            <i class="fas fa-user-circle" style="color: #3b82f6; font-size: 1rem;"></i>
-                                            <?php echo mb_strtoupper(htmlspecialchars($route['user_name']), 'UTF-8'); ?>
+                                        <p style="margin:0 0 4px; color: #334155; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                            <i class="ph ph-user-circle" style="color: #007a89; font-size: 0.95rem;"></i>
+                                            <?php echo htmlspecialchars($route['user_name']); ?>
                                         </p>
                                         <!-- Macrorregião do usuário -->
                                         <?php 
@@ -3414,21 +3460,21 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             $macroDisp = preg_replace('/Macrorregi.*?o/i', 'Macrorregião', $macroDisp);
                                         ?>
                                         <?php if (!empty($macroDisp)): ?>
-                                            <span style="display: inline-block; margin-bottom: 4px; background: #eff6ff; color: #1d4ed8; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; border: 1px solid #bfdbfe;">
-                                                <i class="fas fa-layer-group"></i> <?php echo htmlspecialchars($macroDisp); ?>
+                                            <span style="display: inline-block; margin-bottom: 4px; background: #f0fdfa; color: #007a89; font-size: 0.75rem; font-weight: 600; padding: 2px 9px; border-radius: 9999px; border: 1px solid rgba(0, 122, 137, 0.15);">
+                                                <i class="ph ph-stack"></i> <?php echo htmlspecialchars($macroDisp); ?>
                                             </span>
                                         <?php endif; ?>
                                         <!-- Cidade/RA da rota -->
                                         <?php if (!empty($route['microregion'])): ?>
-                                            <p style="margin: 2px 0 0; color: #059669; font-weight: 700; font-size: 0.8rem;">
-                                                <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($route['microregion']); ?>
+                                            <p style="margin: 2px 0 0; color: #64748b; font-weight: 500; font-size: 0.8rem;">
+                                                <i class="ph ph-map-pin"></i> <?php echo htmlspecialchars($route['microregion']); ?>
                                             </p>
                                         <?php endif; ?>
 
                                         <!-- Motivo do Arquivamento -->
                                         <div style="background: #f1f5f9; padding: 0.65rem 0.75rem; border-radius: 6px; border: 1px solid #cbd5e1; margin-top: 8px; margin-bottom: 10px;">
                                             <div style="font-size: 0.65rem; color: #475569; font-weight: 800; text-transform: uppercase; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 4px;">
-                                                <i class="fas fa-archive"></i> Motivo do Arquivamento
+                                                <i class="ph ph-archive"></i> Motivo do Arquivamento
                                             </div>
                                             <div style="font-size: 0.82rem; color: #1e293b; line-height: 1.4; white-space: pre-line;">
                                                 <?php echo !empty($route['archive_reason']) ? htmlspecialchars(trim($route['archive_reason'])) : 'Arquivada pelo administrador no painel.'; ?>
@@ -3436,7 +3482,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         </div>
                                     </div>
 
-                                    <div style="font-size: 0.8rem; color: #64748b; background: #fdfdfd; padding: 0.5rem 0; border-top: 1px dashed #e2e8f0;">
+                                    <div style="font-size: 0.8rem; color: #64748b; background: #fdfdfd; padding: 0.5rem 0; border-top: 1px solid rgba(15, 23, 42, 0.06);">
                                         <!-- Seção de Instruções e Detalhamento da Rota -->
                                         <?php 
                                         $showDesc = !empty($route['description']);
@@ -3447,7 +3493,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         ?>
                                         <div style="background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
                                             <h4 style="font-size: 0.65rem; color: #475569; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; display: flex; align-items: center; gap: 6px;">
-                                                <i class="fas fa-info-circle"></i> Instruções da Rota
+                                                <i class="ph ph-info"></i> Instruções da Rota
                                             </h4>
                                             
                                             <?php if ($showArea): ?>
@@ -3467,7 +3513,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             <?php if ($showRenewal): ?>
                                                 <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.8rem; color: #1e40af; margin-top: 4px;">
                                                     <small style="font-size: 0.6rem; color: #1e3a8a; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">
-                                                        <i class="fas fa-history"></i> Motivo da Prorrogação
+                                                        <i class="ph ph-clock-counter-clockwise"></i> Motivo da Prorrogação
                                                     </small>
                                                     <div style="line-height: 1.4; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['renewal_reason'])); ?></div>
                                                 </div>
@@ -3480,12 +3526,12 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                             if (!empty($cleanLoc)): 
                                         ?>
                                             <div style="display: flex; align-items: center; gap: 6px; padding: 0 8px;">
-                                                <i class="fas fa-map-signs" style="color: #cbd5e1;"></i>
+                                                <i class="ph ph-signpost" style="color: #cbd5e1;"></i>
                                                 <?php echo htmlspecialchars($route['start_location']); ?>
                                             </div>
                                         <?php elseif (empty($route['area_details']) || $route['area_details'] === '<p><br></p>'): ?>
                                             <div style="display: flex; align-items: center; gap: 6px; padding: 0 8px;">
-                                                <i class="fas fa-map-signs" style="color: #cbd5e1;"></i>
+                                                <i class="ph ph-signpost" style="color: #cbd5e1;"></i>
                                                 Área de Atuação
                                             </div>
                                         <?php endif; ?>
@@ -3501,7 +3547,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         ?>
                                         <div style="background: #fffbeb; padding: 0.65rem 0.75rem; border-radius: 6px; border: 1px solid #fef3c7; margin-top: 10px; margin-bottom: 5px;">
                                             <div style="font-size: 0.6rem; color: #92400e; font-weight: 800; text-transform: uppercase; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 4px;">
-                                                <i class="fas fa-paperclip"></i> Anexos da Rota (Print / Documentos)
+                                                <i class="ph ph-paperclip"></i> Anexos da Rota (Print / Documentos)
                                             </div>
                                             <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                                                 <?php foreach ($adminFiles as $idx => $file): 
@@ -3524,7 +3570,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 <div style="padding: 1rem; border-top: 1px solid #f1f5f9; background: #fff;">
                                     <?php if (!in_array($route['status'], ['pending_acceptance', 'rejected'])): ?>
                                         <a href="../recenseador/generate_contract.php?route_id=<?php echo $route['id']; ?>" target="_blank" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: white; background: #28a745; border-color: #28a745; padding: 0.6rem; margin-bottom: 0.5rem;" title="Baixar Termo de Registro de Demanda assinado pelo recenseador">
-                                            <i class="fas fa-file-signature"></i> TERMO DE ACEITE (PDF)
+                                            <i class="ph ph-file-text"></i> TERMO DE ACEITE (PDF)
                                         </a>
                                     <?php endif; ?>
                                     
@@ -3533,7 +3579,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                         if ($mapUrl): 
                                      ?>
                                          <a href="<?php echo htmlspecialchars($mapUrl); ?>" target="_blank" class="btn btn-outline" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: #2563eb; border-color: #dbeafe; background: #fdfdfd; padding: 0.6rem;">
-                                            <i class="fab fa-google"></i> ABRIR NO GOOGLE MAPS
+                                            <i class="ph ph-google-logo"></i> ABRIR NO GOOGLE MAPS
                                         </a>
                                     <?php else: ?>
                                         <div style="font-size: 0.75rem; color: #cbd5e1; text-align: center; font-style: italic;">
@@ -3546,7 +3592,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                     </div>
                 <?php else: ?>
                     <div class="text-center py-5" style="border: 2px dashed #eee; border-radius: 8px; background: white; padding: 3rem 1rem;">
-                        <i class="fas fa-archive" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+                        <i class="ph ph-archive" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
                         <p class="text-muted">Nenhuma tarefa arquivada no momento.</p>
                     </div>
                 <?php endif; ?>
@@ -3603,12 +3649,13 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                 <button type="button" onclick="closeRenewModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8;">&times;</button>
             </div>
             <form method="post" action="">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="renew_route">
                 <input type="hidden" name="route_id" id="renew-route-id" value="">
                 
                 <div class="form-group" style="margin-bottom: 1.5rem;">
                     <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem; color: #475569;">
-                        <i class="fas fa-edit"></i> Justificativa da Renovação (Mínimo de 10 caracteres):
+                        <i class="ph ph-pencil-simple-line"></i> Justificativa da Renovação (Mínimo de 10 caracteres):
                     </label>
                     <textarea name="renewal_reason" id="renew-reason-input" required class="form-control" rows="4" 
                               style="font-size: 0.9rem; border-radius: 6px; padding: 10px; width: 100%; border: 1px solid #cbd5e1; box-sizing: border-box; resize: vertical;" 
@@ -3618,7 +3665,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                 <div class="modal-footer" style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 1rem; width: 100%; box-sizing: border-box; flex-wrap: wrap;">
                     <button type="button" onclick="closeRenewModal()" class="btn btn-outline" style="border-color: #cbd5e1; color: #64748b; font-size: 0.8rem; padding: 0.55rem 0.85rem; background: white; border-radius: 4px; cursor: pointer; font-weight: 600; box-sizing: border-box;">MANTER ROTA</button>
                     <button type="submit" class="btn" style="background: #3b82f6; border-color: #3b82f6; font-size: 0.8rem; padding: 0.55rem 0.85rem; color: white; border-radius: 4px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; box-sizing: border-box;">
-                       <i class="fas fa-redo"></i> RENOVAR POR 7 DIAS
+                       <i class="ph ph-arrow-clockwise"></i> RENOVAR POR 7 DIAS
                     </button>
                 </div>
             </form>
@@ -3630,7 +3677,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
         <div class="modal-content" style="background: white; padding: 1.75rem; border-radius: 8px; max-width: 460px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.15); position: relative; margin: 1.5rem; box-sizing: border-box;">
             <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
                 <h3 style="margin: 0; color: #dc2626; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-exclamation-triangle"></i> Cancelar Rota
+                    <i class="ph ph-warning"></i> Cancelar Rota
                 </h3>
                 <button type="button" onclick="closeCancelModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8;">&times;</button>
             </div>
@@ -3641,6 +3688,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             </p>
             
             <form method="post" action="">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="cancel_route">
                 <input type="hidden" name="route_id" id="cancel-route-id" value="">
                 
@@ -3656,7 +3704,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                 <div class="modal-footer" style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 1rem; width: 100%; box-sizing: border-box; flex-wrap: wrap;">
                     <button type="button" onclick="closeCancelModal()" class="btn btn-outline" style="border-color: #cbd5e1; color: #64748b; font-size: 0.8rem; padding: 0.55rem 0.85rem; background: white; border-radius: 4px; cursor: pointer; font-weight: 600; box-sizing: border-box;">MANTER ROTA</button>
                     <button type="submit" class="btn" style="background: #dc2626; border-color: #dc2626; font-size: 0.8rem; padding: 0.55rem 0.85rem; color: white; border-radius: 4px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; box-sizing: border-box;">
-                        <i class="fas fa-ban"></i> CONFIRMAR CANCELAMENTO
+                        <i class="ph ph-prohibit"></i> CONFIRMAR CANCELAMENTO
                     </button>
                 </div>
             </form>
@@ -3668,7 +3716,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
         <div class="modal-content" style="background: white; padding: 1.75rem; border-radius: 8px; max-width: 460px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.15); position: relative; margin: 1.5rem; box-sizing: border-box;">
             <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
                 <h3 style="margin: 0; color: #475569; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-archive"></i> Arquivar Rota
+                    <i class="ph ph-archive"></i> Arquivar Rota
                 </h3>
                 <button type="button" onclick="closeArchiveModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8;">&times;</button>
             </div>
@@ -3679,6 +3727,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             </p>
             
             <form method="post" action="">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="archive_route">
                 <input type="hidden" name="route_id" id="archive-route-id" value="">
                 <input type="hidden" name="current_tab" id="archive-current-tab" value="monitor">
@@ -3695,7 +3744,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                 <div class="modal-footer" style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 1rem; width: 100%; box-sizing: border-box; flex-wrap: wrap;">
                     <button type="button" onclick="closeArchiveModal()" class="btn btn-outline" style="border-color: #cbd5e1; color: #64748b; font-size: 0.8rem; padding: 0.55rem 0.85rem; background: white; border-radius: 4px; cursor: pointer; font-weight: 600; box-sizing: border-box;">MANTER ROTA</button>
                     <button type="submit" class="btn" style="background: #475569; border-color: #475569; font-size: 0.8rem; padding: 0.55rem 0.85rem; color: white; border-radius: 4px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; box-sizing: border-box;">
-                        <i class="fas fa-archive"></i> CONFIRMAR ARQUIVAMENTO
+                        <i class="ph ph-archive"></i> CONFIRMAR ARQUIVAMENTO
                     </button>
                 </div>
             </form>
@@ -3835,16 +3884,17 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
         <div class="modal-content" style="background: white; padding: 1.75rem; border-radius: 12px; max-width: 520px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; margin: 1.5rem; box-sizing: border-box;">
             <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
                 <h3 style="margin: 0; color: #b91c1c; font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-undo"></i> Rejeitar Conclusão da Rota
+                    <i class="ph ph-arrow-counter-clockwise"></i> Rejeitar Conclusão da Rota
                 </h3>
                 <button type="button" onclick="closeRejectCompletionModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8;">&times;</button>
             </div>
             
             <div style="background: #fffbe6; border-left: 4px solid #f59e0b; padding: 0.85rem 1rem; border-radius: 0 8px 8px 0; margin-bottom: 1.25rem; font-size: 0.85rem; color: #856404; line-height: 1.5;">
-                <i class="fas fa-exclamation-triangle"></i> <strong>Atenção:</strong> Ao rejeitar a conclusão da rota <strong id="reject-completion-route-title" style="color: #1e293b;"></strong> do recenseador <strong id="reject-completion-user-name" style="color: #1e293b;"></strong>, a tarefa retornará para o <strong>Passo 2 (Rota Disponível)</strong> para que o recenseador realize os ajustes apontados.
+                <i class="ph ph-warning"></i> <strong>Atenção:</strong> Ao rejeitar a conclusão da rota <strong id="reject-completion-route-title" style="color: #1e293b;"></strong> do recenseador <strong id="reject-completion-user-name" style="color: #1e293b;"></strong>, a tarefa retornará para o <strong>Passo 2 (Rota Disponível)</strong> para que o recenseador realize os ajustes apontados.
             </div>
 
             <form method="post" action="">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="reject_completion">
                 <input type="hidden" name="route_id" id="reject-completion-route-id" value="">
                 
@@ -3860,7 +3910,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                 <div class="modal-footer" style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 1rem; width: 100%; box-sizing: border-box; flex-wrap: wrap;">
                     <button type="button" onclick="closeRejectCompletionModal()" class="btn btn-outline" style="border-color: #cbd5e1; color: #64748b; font-size: 0.82rem; padding: 0.6rem 1rem; background: white; border-radius: 6px; cursor: pointer; font-weight: 700; box-sizing: border-box;">MANTER COMO CONCLUÍDA</button>
                     <button type="submit" class="btn" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); border: none; font-size: 0.82rem; padding: 0.6rem 1.1rem; color: white; border-radius: 6px; cursor: pointer; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">
-                        <i class="fas fa-undo"></i> REJEITAR E RETORNAR PARA PASSO 2
+                        <i class="ph ph-arrow-counter-clockwise"></i> REJEITAR E RETORNAR PARA PASSO 2
                     </button>
                 </div>
             </form>

@@ -11,6 +11,7 @@ $message = '';
 
 // Handle Route Actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     if (isset($_POST['start_route_id'])) {
         $routeId = $_POST['start_route_id'];
         // Update status to in_progress AND set start_time
@@ -18,20 +19,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare("UPDATE routes SET status = 'in_progress', start_time = NOW() WHERE id = ? AND user_id = ?");
             if ($stmt->execute([$routeId, $_SESSION['user_id']])) {
                 if ($stmt->rowCount() > 0) {
-                    $message = '<div class="alert success"><i class="fas fa-play"></i> Rota iniciada! Bom trabalho. O administrador foi notificado.</div>';
+                    $message = '<div class="alert success"><i class="ph ph-play"></i> Rota iniciada! Bom trabalho. O administrador foi notificado.</div>';
                 } else {
-                    $message = '<div class="alert warning"><i class="fas fa-exclamation-triangle"></i> Nenhuma alteração feita. Verifique se a rota já foi iniciada ou pertence a você.</div>';
+                    $message = '<div class="alert warning"><i class="ph ph-warning"></i> Nenhuma alteração feita. Verifique se a rota já foi iniciada ou pertence a você.</div>';
                 }
             } else {
-                $message = '<div class="alert danger"><i class="fas fa-times"></i> Erro ao atualizar status. Tente novamente.</div>';
+                $message = '<div class="alert danger"><i class="ph ph-x"></i> Erro ao atualizar status. Tente novamente.</div>';
             }
         } catch (PDOException $e) {
              // Fallback if start_time column missing: try updating only status
              $stmt = $pdo->prepare("UPDATE routes SET status = 'in_progress' WHERE id = ? AND user_id = ?");
              if ($stmt->execute([$routeId, $_SESSION['user_id']])) {
-                 $message = '<div class="alert success"><i class="fas fa-play"></i> Rota iniciada (sem registro de horário)! Bom trabalho.</div>';
+                 $message = '<div class="alert success"><i class="ph ph-play"></i> Rota iniciada (sem registro de horário)! Bom trabalho.</div>';
              } else {
-                 $message = '<div class="alert danger"><i class="fas fa-times"></i> Erro crítico: ' . $e->getMessage() . '</div>';
+                 log_error($e->getMessage(), __FILE__, __LINE__);
+                 $message = '<div class="alert danger"><i class="ph ph-x"></i> Erro critico. Tente novamente.</div>';
              }
         }
     } elseif (isset($_POST['complete_route_id'])) {
@@ -48,6 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($_FILES[$inputName]) && $_FILES[$inputName]['error'] == 0) {
                 $ext = strtolower(pathinfo($_FILES[$inputName]['name'], PATHINFO_EXTENSION));
                 if (in_array($ext, $allowedExts)) {
+                    if ($_FILES[$inputName]['size'] > 10 * 1024 * 1024) continue;
                     $newName = "report_{$routeId}_{$i}_" . time() . "." . $ext;
                     if (move_uploaded_file($_FILES[$inputName]['tmp_name'], $uploadDir . $newName)) {
                         $filePaths[$i] = $uploadDir . $newName;
@@ -67,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $routeId, 
             $_SESSION['user_id']
         ])) {
-            $message = '<div class="alert success"><i class="fas fa-check-circle"></i> Rota finalizada e relatório enviado com sucesso!</div>';
+            $message = '<div class="alert success"><i class="ph ph-check-circle"></i> Rota finalizada e relatório enviado com sucesso!</div>';
             // Update wizard step to 4 if currently < 4
             $pdo->prepare("UPDATE routes SET wizard_step = 4 WHERE id = ? AND (wizard_step < 4 OR wizard_step IS NULL)")->execute([$routeId]);
         }
@@ -75,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $routeId = $_POST['accept_route_id'];
             $stmt = $pdo->prepare("UPDATE routes SET status = 'accepted', wizard_step = 3, accepted_at = NOW() WHERE id = ? AND user_id = ?");
             if ($stmt->execute([$routeId, $_SESSION['user_id']])) {
-                $message = '<div class="alert success"><i class="fas fa-file-signature"></i> Rota aceita! Por favor, baixe o seu Termo de Registro de Demanda abaixo antes de iniciar.</div>';
+                $message = '<div class="alert success"><i class="ph ph-file-text"></i> Rota aceita! Por favor, baixe o seu Termo de Registro de Demanda abaixo antes de iniciar.</div>';
             }
         } elseif (isset($_POST['replace_doc_id']) && isset($_FILES['new_document'])) {
             $docId = (int)$_POST['replace_doc_id'];
@@ -126,15 +129,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $updateUserStmt->execute([$userId]);
                         }
                         
-                        $message = '<div class="alert success"><i class="fas fa-check-circle"></i> Documento enviado com sucesso! Aguarde a nova análise do administrador.</div>';
+                        $message = '<div class="alert success"><i class="ph ph-check-circle"></i> Documento enviado com sucesso! Aguarde a nova análise do administrador.</div>';
                     } else {
-                        $message = '<div class="alert danger"><i class="fas fa-times"></i> Erro ao salvar o novo arquivo no servidor.</div>';
+                        $message = '<div class="alert danger"><i class="ph ph-x"></i> Erro ao salvar o novo arquivo no servidor.</div>';
                     }
                 } else {
-                    $message = '<div class="alert danger"><i class="fas fa-times"></i> Formato inválido. Apenas PDF, JPG, JPEG e PNG são aceitos.</div>';
+                    $message = '<div class="alert danger"><i class="ph ph-x"></i> Formato inválido. Apenas PDF, JPG, JPEG e PNG são aceitos.</div>';
                 }
             } else {
-                $message = '<div class="alert danger"><i class="fas fa-times"></i> Documento não encontrado ou não está marcado como reprovado.</div>';
+                $message = '<div class="alert danger"><i class="ph ph-x"></i> Documento não encontrado ou não está marcado como reprovado.</div>';
             }
         }
     }
@@ -163,7 +166,7 @@ $user_docs = $docs_stmt->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel do Recenseador - CAU/DF</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <style>
         .dashboard-header {
@@ -321,15 +324,15 @@ $user_docs = $docs_stmt->fetchAll();
             <div class="user-status-summary">
                 <?php if ($user['status'] === 'approved'): ?>
                     <span class="status-badge-lg" style="background: var(--success-light); color: var(--success); border: 1px solid var(--success);">
-                        <i class="fas fa-check-circle"></i> Documentação Aprovada
+                        <i class="ph ph-check-circle"></i> Documentação Aprovada
                     </span>
                 <?php elseif ($user['status'] === 'pending'): ?>
                     <span class="status-badge-lg" style="background: var(--warning-light); color: var(--warning); border: 1px solid var(--warning);">
-                        <i class="fas fa-clock"></i> Aguardando Aprovação
+                        <i class="ph ph-clock"></i> Aguardando Aprovação
                     </span>
                 <?php else: ?>
                     <span class="status-badge-lg" style="background: var(--danger-light); color: var(--danger); border: 1px solid var(--danger);">
-                        <i class="fas fa-times-circle"></i> Documentação Reprovada
+                        <i class="ph ph-x-circle"></i> Documentação Reprovada
                     </span>
                 <?php endif; ?>
             </div>
@@ -343,17 +346,17 @@ $user_docs = $docs_stmt->fetchAll();
             <div class="sidebar-status">
                 <div class="status-card status-<?php echo $user['status']; ?>">
                     <?php if ($user['status'] == 'pending'): ?>
-                        <i class="fas fa-clock status-icon"></i>
+                        <i class="ph ph-clock status-icon"></i>
                         <span class="status-badge badge-pending">Em Análise</span>
                         <h3 class="mb-2">Cadastro em Análise</h3>
                         <p class="text-muted">Seus documentos estão sendo analisados.</p>
                     <?php elseif ($user['status'] == 'approved'): ?>
-                        <i class="fas fa-check-circle status-icon"></i>
+                        <i class="ph ph-check-circle status-icon"></i>
                         <span class="status-badge badge-approved">Aprovado</span>
                         <h3 class="mb-2">Cadastro Ativo</h3>
                         <p class="text-muted">Você está apto a realizar coletas.</p>
                     <?php else: ?>
-                        <i class="fas fa-times-circle status-icon"></i>
+                        <i class="ph ph-x-circle status-icon"></i>
                         <span class="status-badge badge-rejected">Rejeitado</span>
                         <h3 class="mb-2">Cadastro Reprovado</h3>
                         <p class="text-muted" style="color: #dc3545; font-weight: 500; font-size: 0.9rem;">Procurar o CAU/DF para regularização.</p>
@@ -361,14 +364,14 @@ $user_docs = $docs_stmt->fetchAll();
                 </div>
                 
                 <div class="status-card" style="margin-top: 1rem; text-align: left; padding: 1.5rem;">
-                    <h3 style="font-size: 1.1rem; color: #333; margin-bottom: 1rem; border-bottom: 2px solid var(--primary-teal); padding-bottom: 0.5rem;"><i class="fas fa-file-alt"></i> Meus Documentos</h3>
+                    <h3 style="font-size: 1.1rem; color: #333; margin-bottom: 1rem; border-bottom: 2px solid var(--primary-teal); padding-bottom: 0.5rem;"><i class="ph ph-file-text"></i> Meus Documentos</h3>
                     
                     <?php if (count($user_docs) > 0): ?>
                         <ul style="list-style: none; padding: 0; margin: 0;">
                             <?php foreach ($user_docs as $doc): ?>
                                 <li style="border-bottom: 1px solid #eee; padding: 0.8rem 0; display: flex; justify-content: space-between; align-items: center;">
                                     <div style="font-size: 0.9rem; font-weight: 500; color: #555;">
-                                        <i class="far fa-file-pdf" style="color: #dc3545; margin-right: 5px;"></i> 
+                                        <i class="ph ph-file-pdf" style="color: #dc3545; margin-right: 5px;"></i> 
                                         <?php echo htmlspecialchars($doc['document_type']); ?>
                                     </div>
                                     <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
@@ -379,10 +382,11 @@ $user_docs = $docs_stmt->fetchAll();
                                             
                                             <!-- Formulário inline para substituição do documento rejeitado -->
                                             <form method="post" enctype="multipart/form-data" style="margin: 0; display: inline-block;">
+                                                <?php echo csrf_field(); ?>
                                                 <input type="hidden" name="replace_doc_id" value="<?php echo $doc['id']; ?>">
                                                 <input type="file" name="new_document" accept=".pdf,image/*" required style="display: none;" id="replace-upload-<?php echo $doc['id']; ?>" onchange="this.form.submit()">
                                                 <label for="replace-upload-<?php echo $doc['id']; ?>" class="btn btn-outline" style="font-size: 0.65rem; padding: 3px 8px; cursor: pointer; border-color: #d97706; color: #d97706; display: inline-flex; align-items: center; gap: 4px; background: white; font-weight: 700; transition: all 0.2s; border-radius: 4px; margin-top: 3px;">
-                                                    <i class="fas fa-sync-alt"></i> Substituir
+                                                    <i class="ph ph-arrows-clockwise"></i> Substituir
                                                 </label>
                                             </form>
                                         <?php else: ?>
@@ -416,7 +420,7 @@ $user_docs = $docs_stmt->fetchAll();
                                             <?php 
                                                 $demandLabel = "Específica";
                                                 $demandColor = "#3b82f6"; // Blue
-                                                $demandIcon = "location-dot";
+                                                $demandIcon = "map-pin";
                                                 
                                                 if (($route['demand_type'] ?? '') === 'padrao') {
                                                     $demandLabel = "Padrão";
@@ -425,11 +429,11 @@ $user_docs = $docs_stmt->fetchAll();
                                                 } elseif (($route['demand_type'] ?? '') === 'mista') {
                                                     $demandLabel = "Mista";
                                                     $demandColor = "#f59e0b"; // Orange
-                                                    $demandIcon = "layer-group";
+                                                    $demandIcon = "stack";
                                                 }
                                             ?>
                                             <span style="background: <?php echo $demandColor; ?>15; color: <?php echo $demandColor; ?>; font-size: 0.65rem; font-weight: 800; padding: 3px 10px; border-radius: 10px; border: 1px solid <?php echo $demandColor; ?>40; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; letter-spacing: 0.05em; vertical-align: middle;">
-                                                <i class="fas fa-<?php echo $demandIcon; ?>" style="font-size: 0.7rem;"></i> Tarefa <?php echo $demandLabel; ?>
+                                                <i class="ph ph-<?php echo $demandIcon; ?>" style="font-size: 0.7rem;"></i> Tarefa <?php echo $demandLabel; ?>
                                             </span>
                                             <span class="status-label bg-<?php echo $route['status']; ?>" style="font-size: 0.65rem; padding: 4px 10px;">
                                                 <?php
@@ -452,7 +456,7 @@ $user_docs = $docs_stmt->fetchAll();
                                      ?>
                                          <a href="<?php echo htmlspecialchars($mapUrl); ?>" target="_blank" 
                                            style="display: inline-flex; align-items: center; gap: 6px; margin-top: 0.8rem; color: #2563eb; font-size: 0.7rem; font-weight: 700; text-decoration: none; padding: 4px 0;">
-                                            <i class="fas fa-external-link-alt"></i> ABRIR NO GOOGLE MAPS
+                                            <i class="ph ph-arrow-square-out"></i> ABRIR NO GOOGLE MAPS
                                         </a>
                                         <?php endif; ?>
                                     </div>
@@ -464,7 +468,7 @@ $user_docs = $docs_stmt->fetchAll();
                                             <div style="background: white; border: 1px solid var(--border); padding: 0.75rem; border-radius: 8px;">
                                                 <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 4px;">Atribuição</small>
                                                 <div style="font-size: 0.8rem; font-weight: 600; color: var(--slate-700);">
-                                                    <i class="far fa-calendar-check" style="color: var(--primary-teal); margin-right: 4px;"></i>
+                                                    <i class="ph ph-calendar-check" style="color: var(--primary-teal); margin-right: 4px;"></i>
                                                     <?php echo date('d/m/Y', strtotime($route['created_at'])); ?>
                                                 </div>
                                             </div>
@@ -473,7 +477,7 @@ $user_docs = $docs_stmt->fetchAll();
                                             <div style="background: #fff5f5; border: 1px solid #fee2e2; padding: 0.75rem; border-radius: 8px;">
                                                 <small style="font-size: 0.6rem; color: #b91c1c; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 4px;">Prazo Final</small>
                                                 <div style="font-size: 0.8rem; font-weight: 700; color: #b91c1c;">
-                                                    <i class="far fa-clock" style="margin-right: 4px;"></i>
+                                                    <i class="ph ph-clock" style="margin-right: 4px;"></i>
                                                     <?php echo date('d/m/Y H:i', strtotime($deadline)); ?>
                                                 </div>
                                             </div>
@@ -482,7 +486,7 @@ $user_docs = $docs_stmt->fetchAll();
                                         
                                         <?php if ($route['status'] === 'completed' && !empty($route['completed_at'])): ?>
                                         <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 0.75rem; border-radius: 8px; display: flex; align-items: center; gap: 8px; color: #15803d; font-size: 0.8rem; font-weight: 600; margin-top: -5px;">
-                                            <i class="fas fa-calendar-check" style="font-size: 1rem; color: #16a34a;"></i>
+                                            <i class="ph ph-calendar-check" style="font-size: 1rem; color: #16a34a;"></i>
                                             <div>
                                                 <small style="font-size: 0.6rem; color: #166534; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Data da Conclusão</small>
                                                 <?php echo date('d/m/Y \à\s H:i', strtotime($route['completed_at'])); ?>
@@ -493,7 +497,7 @@ $user_docs = $docs_stmt->fetchAll();
                                         <!-- Urgent Countdown if in progress -->
                                         <?php if (in_array($route['status'], ['pending_acceptance', 'accepted', 'in_progress', 'delayed']) && !empty($deadline)): ?>
                                             <div class="countdown-container" data-deadline="<?php echo $deadline; ?>" style="border-radius: 6px; padding: 0.6rem 0.8rem; margin-top: 0.5rem; display: flex; justify-content: center; align-items: center; gap: 6px; background: #f0f9ff; border: 1px solid #bae6fd; color: #0284c7; font-size: 0.85rem; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.02); width: 100%;">
-                                                <i class="fas fa-hourglass-half" style="color: #0284c7; font-size: 0.8rem;"></i>
+                                                <i class="ph ph-hourglass" style="color: #0284c7; font-size: 0.8rem;"></i>
                                                 <div class="countdown-timer">00:00:00</div>
                                             </div>
                                         <?php endif; ?>
@@ -501,7 +505,7 @@ $user_docs = $docs_stmt->fetchAll();
                                         <!-- Simplified Address Section -->
                                         <div>
                                             <h4 style="font-size: 0.65rem; color: var(--slate-500); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 6px;">
-                                                <i class="fas fa-map-pin"></i> Localização
+                                                <i class="ph ph-map-pin"></i> Localização
                                             </h4>
                                             <?php
                                             $addressComponents = [];
@@ -529,7 +533,7 @@ $user_docs = $docs_stmt->fetchAll();
                                         ?>
                                         <div style="background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px;">
                                             <h4 style="font-size: 0.65rem; color: #475569; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; display: flex; align-items: center; gap: 6px;">
-                                                <i class="fas fa-info-circle"></i> Instruções da Rota
+                                                <i class="ph ph-info"></i> Instruções da Rota
                                             </h4>
                                             
                                             <?php if ($showArea): ?>
@@ -549,7 +553,7 @@ $user_docs = $docs_stmt->fetchAll();
                                             <?php if ($showRenewal): ?>
                                                 <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.8rem; color: #1e40af; margin-top: 4px;">
                                                     <small style="font-size: 0.6rem; color: #1e3a8a; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">
-                                                        <i class="fas fa-history"></i> Motivo da Prorrogação
+                                                        <i class="ph ph-clock-counter-clockwise"></i> Motivo da Prorrogação
                                                     </small>
                                                     <div style="line-height: 1.4; white-space: pre-line;"><?php echo htmlspecialchars(trim($route['renewal_reason'])); ?></div>
                                                 </div>
@@ -559,13 +563,13 @@ $user_docs = $docs_stmt->fetchAll();
                                              <?php if (!empty($route['rejection_reason'])): ?>
                                                  <div style="background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #dc2626; padding: 0.85rem 1rem; border-radius: 6px; margin-top: 8px; margin-bottom: 8px;">
                                                      <div style="font-size: 0.72rem; color: #b91c1c; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; gap: 5px;">
-                                                         <i class="fas fa-exclamation-triangle"></i> Conclusão Rejeitada pelo CAU/DF (Ajustes Necessários)
+                                                         <i class="ph ph-warning"></i> Conclusão Rejeitada pelo CAU/DF (Ajustes Necessários)
                                                      </div>
                                                      <div style="font-size: 0.82rem; color: #991b1b; line-height: 1.45; font-weight: 500;">
                                                          <?php echo nl2br(htmlspecialchars($route['rejection_reason'])); ?>
                                                      </div>
                                                      <div style="font-size: 0.72rem; color: #7f1d1d; margin-top: 6px; font-weight: 600;">
-                                                         <i class="fas fa-info-circle"></i> Por favor, corrija os itens apontados acima e reenvie a conclusão quando concluir a coleta.
+                                                         <i class="ph ph-info"></i> Por favor, corrija os itens apontados acima e reenvie a conclusão quando concluir a coleta.
                                                      </div>
                                                  </div>
                                              <?php endif; ?>
@@ -583,7 +587,7 @@ $user_docs = $docs_stmt->fetchAll();
                                         ?>
                                         <div style="background: #fffbeb; padding: 0.75rem; border-radius: 8px; border: 1px solid #fef3c7;">
                                             <div style="font-size: 0.6rem; color: #92400e; font-weight: 800; text-transform: uppercase; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 4px;">
-                                                <i class="fas fa-paperclip"></i> Anexos Admin
+                                                <i class="ph ph-paperclip"></i> Anexos Admin
                                             </div>
                                             <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                                                 <?php foreach ($adminFiles as $file): 
@@ -604,18 +608,20 @@ $user_docs = $docs_stmt->fetchAll();
                                             <?php if ($route['status'] === 'pending_acceptance'): ?>
                                                 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
                                                     <form method="post">
+                                                        <?php echo csrf_field(); ?>
                                                         <input type="hidden" name="accept_route_id" value="<?php echo $route['id']; ?>">
                                                         <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 0.75rem; background: #00897b;">
-                                                            <i class="fas fa-check"></i> ACEITAR E GERAR TERMO
+                                                            <i class="ph ph-check"></i> ACEITAR E GERAR TERMO
                                                         </button>
                                                     </form>
                                                     <button type="button" class="btn btn-outline" style="color: var(--danger); border-color: var(--danger); padding: 0.75rem; font-size: 0.75rem;" onclick="document.getElementById('reject_form_<?php echo $route['id']; ?>').style.display='block'; this.parentElement.style.display='none';">
-                                                        <i class="fas fa-times"></i>
+                                                        <i class="ph ph-x"></i>
                                                     </button>
                                                 </div>
                                                 
                                                 <div id="reject_form_<?php echo $route['id']; ?>" style="display: none; background: #fff5f5; padding: 1rem; border-radius: 8px; border: 1px solid #fee2e2; margin-top: 10px;">
                                                     <form method="post">
+                                                        <?php echo csrf_field(); ?>
                                                         <input type="hidden" name="reject_route_id" value="<?php echo $route['id']; ?>">
                                                         <textarea name="reject_reason" required class="form-control mb-2" rows="2" style="width: 100%; font-size: 0.8rem;" placeholder="Motivo da rejeição..."></textarea>
                                                         <div style="display: flex; gap: 5px;">
@@ -627,41 +633,42 @@ $user_docs = $docs_stmt->fetchAll();
                                             <?php elseif ($route['status'] === 'accepted'): ?>
                                                 <div style="display: flex; flex-direction: column; gap: 10px;">
                                                     <a href="generate_contract.php?route_id=<?php echo $route['id']; ?>" target="_blank" class="btn" style="width: 100%; padding: 0.75rem; font-size: 0.75rem; color: white; border-color: #28a745; background: #28a745;">
-                                                        <i class="fas fa-file-pdf"></i> BAIXAR TERMO DE REGISTRO DE DEMANDA
+                                                        <i class="ph ph-file-pdf"></i> BAIXAR TERMO DE REGISTRO DE DEMANDA
                                                     </a>
                                                     <form method="post">
+                                                        <?php echo csrf_field(); ?>
                                                         <input type="hidden" name="start_route_id" value="<?php echo $route['id']; ?>">
                                                         <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 0.75rem;">
-                                                            <i class="fas fa-play"></i> INICIAR TRABALHO NA ROTA
+                                                            <i class="ph ph-play"></i> INICIAR TRABALHO NA ROTA
                                                         </button>
                                                     </form>
                                                 </div>
                                             <?php elseif ($route['status'] === 'in_progress' || $route['status'] === 'delayed'): ?>
                                                 <div style="display: flex; flex-direction: column; gap: 10px;">
                                                     <a href="generate_contract.php?route_id=<?php echo $route['id']; ?>" target="_blank" class="btn" title="Termo de Registro de Demanda gerado no aceite" style="width: 100%; padding: 0.6rem; font-size: 0.75rem; color: white; border-color: #28a745; background: #28a745;">
-                                                        <i class="fas fa-file-signature"></i> TERMO DE ACEITE (PDF)
+                                                        <i class="ph ph-file-text"></i> TERMO DE ACEITE (PDF)
                                                     </a>
                                                 </div>
                                                 <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 10px;">
                                                     <button type="button" class="btn" 
                                                             onclick="openCompleteModal(<?php echo $route['id']; ?>, '<?php echo htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8'); ?>')" 
                                                             style="width: 100%; background: #2563eb; border-color: #2563eb; color: white; padding: 0.75rem; font-size: 0.75rem; font-weight: 600;">
-                                                        <i class="fas fa-check-circle"></i> CONCLUIR ROTA (ENVIAR RELATÓRIO)
+                                                        <i class="ph ph-check-circle"></i> CONCLUIR ROTA (ENVIAR RELATÓRIO)
                                                     </button>
                                                 </div>
                                             <?php elseif ($route['status'] === 'completed'): ?>
                                                 <div style="display: flex; flex-direction: column; gap: 10px;">
                                                     <a href="generate_contract.php?route_id=<?php echo $route['id']; ?>" target="_blank" class="btn" title="Termo de Registro de Demanda gerado no aceite" style="width: 100%; padding: 0.6rem; font-size: 0.75rem; color: white; border-color: #28a745; background: #28a745;">
-                                                        <i class="fas fa-file-signature"></i> TERMO DE ACEITE (PDF)
+                                                        <i class="ph ph-file-text"></i> TERMO DE ACEITE (PDF)
                                                     </a>
                                                     <div style="background: var(--success-light); color: var(--success); padding: 0.75rem; border-radius: 8px; text-align: center; font-weight: 700; font-size: 0.8rem; border: 1px solid var(--success-light);">
-                                                        <i class="fas fa-check-double"></i> ROTA CONCLUÍDA E ENVIADA
+                                                        <i class="ph ph-checks"></i> ROTA CONCLUÍDA E ENVIADA
                                                     </div>
                                                     
                                                     <!-- Meus Envios de Comprovação -->
                                                     <div style="background: #fdfdfd; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border); font-size: 0.8rem; color: #475569; margin-top: 5px;">
                                                         <strong style="color: var(--success); display: flex; align-items: center; gap: 4px; margin-bottom: 0.5rem;">
-                                                            <i class="fas fa-file-invoice"></i> Minha Comprovação Enviada
+                                                            <i class="ph ph-receipt"></i> Minha Comprovação Enviada
                                                         </strong>
                                                         
                                                         <div style="margin-bottom: 0.5rem; line-height: 1.4;">
@@ -707,7 +714,7 @@ $user_docs = $docs_stmt->fetchAll();
                     <div style="background: #fff; padding: 2rem; border-radius: 4px; border: 1px solid #e0e0e0; text-align: center;">
                         <?php if ($user['status'] == 'rejected'): ?>
                             <div style="color: #dc3545;">
-                                <h3><i class="fas fa-exclamation-triangle"></i> Cadastro Reprovado</h3>
+                                <h3><i class="ph ph-warning"></i> Cadastro Reprovado</h3>
                                 <p style="font-size: 1.1rem; margin-top: 1rem; color: #333;">Seu cadastro não foi aprovado pela administração. Por favor, <strong>procure o CAU/DF para regularização</strong>.</p>
                             </div>
                         <?php else: ?>
@@ -770,11 +777,12 @@ $user_docs = $docs_stmt->fetchAll();
                 <button type="button" onclick="closeCompleteModal()" class="modal-close-btn">&times;</button>
             </div>
             <form method="post" enctype="multipart/form-data" style="margin: 0;">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="complete_route_id" id="modal-route-id" value="">
                 
                 <div class="form-group" style="margin-bottom: 1.25rem;">
                     <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem; color: #475569;">
-                        <i class="fas fa-align-left"></i> Relatório de Execução / Observações:
+                        <i class="ph ph-text-align-left"></i> Relatório de Execução / Observações:
                     </label>
                     <textarea name="observation" required class="form-control" rows="6" 
                               style="font-size: 0.9rem; border-radius: 6px; padding: 10px; width: 100%; border: 1px solid #cbd5e1; box-sizing: border-box;" 
@@ -783,21 +791,21 @@ $user_docs = $docs_stmt->fetchAll();
                 
                 <div class="form-group" style="margin-bottom: 1.5rem;">
                     <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem; color: #475569;">
-                        <i class="fas fa-images"></i> Comprovantes, Fotos e Relatórios Finais (PDF ou Imagem, máx. 3 arquivos):
+                        <i class="ph ph-images"></i> Comprovantes, Fotos e Relatórios Finais (PDF ou Imagem, máx. 3 arquivos):
                     </label>
                     <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
                         <div class="custom-file-upload">
-                            <i class="fas fa-upload" style="color: #64748b;"></i>
+                            <i class="ph ph-upload" style="color: #64748b;"></i>
                             <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">Arquivo 1 (Obrigatório)</span>
                             <input type="file" name="report_file_1" accept=".pdf,image/*" required style="font-size: 0.8rem; width: 100%; margin-top: 5px;">
                         </div>
                         <div class="custom-file-upload">
-                            <i class="fas fa-upload" style="color: #64748b;"></i>
+                            <i class="ph ph-upload" style="color: #64748b;"></i>
                             <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">Arquivo 2 (Opcional)</span>
                             <input type="file" name="report_file_2" accept=".pdf,image/*" style="font-size: 0.8rem; width: 100%; margin-top: 5px;">
                         </div>
                         <div class="custom-file-upload">
-                            <i class="fas fa-upload" style="color: #64748b;"></i>
+                            <i class="ph ph-upload" style="color: #64748b;"></i>
                             <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">Arquivo 3 (Opcional)</span>
                             <input type="file" name="report_file_3" accept=".pdf,image/*" style="font-size: 0.8rem; width: 100%; margin-top: 5px;">
                         </div>
@@ -807,7 +815,7 @@ $user_docs = $docs_stmt->fetchAll();
                 <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
                     <button type="button" onclick="closeCompleteModal()" class="btn btn-outline" style="border-color: #cbd5e1; color: #64748b; font-size: 0.85rem; padding: 0.6rem 1.2rem; background: white; border-radius: 4px; cursor: pointer;">Cancelar</button>
                     <button type="submit" class="btn" style="background: var(--success); border-color: var(--success); font-size: 0.85rem; padding: 0.6rem 1.2rem; color: white; border-radius: 4px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
-                        <i class="fas fa-check-circle"></i> Concluir Rota
+                        <i class="ph ph-check-circle"></i> Concluir Rota
                     </button>
                 </div>
             </form>

@@ -19,7 +19,7 @@ function sendEmail($to, $subject, $body)
     $logContent .= "DATE: " . date('Y-m-d H:i:s') . "\n";
     $logContent .= "TO: $to\n";
     $logContent .= "SUBJECT: $subject\n";
-    $logContent .= "BODY:\n$body\n";
+    $logContent .= "BODY: [redacted - may contain PII]\n";
     $logContent .= "STATUS: " . ($mailSent ? "Sent via mail()" : "mail() failed (Check SMTP config)") . "\n";
     $logContent .= "--------------------------------------------------\n\n";
 
@@ -29,6 +29,6 @@ function sendEmail($to, $subject, $body)
     $logPath = __DIR__ . '/../emails_log.txt';
     file_put_contents($logPath, $logContent, FILE_APPEND);
 
-    return true; // Return true to simulate success for the user UI
+    return $mailSent;
 }
 ?>

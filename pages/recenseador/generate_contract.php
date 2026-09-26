@@ -49,7 +49,7 @@ $rates = [
     <meta charset="UTF-8">
     <title>Termo de Registro de Demanda - Rota #<?php echo $route_id; ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
     
     <style>
         body { font-family: 'Inter', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f4f4f4; }
@@ -211,14 +211,14 @@ $rates = [
         ?>
             <div class="field" style="margin-top: 5px; color: #0284c7;">
                 <strong>Localização Exata (Google Maps):</strong> 
-                <a href="<?php echo htmlspecialchars($mapUrl); ?>" target="_blank" style="color: #0284c7; text-decoration: none;">Clique aqui para abrir o mapa <i class="fas fa-external-link-alt" style="font-size: 10px;"></i></a>
+                <a href="<?php echo htmlspecialchars($mapUrl); ?>" target="_blank" style="color: #0284c7; text-decoration: none;">Clique aqui para abrir o mapa <i class="ph ph-arrow-square-out" style="font-size: 10px;"></i></a>
             </div>
         <?php endif; ?>
 
         <?php if (!empty($data['area_details'])): ?>
             <div class="field" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border: 1px solid #eee; border-radius: 4px;">
                 <strong>Detalhamento da Área de Atuação:</strong>
-                <div style="margin-top: 5px;"><?php echo $data['area_details']; // Contém HTML do Quill ?></div>
+                <div style="margin-top: 5px;"><?php echo sanitize_html($data['area_details'] ?? ''); ?></div>
             </div>
         <?php endif; ?>
 
@@ -234,7 +234,7 @@ $rates = [
         ?>
             <div style="margin-top: 15px; text-align: center; border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
                 <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; color: #666; text-align: left;">
-                    <i class="fas fa-map-marked-alt"></i> Mapa de Referência / Localização
+                    <i class="ph ph-crosshair"></i> Mapa de Referência / Localização
                 </div>
                 <img src="<?php echo htmlspecialchars($refImage); ?>" style="max-width: 100%; max-height: 250px; border-radius: 2px;">
             </div>

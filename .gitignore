@@ -2,3 +2,5 @@
 /sessions/
 /scratch/
 *.log
+emails_log.txt
+config/database.php

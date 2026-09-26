@@ -10,24 +10,31 @@ if (!isset($_SESSION['user_id'])) {
 $message = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['document'])) {
+    csrf_verify();
     $allowed = ['pdf', 'jpg', 'jpeg', 'png'];
     $filename = $_FILES['document']['name'];
     $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
 
     if (in_array($ext, $allowed)) {
-        $uploadDir = '../uploads/';
-        if (!is_dir($uploadDir))
-            mkdir($uploadDir, 0777, true);
-
-        $newFilename = uniqid() . '_' . $filename;
-        $destination = $uploadDir . $newFilename;
-
-        if (move_uploaded_file($_FILES['document']['tmp_name'], $destination)) {
-            $stmt = $pdo->prepare("INSERT INTO documents (user_id, document_type, file_path) VALUES (?, ?, ?)");
-            $stmt->execute([$_SESSION['user_id'], 'identidade', $destination]);
-            $message = '<div class="status-badge status-approved">Documento enviado com sucesso! Aguarde a análise.</div>';
+        if ($_FILES['document']['size'] > 10 * 1024 * 1024) {
+            $message = '<div class="status-badge status-rejected">Arquivo muito grande. Maximo 10MB.</div>';
+        } elseif (!validate_upload_mime($_FILES['document']['tmp_name'], ['application/pdf', 'image/jpeg', 'image/png'])) {
+            $message = '<div class="status-badge status-rejected">Tipo de arquivo invalido. Use apenas PDF, JPG ou PNG.</div>';
         } else {
-            $message = '<div class="status-badge status-rejected">Erro ao salvar arquivo.</div>';
+            $uploadDir = '../uploads/';
+            if (!is_dir($uploadDir))
+                mkdir($uploadDir, 0777, true);
+
+            $newFilename = uniqid() . '_' . $filename;
+            $destination = $uploadDir . $newFilename;
+
+            if (move_uploaded_file($_FILES['document']['tmp_name'], $destination)) {
+                $stmt = $pdo->prepare("INSERT INTO documents (user_id, document_type, file_path) VALUES (?, ?, ?)");
+                $stmt->execute([$_SESSION['user_id'], 'identidade', $destination]);
+                $message = '<div class="status-badge status-approved">Documento enviado com sucesso! Aguarde a análise.</div>';
+            } else {
+                $message = '<div class="status-badge status-rejected">Erro ao salvar arquivo.</div>';
+            }
         }
     } else {
         $message = '<div class="status-badge status-rejected">Formato inválido. Apenas PDF, JPG e PNG.</div>';
@@ -66,9 +73,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['document'])) {
                 echo "<div class='text-center mb-4'>$message</div>"; ?>
 
             <form action="" method="post" enctype="multipart/form-data" class="text-center">
+                <?php echo csrf_field(); ?>
                 <div class="form-group"
                     style="padding: 2rem; border: 2px dashed rgba(255,255,255,0.2); border-radius: var(--radius);">
-                    <i class="fas fa-cloud-upload-alt"
+                    <i class="ph ph-cloud-arrow-up"
                         style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
                     <p class="mb-4">Arraste seu arquivo aqui ou clique para selecionar</p>
                     <input type="file" name="document" required style="display: none;" id="file-upload">

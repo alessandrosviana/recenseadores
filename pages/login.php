@@ -5,33 +5,41 @@ require_once '../config/database.php';
 $message = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    csrf_verify();
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->execute([$email]);
-    $user = $stmt->fetch();
-
-    // Check password
-    if ($user && password_verify($password, $user['password'])) {
-        // Check if user is active
-        if (isset($user['is_active']) && $user['is_active'] == 0) {
-            $message = '<div class="alert alert-danger" style="color: #991b1b; background: #fee2e2; border: 1px solid #fecaca; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;"><i class="fas fa-exclamation-circle"></i> Sua conta está <strong>desativada</strong>. Entre em contato com a administração do CAU/DF.</div>';
-        } else {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_name'] = $user['name'];
-            $_SESSION['role'] = $user['role'];
-
-            // Redirect based on role
-            if ($user['role'] === 'admin') {
-                header("Location: admin/dashboard.php");
-            } else {
-                header("Location: recenseador/dashboard.php");
-            }
-            exit();
-        }
+    if (!check_rate_limit($pdo, 'login_' . $email, 5, 15)) {
+        $message = '<div class="alert alert-danger" style="color: #dc3545; background: #f8d7da; border: 1px solid #f5c6cb; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;"><i class="ph ph-exclamation-mark"></i> Muitas tentativas de login. Tente novamente em 15 minutos.</div>';
     } else {
-        $message = '<div class="alert alert-danger" style="color: #dc3545; background: #f8d7da; border: 1px solid #f5c6cb; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">Email ou senha incorretos.</div>';
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
+
+        // Check password
+        if ($user && password_verify($password, $user['password'])) {
+            // Check if user is active
+            if (isset($user['is_active']) && $user['is_active'] == 0) {
+                $message = '<div class="alert alert-danger" style="color: #991b1b; background: #fee2e2; border: 1px solid #fecaca; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;"><i class="ph ph-exclamation-mark"></i> Sua conta está <strong>desativada</strong>. Entre em contato com a administração do CAU/DF.</div>';
+            } else {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_name'] = $user['name'];
+                $_SESSION['role'] = $user['role'];
+                session_regenerate_id(true);
+                reset_rate_limit($pdo, 'login_' . $email);
+
+                // Redirect based on role
+                if ($user['role'] === 'admin') {
+                    header("Location: admin/dashboard.php");
+                } else {
+                    header("Location: recenseador/dashboard.php");
+                }
+                exit();
+            }
+        } else {
+            record_failed_attempt($pdo, 'login_' . $email);
+            $message = '<div class="alert alert-danger" style="color: #dc3545; background: #f8d7da; border: 1px solid #f5c6cb; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">Email ou senha incorretos.</div>';
+        }
     }
 }
 ?>
@@ -44,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - CAU/DF</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <style>
         body {
@@ -243,10 +251,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php if (!empty($message)) echo $message; ?>
 
             <form action="" method="post">
+                <?php echo csrf_field(); ?>
                 <div class="form-group">
                     <label for="email">E-mail ou CPF</label>
                     <div class="input-wrapper">
-                        <i class="fas fa-envelope icon-left"></i>
+                        <i class="ph ph-envelope icon-left"></i>
                         <input type="text" id="email" name="email" required placeholder="seu@email.com ou CPF" autocomplete="username">
                     </div>
                 </div>
@@ -254,27 +263,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="form-group">
                     <label for="password">Senha</label>
                     <div class="input-wrapper">
-                        <i class="fas fa-lock icon-left"></i>
+                        <i class="ph ph-lock icon-left"></i>
                         <input type="password" id="password" name="password" required placeholder="Sua senha de acesso" autocomplete="current-password">
                         <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility()" title="Mostrar/ocultar senha">
-                            <i class="fas fa-eye" id="toggle-icon"></i>
+                            <i class="ph ph-eye" id="toggle-icon"></i>
                         </button>
                     </div>
                 </div>
 
                 <button type="submit" class="btn-login-submit">
-                    <i class="fas fa-sign-in-alt"></i> ENTRAR NO SISTEMA
+                    <i class="ph ph-sign-in"></i> ENTRAR NO SISTEMA
                 </button>
 
                 <a href="forgot_password.php" class="forgot-password-link">
-                    <i class="fas fa-key" style="font-size: 0.75rem;"></i> Esqueceu sua senha?
+                    <i class="ph ph-key" style="font-size: 0.75rem;"></i> Esqueceu sua senha?
                 </a>
             </form>
 
             <div class="register-footer-box">
                 <p style="font-size: 0.88rem; color: #64748b; margin: 0;">Ainda não possui cadastro?</p>
                 <a href="register.php" class="register-btn-link">
-                    <i class="fas fa-user-plus" style="font-size: 0.8rem;"></i> Inscreva-se como Recenseador
+                    <i class="ph ph-user-plus" style="font-size: 0.8rem;"></i> Inscreva-se como Recenseador
                 </a>
             </div>
         </div>

@@ -34,7 +34,7 @@ if (!$data) {
     <meta charset="UTF-8">
     <title>Memória de Cálculo - Rota #<?php echo $route_id; ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
     <style>
         body { font-family: 'Inter', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f4f4f4; }
         .contract-page { background: white; width: 210mm; min-height: 297mm; margin: 20px auto; padding: 25mm; box-shadow: 0 0 10px rgba(0,0,0,0.1); box-sizing: border-box; }
@@ -90,8 +90,8 @@ if (!$data) {
 
 <div class="no-print-bar no-print">
     <span style="margin-right: 20px;">Visualização da Memória de Cálculo</span>
-    <button onclick="window.print()" class="btn btn-print"><i class="fas fa-print"></i> Imprimir Memória (PDF)</button>
-    <a href="#" onclick="window.close()" class="btn" style="background: #dc3545; margin-left: 10px;"><i class="fas fa-times"></i> Fechar Aba</a>
+    <button onclick="window.print()" class="btn btn-print"><i class="ph ph-printer"></i> Imprimir Memória (PDF)</button>
+    <a href="#" onclick="window.close()" class="btn" style="background: #dc3545; margin-left: 10px;"><i class="ph ph-x"></i> Fechar Aba</a>
 </div>
 
 <div class="contract-page">

@@ -32,6 +32,7 @@ $current_file_3 = !empty($route['ref_pdf_2']) ? $route['ref_pdf_2'] : (!empty($r
 
 // Handle Update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     $user_id = $_POST['user_id'];
     $title = $_POST['title'];
     $desc = $_POST['description'];
@@ -180,7 +181,7 @@ $users = $users_stmt->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Rota - CAU/DF</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <style>
         .page-header {
@@ -285,7 +286,7 @@ $users = $users_stmt->fetchAll();
         <div class="container">
             <a href="dashboard.php#monitor" class="btn btn-outline mb-2"
                 style="font-size: 0.8rem; padding: 0.3rem 0.8rem;">
-                <i class="fas fa-arrow-left"></i> Voltar
+                <i class="ph ph-arrow-left"></i> Voltar
             </a>
             <h2 style="color: var(--primary-teal); margin: 0;">Editar Rota</h2>
         </div>
@@ -297,10 +298,11 @@ $users = $users_stmt->fetchAll();
 
         <div class="form-container">
             <form method="post" enctype="multipart/form-data">
+                <?php echo csrf_field(); ?>
                 <?php if ($route['status'] === 'completed'): ?>
                     <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 1.25rem; border-radius: 6px; margin-bottom: 1.5rem; color: #166534; font-size: 0.9rem;">
                         <h4 style="margin: 0 0 0.5rem 0; color: #15803d; display: flex; align-items: center; gap: 6px; font-weight: 700;">
-                            <i class="fas fa-check-circle" style="font-size: 1.1rem;"></i> Rota Concluída pelo Recenseador
+                            <i class="ph ph-check-circle" style="font-size: 1.1rem;"></i> Rota Concluída pelo Recenseador
                         </h4>
                         
                         <?php if (!empty($route['completed_at'])): ?>
@@ -338,7 +340,7 @@ $users = $users_stmt->fetchAll();
                 <?php if ($route['status'] === 'cancelled'): ?>
                     <div style="background: #fdf2f2; border: 1px solid #fecaca; padding: 1.25rem; border-radius: 6px; margin-bottom: 1.5rem; color: #991b1b; font-size: 0.9rem;">
                         <h4 style="margin: 0 0 0.5rem 0; color: #b91c1c; display: flex; align-items: center; gap: 6px; font-weight: 700;">
-                            <i class="fas fa-ban" style="font-size: 1.1rem;"></i> Rota Cancelada Administrativamente
+                            <i class="ph ph-prohibit" style="font-size: 1.1rem;"></i> Rota Cancelada Administrativamente
                         </h4>
                         
                         <?php if (!empty($route['updated_at'])): ?>
@@ -451,11 +453,11 @@ $users = $users_stmt->fetchAll();
 
                 <div class="form-group" style="margin-top: 1rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                        <label style="margin: 0;"><i class="fab fa-google"></i> Link do Google Maps (Local da Vistoria)</label>
+                        <label style="margin: 0;"><i class="ph ph-google-logo"></i> Link do Google Maps (Local da Vistoria)</label>
                         <?php if (!empty($current_maps_url)): ?>
                             <a href="<?php echo htmlspecialchars($current_maps_url); ?>" target="_blank" 
                                style="font-size: 0.75rem; color: #2563eb; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                                <i class="fas fa-external-link-alt"></i> ABRIR NO MAPS
+                                <i class="ph ph-arrow-square-out"></i> ABRIR NO MAPS
                             </a>
                         <?php endif; ?>
                     </div>
@@ -463,10 +465,10 @@ $users = $users_stmt->fetchAll();
                 </div>
 
                 <div class="form-group" style="margin-top: 1rem;">
-                    <label><i class="fas fa-image"></i> Arquivo 1 (Print do Mapa)</label>
+                    <label><i class="ph ph-image"></i> Arquivo 1 (Print do Mapa)</label>
                     <?php if (!empty($current_file_1)): ?>
                         <div style="background: #f0fdf4; padding: 0.5rem; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.8rem; color: #166534; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-check-circle"></i> Já possui print anexado.
+                            <i class="ph ph-check-circle"></i> Já possui print anexado.
                             <a href="<?php echo htmlspecialchars($current_file_1); ?>" target="_blank" style="color: #166534; text-decoration: underline; font-weight: 600;">Ver atual</a>
                         </div>
                     <?php endif; ?>
@@ -476,10 +478,10 @@ $users = $users_stmt->fetchAll();
 
                 <div class="grid-2" style="margin-top: 1rem;">
                     <div class="form-group">
-                        <label><i class="fas fa-file-pdf"></i> Arquivo 2 (Doc. Complementar / PDF)</label>
+                        <label><i class="ph ph-file-pdf"></i> Arquivo 2 (Doc. Complementar / PDF)</label>
                         <?php if (!empty($current_file_2)): ?>
                             <div style="background: #f0fdf4; padding: 0.5rem; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.8rem; color: #166534; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 8px;">
-                                <i class="fas fa-check-circle"></i> Já possui anexo cadastrado.
+                                <i class="ph ph-check-circle"></i> Já possui anexo cadastrado.
                                 <a href="<?php echo htmlspecialchars($current_file_2); ?>" target="_blank" style="color: #166534; text-decoration: underline; font-weight: 600;">Ver atual</a>
                             </div>
                         <?php endif; ?>
@@ -487,10 +489,10 @@ $users = $users_stmt->fetchAll();
                     </div>
 
                     <div class="form-group">
-                        <label><i class="fas fa-file-pdf"></i> Arquivo 3 (Doc. Complementar / PDF)</label>
+                        <label><i class="ph ph-file-pdf"></i> Arquivo 3 (Doc. Complementar / PDF)</label>
                         <?php if (!empty($current_file_3)): ?>
                             <div style="background: #f0fdf4; padding: 0.5rem; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.8rem; color: #166534; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 8px;">
-                                <i class="fas fa-check-circle"></i> Já possui anexo cadastrado.
+                                <i class="ph ph-check-circle"></i> Já possui anexo cadastrado.
                                 <a href="<?php echo htmlspecialchars($current_file_3); ?>" target="_blank" style="color: #166534; text-decoration: underline; font-weight: 600;">Ver atual</a>
                             </div>
                         <?php endif; ?>
@@ -500,11 +502,11 @@ $users = $users_stmt->fetchAll();
 
                 <div class="grid-2">
                     <div class="form-group">
-                        <label><i class="fas fa-calendar-plus"></i> Data de Início Planejada</label>
+                        <label><i class="ph ph-calendar-plus"></i> Data de Início Planejada</label>
                         <input type="datetime-local" name="scheduled_start" value="<?php echo $route['scheduled_start'] ? date('Y-m-d\TH:i', strtotime($route['scheduled_start'])) : ''; ?>" class="form-control">
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-calendar-check"></i> Prazo Final Planejado</label>
+                        <label><i class="ph ph-calendar-check"></i> Prazo Final Planejado</label>
                         <input type="datetime-local" name="scheduled_end" value="<?php echo $route['scheduled_end'] ? date('Y-m-d\TH:i', strtotime($route['scheduled_end'])) : ''; ?>" class="form-control">
                     </div>
                 </div>
@@ -516,7 +518,7 @@ $users = $users_stmt->fetchAll();
                 </div>
 
                 <div style="text-align: right; margin-top: 2rem;">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar Alterações</button>
+                    <button type="submit" class="btn btn-primary"><i class="ph ph-floppy-disk"></i> Salvar Alterações</button>
                 </div>
             </form>
         </div>

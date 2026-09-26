@@ -39,7 +39,7 @@ $routes = $routes_stmt->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rotas de <?php echo mb_strtoupper(htmlspecialchars($user['name']), 'UTF-8'); ?> - CAU/DF</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <style>
         .page-header {
@@ -125,7 +125,7 @@ $routes = $routes_stmt->fetchAll();
             <div>
                 <a href="dashboard.php#users" class="btn btn-outline mb-2"
                     style="font-size: 0.8rem; padding: 0.3rem 0.8rem;">
-                    <i class="fas fa-arrow-left"></i> Voltar ao Painel
+                    <i class="ph ph-arrow-left"></i> Voltar ao Painel
                 </a>
                 <h2 style="color: var(--primary-teal); margin: 0;">Rotas de:
                     <?php echo mb_strtoupper(htmlspecialchars($user['name']), 'UTF-8'); ?>
@@ -148,13 +148,13 @@ $routes = $routes_stmt->fetchAll();
                                 <?php if (!empty($route['microregion'])): ?>
                                     <p
                                         style="margin:0.2rem 0 0 0; color: var(--primary-teal); font-weight: 600; font-size: 0.9rem;">
-                                        <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($route['microregion']); ?>
+                                        <i class="ph ph-map-pin"></i> <?php echo htmlspecialchars($route['microregion']); ?>
                                     </p>
                                 <?php endif; ?>
                             </div>
                             <div style="display: flex; align-items: center;">
                                 <a href="edit_route.php?id=<?php echo $route['id']; ?>" class="btn-edit"><i
-                                        class="fas fa-edit"></i> Editar</a>
+                                        class="ph ph-pencil-simple-line"></i> Editar</a>
                                 <?php 
                                         $demandLabel = "Específica";
                                         $demandColor = "#3b82f6";
@@ -181,14 +181,14 @@ $routes = $routes_stmt->fetchAll();
                             <div>
                                 <?php if (!empty($route['area_details']) && $route['area_details'] !== '<p><br></p>'): ?>
                                     <div style="margin-bottom: 1rem; background: #f8fafc; padding: 0.8rem; border-radius: 6px; border: 1px solid #e2e8f0; grid-column: span 2;">
-                                        <strong style="color: #475569; display: block; margin-bottom: 5px;"><i class="fas fa-align-left"></i> Descrição da Área de Atuação:</strong>
+                                        <strong style="color: #475569; display: block; margin-bottom: 5px;"><i class="ph ph-text-align-left"></i> Descrição da Área de Atuação:</strong>
                                         <div style="font-size: 0.9rem; color: #334155; line-height: 1.5;">
-                                            <?php echo $route['area_details']; ?>
+                                            <?php echo sanitize_html($route['area_details'] ?? ''); ?>
                                         </div>
                                     </div>
                                 <?php endif; ?>
 
-                                <strong><i class="fas fa-map-marker-alt"></i> Local/Endereço:</strong><br>
+                                <strong><i class="ph ph-map-pin"></i> Local/Endereço:</strong><br>
                                 <?php
                                 $cleanLoc = trim($route['start_location'] ?? '', ', - ');
                                 if (!empty($route['address_street'])) {
@@ -210,13 +210,13 @@ $routes = $routes_stmt->fetchAll();
                                 ?>
                                     <div style="margin-top: 10px;">
                                         <a href="<?php echo htmlspecialchars($mapUrl); ?>" target="_blank" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; color: #2563eb; border-color: #dbeafe; background: #eff6ff;">
-                                            <i class="fab fa-google"></i> Abrir no Google Maps
+                                            <i class="ph ph-google-logo"></i> Abrir no Google Maps
                                         </a>
                                     </div>
                                 <?php endif; ?>
                             </div>
                             <div>
-                                <strong><i class="fas fa-info-circle"></i> Descrição:</strong><br>
+                                <strong><i class="ph ph-info"></i> Descrição:</strong><br>
                                 <?php echo nl2br(htmlspecialchars($route['description'])); ?>
                                 <br><br>
                                 <small>Atribuída em: <?php echo date('d/m/Y H:i', strtotime($route['created_at'])); ?></small>
@@ -235,7 +235,7 @@ $routes = $routes_stmt->fetchAll();
                                     <div style="margin-top: 1rem; border-top: 1px solid #eee; padding-top: 0.5rem; display: flex; gap: 10px;">
                                         <?php foreach ($admFiles as $f): ?>
                                             <a href="<?php echo str_replace('../../', BASE_URL, htmlspecialchars($f)); ?>" target="_blank" style="font-size: 0.8rem; color: #f57f17; text-decoration: none;">
-                                                <i class="fas fa-paperclip"></i> Anexo Admin
+                                                <i class="ph ph-paperclip"></i> Anexo Admin
                                             </a>
                                         <?php endforeach; ?>
                                     </div>
@@ -245,7 +245,7 @@ $routes = $routes_stmt->fetchAll();
 
                         <?php if ($route['status'] == 'completed'): ?>
                             <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #ccc; font-size: 0.95rem;">
-                                <strong style="color: #28a745;"><i class="fas fa-check-double"></i> Relatório de Conclusão:</strong>
+                                <strong style="color: #28a745;"><i class="ph ph-checks"></i> Relatório de Conclusão:</strong>
                                 <p
                                     style="background: #f8f9fa; padding: 0.8rem; border-radius: 4px; border: 1px solid #e9ecef; margin-top: 0.5rem;">
                                     <?php echo nl2br(htmlspecialchars($route['observation'] ?? 'Sem observações.')); ?>
@@ -263,7 +263,7 @@ $routes = $routes_stmt->fetchAll();
 
                                 <?php if (count($files) > 0): ?>
                                     <div style="margin-top: 0.5rem;">
-                                        <strong><i class="fas fa-paperclip"></i> Anexos:</strong>
+                                        <strong><i class="ph ph-paperclip"></i> Anexos:</strong>
                                         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.3rem;">
                                             <?php foreach ($files as $index => $file): 
                                                 $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
@@ -284,7 +284,7 @@ $routes = $routes_stmt->fetchAll();
             </div>
         <?php else: ?>
             <div class="text-center py-5" style="border: 2px dashed #eee; border-radius: 8px;">
-                <i class="fas fa-route" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+                <i class="ph ph-path" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
                 <p class="text-muted">Este recenseador ainda não possui rotas atribuídas.</p>
                 <a href="dashboard.php#routes" class="btn btn-primary" style="margin-top: 1rem;">Atribuir Nova Rota</a>
             </div>

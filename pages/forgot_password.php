@@ -8,6 +8,7 @@ $user_id_to_reset = null;
 $user_name = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    csrf_verify();
     $action = $_POST['action'] ?? 'verify';
 
     if ($action === 'verify') {
@@ -15,7 +16,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $birth_date = trim($_POST['birth_date'] ?? '');
 
         if (empty($cpf) || empty($birth_date)) {
-            $message = '<div class="alert danger"><i class="fas fa-exclamation-circle"></i> Por favor, informe o CPF e a Data de Nascimento.</div>';
+            $message = '<div class="alert danger"><i class="ph ph-exclamation-mark"></i> Por favor, informe o CPF e a Data de Nascimento.</div>';
+        } elseif (!validar_cpf($cpf)) {
+            $message = '<div class="alert danger"><i class="ph ph-exclamation-mark"></i> CPF invalido. Verifique os digitos.</div>';
+        } elseif (!check_rate_limit($pdo, 'reset_' . $cpf, 5, 60)) {
+            $message = '<div class="alert danger"><i class="ph ph-exclamation-mark"></i> Muitas tentativas. Tente novamente em 1 hora.</div>';
         } else {
             // Busca recenseador por CPF limpo e Data de Nascimento
             $stmt = $pdo->prepare("SELECT id, name, cpf, birth_date FROM users WHERE REPLACE(REPLACE(cpf, '.', ''), '-', '') = ? AND birth_date = ? AND role = 'recenseador'");
@@ -26,11 +31,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $step = 2;
                 $user_id_to_reset = $user['id'];
                 $user_name = $user['name'];
+                reset_rate_limit($pdo, 'reset_' . $cpf);
                 $_SESSION['reset_user_id'] = $user['id'];
                 $_SESSION['reset_user_name'] = $user['name'];
-                $message = '<div class="alert success"><i class="fas fa-check-circle"></i> Dados validados com sucesso! Crie sua nova senha abaixo.</div>';
+                $message = '<div class="alert success"><i class="ph ph-check-circle"></i> Dados validados com sucesso! Crie sua nova senha abaixo.</div>';
             } else {
-                $message = '<div class="alert danger"><i class="fas fa-times-circle"></i> CPF ou Data de Nascimento não conferem com o cadastro de recenseador.</div>';
+                record_failed_attempt($pdo, 'reset_' . $cpf);
+                $message = '<div class="alert danger"><i class="ph ph-x-circle"></i> CPF ou Data de Nascimento não conferem com o cadastro de recenseador.</div>';
             }
         }
     } elseif ($action === 'reset_password') {
@@ -39,27 +46,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $confirm_password = $_POST['confirm_password'] ?? '';
 
         if (!$user_id) {
-            $message = '<div class="alert danger"><i class="fas fa-exclamation-triangle"></i> Sessão de recuperação expirada. Por favor, reinicie a verificação.</div>';
+            $message = '<div class="alert danger"><i class="ph ph-warning"></i> Sessão de recuperação expirada. Por favor, reinicie a verificação.</div>';
             $step = 1;
-        } elseif (empty($password) || strlen($password) < 6) {
+        } elseif (($pwd_error = validate_password_strength($password)) !== null) {
             $step = 2;
             $user_name = $_SESSION['reset_user_name'] ?? '';
-            $message = '<div class="alert danger"><i class="fas fa-exclamation-circle"></i> A nova senha deve ter no mínimo 6 caracteres.</div>';
+            $message = '<div class="alert danger"><i class="ph ph-exclamation-mark"></i> ' . $pwd_error . '</div>';
         } elseif ($password !== $confirm_password) {
             $step = 2;
             $user_name = $_SESSION['reset_user_name'] ?? '';
-            $message = '<div class="alert danger"><i class="fas fa-exclamation-triangle"></i> As senhas digitadas não coincidem.</div>';
+            $message = '<div class="alert danger"><i class="ph ph-warning"></i> As senhas digitadas não coincidem.</div>';
         } else {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $updateStmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
             if ($updateStmt->execute([$hashed_password, $user_id])) {
                 unset($_SESSION['reset_user_id']);
                 unset($_SESSION['reset_user_name']);
+                if (function_exists('sendEmail')) {
+                    @sendEmail($user_email ?? '', 'Senha redefinida - CAU/DF', 'Sua senha foi redefinida com sucesso no portal de recenseadores do CAU/DF.');
+                }
                 header("Location: login.php?reset=success");
                 exit();
             } else {
                 $step = 2;
-                $message = '<div class="alert danger"><i class="fas fa-times-circle"></i> Erro ao atualizar senha no banco de dados. Tente novamente.</div>';
+                $message = '<div class="alert danger"><i class="ph ph-x-circle"></i> Erro ao atualizar senha no banco de dados. Tente novamente.</div>';
             }
         }
     }
@@ -74,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recuperação de Senha - CAU/DF</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <style>
         .login-card {
@@ -141,7 +151,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <main class="container">
         <div class="login-card">
             <div class="login-header">
-                <i class="fas fa-user-shield"></i>
+                <i class="ph ph-shield-check"></i>
                 <h2>Recuperação de Senha</h2>
                 <p style="color: #666; font-size: 0.85rem; margin-top: 0.4rem;">
                     <?php if ($step === 1): ?>
@@ -157,43 +167,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php if ($step === 1): ?>
                 <!-- ETAPA 1: VALIDAR CPF E DATA DE NASCIMENTO -->
                 <form action="" method="post">
+                    <?php echo csrf_field(); ?>
                     <input type="hidden" name="action" value="verify">
                     
                     <div class="form-group">
-                        <label for="cpf"><i class="fas fa-id-card"></i> CPF do Recenseador *</label>
+                        <label for="cpf"><i class="ph ph-identification-card"></i> CPF do Recenseador *</label>
                         <input type="text" id="cpf" name="cpf" required placeholder="000.000.000-00" maxlength="14" class="form-control" style="padding: 0.75rem;">
                     </div>
 
                     <div class="form-group" style="margin-top: 1rem;">
-                        <label for="birth_date"><i class="fas fa-calendar-alt"></i> Data de Nascimento *</label>
+                        <label for="birth_date"><i class="ph ph-calendar-blank"></i> Data de Nascimento *</label>
                         <input type="date" id="birth_date" name="birth_date" required class="form-control" style="padding: 0.75rem;">
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-block">
-                        <i class="fas fa-search"></i> VALIDAR MEUS DADOS
+                        <i class="ph ph-magnifying-glass"></i> VALIDAR MEUS DADOS
                     </button>
                 </form>
             <?php else: ?>
                 <!-- ETAPA 2: CADASTRAR NOVA SENHA -->
                 <form action="" method="post">
+                    <?php echo csrf_field(); ?>
                     <input type="hidden" name="action" value="reset_password">
 
                     <div class="form-group" style="margin-bottom: 1rem;">
-                        <label for="reg_password"><i class="fas fa-key"></i> Nova Senha *</label>
+                        <label for="reg_password"><i class="ph ph-key"></i> Nova Senha *</label>
                         <div style="position: relative;">
                             <input type="password" name="password" id="reg_password" required placeholder="Mínimo de 6 caracteres" class="form-control" style="padding-right: 40px; padding: 0.75rem;">
                             <button type="button" onclick="togglePasswordVisibility('reg_password', 'eye_icon_1')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #6c757d;">
-                                <i class="fas fa-eye" id="eye_icon_1"></i>
+                                <i class="ph ph-eye" id="eye_icon_1"></i>
                             </button>
                         </div>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 1rem;">
-                        <label for="reg_confirm_password"><i class="fas fa-check-double"></i> Confirmar Nova Senha *</label>
+                        <label for="reg_confirm_password"><i class="ph ph-checks"></i> Confirmar Nova Senha *</label>
                         <div style="position: relative;">
                             <input type="password" name="confirm_password" id="reg_confirm_password" required placeholder="Repita a nova senha" class="form-control" style="padding-right: 40px; padding: 0.75rem;">
                             <button type="button" onclick="togglePasswordVisibility('reg_confirm_password', 'eye_icon_2')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #6c757d;">
-                                <i class="fas fa-eye" id="eye_icon_2"></i>
+                                <i class="ph ph-eye" id="eye_icon_2"></i>
                             </button>
                         </div>
                     </div>
@@ -201,14 +213,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div id="password_match_msg" style="font-size: 0.85rem; margin-top: 0.5rem; font-weight: 600; display: none;"></div>
 
                     <button type="submit" class="btn btn-primary btn-block" style="background: #28a745; border-color: #28a745;">
-                        <i class="fas fa-save"></i> SALVAR NOVA SENHA
+                        <i class="ph ph-floppy-disk"></i> SALVAR NOVA SENHA
                     </button>
                 </form>
             <?php endif; ?>
 
             <div style="margin-top: 1.5rem; border-top: 1px solid #eee; padding-top: 1rem; text-align: center;">
                 <a href="login.php" class="btn btn-outline" style="border: none; color: #666; font-size: 0.88rem;">
-                    <i class="fas fa-arrow-left"></i> Voltar para a Tela de Login
+                    <i class="ph ph-arrow-left"></i> Voltar para a Tela de Login
                 </a>
             </div>
         </div>
@@ -259,11 +271,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 msg.style.display = 'block';
                 if (pass.value && confirmPass.value && pass.value === confirmPass.value) {
                     msg.style.color = '#155724';
-                    msg.innerHTML = '<i class="fas fa-check-circle"></i> As senhas coincidem!';
+                    msg.innerHTML = '<i class="ph ph-check-circle"></i> As senhas coincidem!';
                     confirmPass.style.borderColor = '#28a745';
                 } else if (confirmPass.value) {
                     msg.style.color = '#721c24';
-                    msg.innerHTML = '<i class="fas fa-times-circle"></i> As senhas não coincidem!';
+                    msg.innerHTML = '<i class="ph ph-x-circle"></i> As senhas não coincidem!';
                     confirmPass.style.borderColor = '#dc3545';
                 } else {
                     msg.style.display = 'none';

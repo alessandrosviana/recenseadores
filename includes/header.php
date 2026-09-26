@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <!-- Using FontAwesome for icons as seen in the screenshot -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <!-- Note: Uses BASE_URL defined in database.php -->
 </head>
@@ -20,18 +20,18 @@
         <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; gap: 1.25rem; align-items: center;">
                 <a href="http://www.caudf.gov.br" target="_blank" rel="noopener noreferrer" style="color: #e0f7fa; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';">
-                    <i class="fas fa-headset" style="color: #80deea;"></i> ATENDIMENTO
+                    <i class="ph ph-headset" style="color: #80deea;"></i> ATENDIMENTO
                 </a>
                 <a href="http://www.caudf.gov.br" target="_blank" rel="noopener noreferrer" style="color: #e0f7fa; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';">
-                    <i class="fas fa-universal-access" style="color: #80deea;"></i> ACESSIBILIDADE
+                    <i class="ph ph-person-simple-circle" style="color: #80deea;"></i> ACESSIBILIDADE
                 </a>
                 <a href="https://transparencia.caudf.gov.br/" target="_blank" rel="noopener noreferrer" style="color: #e0f7fa; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';">
-                    <i class="fas fa-info-circle" style="color: #80deea;"></i> TRANSPARÊNCIA
+                    <i class="ph ph-info" style="color: #80deea;"></i> TRANSPARÊNCIA
                 </a>
             </div>
             <div style="display: flex; gap: 1rem; align-items: center;">
-                <a href="https://www.instagram.com/caudfoficial/" target="_blank" rel="noopener noreferrer" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';" title="Instagram"><i class="fab fa-instagram"></i></a>
-                <a href="http://www.caudf.gov.br" target="_blank" rel="noopener noreferrer" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                <a href="https://www.instagram.com/caudfoficial/" target="_blank" rel="noopener noreferrer" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';" title="Instagram"><i class="ph ph-instagram-logo"></i></a>
+                <a href="http://www.caudf.gov.br" target="_blank" rel="noopener noreferrer" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';" title="WhatsApp"><i class="ph ph-whatsapp-logo"></i></a>
             </div>
         </div>
     </div>
@@ -47,14 +47,14 @@
                 <div style="display: flex; gap: 1.25rem; align-items: center; flex-grow: 1; justify-content: flex-end;">
                     <!-- Search Bar Modern -->
                     <div class="search-container" style="position: relative; max-width: 320px; width: 100%;">
-                        <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.9rem;"></i>
+                        <i class="ph ph-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.9rem;"></i>
                         <input type="text" placeholder="Pesquisar no portal..." style="width: 100%; padding: 0.65rem 1rem 0.65rem 2.4rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 20px; font-size: 0.88rem; color: #1e293b; outline: none; transition: all 0.2s;" onfocus="this.style.background='#fff'; this.style.borderColor='#007a89'; this.style.boxShadow='0 0 0 3px rgba(0, 122, 137, 0.15)';" onblur="this.style.background='#f8fafc'; this.style.borderColor='#cbd5e1'; this.style.boxShadow='none';">
                     </div>
 
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <div style="display: flex; gap: 0.5rem; align-items: center;">
                             <a href="<?php echo BASE_URL; ?><?php echo ($_SESSION['role'] === 'admin') ? 'pages/admin/dashboard.php' : 'pages/recenseador/dashboard.php'; ?>" class="btn btn-primary" style="background: #007a89; color: white; border: none; padding: 0.65rem 1.2rem; font-size: 0.82rem; font-weight: 700; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(0, 122, 137, 0.25);">
-                                <i class="fas fa-user-circle"></i> MINHA ÁREA
+                                <i class="ph ph-user-circle"></i> MINHA ÁREA
                             </a>
                             <a href="<?php echo BASE_URL; ?>logout.php" class="btn btn-outline" style="border: 1px solid #cbd5e1; color: #64748b; padding: 0.65rem 1rem; font-size: 0.82rem; font-weight: 600; border-radius: 8px; text-decoration: none;">
                                 SAIR
@@ -63,7 +63,7 @@
                     <?php else: ?>
                         <a href="https://acesso.caubr.gov.br/" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(135deg, #007a89 0%, #005b66 100%); color: white; padding: 0.6rem 1.25rem; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0, 122, 137, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(0, 122, 137, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 122, 137, 0.3)';">
                              <div style="background: rgba(255,255,255,0.2); width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-lock" style="font-size: 0.95rem; color: white;"></i>
+                                <i class="ph ph-lock" style="font-size: 0.95rem; color: white;"></i>
                              </div>
                              <div style="text-align: left; line-height: 1.1;">
                                 <span style="font-size: 0.85rem; font-weight: 800; letter-spacing: 0.03em;">SICCAU</span><br>

@@ -66,7 +66,7 @@ $fields = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil do Recenseador - <?php echo htmlspecialchars($user['name']); ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <style>
         .profile-container {
@@ -199,17 +199,17 @@ $fields = [
                         <?php echo $user['status'] === 'approved' ? 'APROVADO' : ($user['status'] === 'pending' ? 'PENDENTE' : 'REPROVADO'); ?>
                     </span>
                 </div>
-                <p style="margin: 0; color: #64748b;"><i class="fas fa-envelope"></i> <?php echo htmlspecialchars($user['email']); ?></p>
+                <p style="margin: 0; color: #64748b;"><i class="ph ph-envelope"></i> <?php echo htmlspecialchars($user['email']); ?></p>
             </div>
             <div class="no-print" style="display: flex; gap: 0.8rem;">
                 <button onclick="window.print()" class="btn btn-print">
-                    <i class="fas fa-print"></i> IMPRIMIR
+                    <i class="ph ph-printer"></i> IMPRIMIR
                 </button>
                 <a href="edit_user.php?user_id=<?php echo $user['id']; ?>" class="btn btn-edit-profile">
-                    <i class="fas fa-edit"></i> EDITAR
+                    <i class="ph ph-pencil-simple-line"></i> EDITAR
                 </a>
                 <a href="dashboard.php#users" class="btn btn-back">
-                    <i class="fas fa-arrow-left"></i> VOLTAR
+                    <i class="ph ph-arrow-left"></i> VOLTAR
                 </a>
             </div>
         </div>
@@ -265,15 +265,15 @@ $fields = [
         </div>
 
         <div class="info-card" style="margin-bottom: 3rem;">
-            <h3><i class="fas fa-folder-open"></i> Documentos Cadastrados</h3>
+            <h3><i class="ph ph-folder-open"></i> Documentos Cadastrados</h3>
             <?php if (count($documents) > 0): ?>
                 <div class="docs-grid">
                     <?php foreach ($documents as $doc): ?>
                         <div class="doc-item">
-                            <i class="fas fa-file-pdf doc-icon"></i>
+                            <i class="ph ph-file-pdf doc-icon"></i>
                             <span class="doc-name"><?php echo htmlspecialchars($doc['document_type']); ?></span>
                             <a href="../<?php echo htmlspecialchars($doc['file_path']); ?>" target="_blank" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.8rem; width: 100%;">
-                                <i class="fas fa-external-link-alt"></i> Visualizar
+                                <i class="ph ph-arrow-square-out"></i> Visualizar
                             </a>
                         </div>
                     <?php endforeach; ?>
@@ -285,7 +285,7 @@ $fields = [
 
         <?php if (!empty($user['additional_info'])): ?>
             <div class="info-card" style="margin-bottom: 3rem;">
-                <h3><i class="fas fa-info-circle"></i> Informações Adicionais</h3>
+                <h3><i class="ph ph-info"></i> Informações Adicionais</h3>
                 <p style="white-space: pre-line; color: #444; line-height: 1.6;">
                     <?php echo htmlspecialchars($user['additional_info']); ?>
                 </p>

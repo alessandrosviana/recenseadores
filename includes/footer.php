@@ -5,7 +5,7 @@
             <!-- Coluna 1: Institucional -->
             <div>
                 <h4 style="color: #ffffff; font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-building" style="color: #80deea;"></i> CAU/DF
+                    <i class="ph ph-buildings" style="color: #80deea;"></i> CAU/DF
                 </h4>
                 <p style="font-size: 0.88rem; line-height: 1.6; color: #e0f7fa; margin-bottom: 1.25rem;">
                     Conselho de Arquitetura e Urbanismo do Distrito Federal.<br>
@@ -13,13 +13,13 @@
                 </p>
                 <div style="display: flex; gap: 10px;">
                     <a href="http://www.caudf.gov.br" target="_blank" rel="noopener noreferrer" title="Portal CAU/DF" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); color: #80deea; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='#007a89'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='#80deea';">
-                        <i class="fas fa-globe"></i>
+                        <i class="ph ph-globe-hemisphere-west"></i>
                     </a>
                     <a href="https://www.instagram.com/caudfoficial/" target="_blank" rel="noopener noreferrer" title="Instagram CAU/DF" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); color: #80deea; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='#007a89'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='#80deea';">
-                        <i class="fab fa-instagram"></i>
+                        <i class="ph ph-instagram-logo"></i>
                     </a>
                     <a href="http://www.caudf.gov.br" target="_blank" rel="noopener noreferrer" title="Atendimento CAU/DF" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); color: #80deea; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='#007a89'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='#80deea';">
-                        <i class="fab fa-whatsapp"></i>
+                        <i class="ph ph-whatsapp-logo"></i>
                     </a>
                 </div>
             </div>
@@ -27,32 +27,32 @@
             <!-- Coluna 2: Links Rápidos -->
             <div>
                 <h4 style="color: #ffffff; font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-link" style="color: #80deea;"></i> Acesso Rápido
+                    <i class="ph ph-link" style="color: #80deea;"></i> Acesso Rápido
                 </h4>
                 <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.88rem; display: flex; flex-direction: column; gap: 8px;">
-                    <li><a href="<?php echo BASE_URL; ?>pages/register.php" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';"><i class="fas fa-angle-right" style="font-size: 0.75rem; margin-right: 6px; color: #80deea;"></i> Cadastro de Recenseador</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>pages/login.php" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';"><i class="fas fa-angle-right" style="font-size: 0.75rem; margin-right: 6px; color: #80deea;"></i> Login do Recenseador</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>pages/login.php" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';"><i class="fas fa-angle-right" style="font-size: 0.75rem; margin-right: 6px; color: #80deea;"></i> Área Administrativa</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>pages/forgot_password.php" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';"><i class="fas fa-angle-right" style="font-size: 0.75rem; margin-right: 6px; color: #80deea;"></i> Recuperar Senha</a></li>
+                    <li><a href="<?php echo BASE_URL; ?>pages/register.php" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';"><i class="ph ph-caret-right" style="font-size: 0.75rem; margin-right: 6px; color: #80deea;"></i> Cadastro de Recenseador</a></li>
+                    <li><a href="<?php echo BASE_URL; ?>pages/login.php" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';"><i class="ph ph-caret-right" style="font-size: 0.75rem; margin-right: 6px; color: #80deea;"></i> Login do Recenseador</a></li>
+                    <li><a href="<?php echo BASE_URL; ?>pages/login.php" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';"><i class="ph ph-caret-right" style="font-size: 0.75rem; margin-right: 6px; color: #80deea;"></i> Área Administrativa</a></li>
+                    <li><a href="<?php echo BASE_URL; ?>pages/forgot_password.php" style="color: #e0f7fa; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#80deea';" onmouseout="this.style.color='#e0f7fa';"><i class="ph ph-caret-right" style="font-size: 0.75rem; margin-right: 6px; color: #80deea;"></i> Recuperar Senha</a></li>
                 </ul>
             </div>
 
             <!-- Coluna 3: Atendimento e Localização -->
             <div>
                 <h4 style="color: #ffffff; font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-headset" style="color: #80deea;"></i> Atendimento
+                    <i class="ph ph-headset" style="color: #80deea;"></i> Atendimento
                 </h4>
                 <div style="font-size: 0.88rem; color: #e0f7fa; display: flex; flex-direction: column; gap: 10px;">
                     <div style="display: flex; gap: 10px; align-items: flex-start;">
-                        <i class="fas fa-envelope" style="color: #80deea; margin-top: 3px;"></i>
+                        <i class="ph ph-envelope" style="color: #80deea; margin-top: 3px;"></i>
                         <span>atendimento@caudf.gov.br</span>
                     </div>
                     <div style="display: flex; gap: 10px; align-items: flex-start;">
-                        <i class="fas fa-map-marker-alt" style="color: #80deea; margin-top: 3px;"></i>
+                        <i class="ph ph-map-pin" style="color: #80deea; margin-top: 3px;"></i>
                         <span>SEPS 705/905 Bloco A, Centro Empresarial Asa Sul - Brasília/DF</span>
                     </div>
                     <div style="display: flex; gap: 10px; align-items: flex-start;">
-                        <i class="fas fa-clock" style="color: #80deea; margin-top: 3px;"></i>
+                        <i class="ph ph-clock" style="color: #80deea; margin-top: 3px;"></i>
                         <span>Segunda a Sexta, das 09h às 17h</span>
                     </div>
                 </div>

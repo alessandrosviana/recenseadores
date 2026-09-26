@@ -4,6 +4,7 @@ require_once '../config/session.php';
 $message = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    csrf_verify();
     include '../config/database.php';
 
     // Personal Info
@@ -35,9 +36,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Basic validation
     if (empty($name) || empty($email) || empty($cpf) || empty($microregion) || empty($password)) {
-        $message = '<div style="color:red; margin-bottom:1rem; font-weight:bold;"><i class="fas fa-exclamation-circle"></i> Preencha os campos obrigatórios.</div>';
+        $message = '<div style="color:red; margin-bottom:1rem; font-weight:bold;"><i class="ph ph-exclamation-mark"></i> Preencha os campos obrigatórios.</div>';
     } elseif ($password !== $confirm_password) {
-        $message = '<div style="color:red; margin-bottom:1rem; font-weight:bold;"><i class="fas fa-exclamation-triangle"></i> As senhas digitadas não coincidem. Por favor, verifique e tente novamente.</div>';
+        $message = '<div style="color:red; margin-bottom:1rem; font-weight:bold;"><i class="ph ph-warning"></i> As senhas digitadas não coincidem. Por favor, verifique e tente novamente.</div>';
     } else {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
@@ -95,11 +96,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $tmp_name = $_FILES[$input_name]['tmp_name'];
                     $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
 
-                    if ($ext != 'pdf' && $input_name != 'doc_rg' && $input_name != 'doc_cnh') {
-                        // Allow only PDF for most docs as requested "Os documentos anexos deverão ser em formato PDF" 
-                        // But I'll be lenient with first try or strictly follow "format PDF".
-                        // Prompt says "Os documentos anexos deverão ser em formato PDF".
-                        // I will enforce PDF for compliance.
+                    $is_image_field = ($input_name == 'doc_rg' || $input_name == 'doc_cnh');
+                    $valid_ext = $is_image_field ? in_array($ext, ['pdf', 'jpg', 'jpeg', 'png']) : ($ext === 'pdf');
+                    if (!$valid_ext) {
+                        continue;
+                    }
+
+                    if ($_FILES[$input_name]['size'] > 10 * 1024 * 1024) {
+                        continue;
+                    }
+
+                    $allowed_mimes = $is_image_field ? ['application/pdf', 'image/jpeg', 'image/png'] : ['application/pdf'];
+                    if (!validate_upload_mime($tmp_name, $allowed_mimes)) {
+                        continue;
                     }
 
                     $newFilename = $user_id . '_' . $input_name . '_' . time() . '.' . $ext;
@@ -125,7 +134,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
                 $message = '<div style="color:red; margin-bottom:1rem;">Email ou CPF já cadastrado.</div>';
             } else {
-                $message = '<div style="color:red; margin-bottom:1rem;">Erro ao cadastrar: ' . $e->getMessage() . '</div>';
+                log_error($e->getMessage(), __FILE__, __LINE__);
+                $message = '<div style="color:red; margin-bottom:1rem;">Erro ao cadastrar. Tente novamente.</div>';
             }
         }
     }
@@ -140,7 +150,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de Recenseador - CAU/DF</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <style>
     <style>
@@ -371,9 +381,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php if (!empty($message)) echo $message; ?>
 
             <form action="" method="post" enctype="multipart/form-data">
+                <?php echo csrf_field(); ?>
 
                 <!-- Informações Pessoais -->
-                <div class="form-section-title"><i class="fas fa-user-circle"></i> Informações Pessoais</div>
+                <div class="form-section-title"><i class="ph ph-user-circle"></i> Informações Pessoais</div>
 
                 <div class="form-group">
                     <label>Nome Completo (conforme está no RG/CNH) *</label>
@@ -424,7 +435,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 <div class="form-group" style="background: #f0fdfa; padding: 1.25rem; border-radius: 10px; border: 1px solid #ccfbf1; margin-top: 1.5rem; margin-bottom: 2rem;">
                     <label style="color: #007a89; font-weight: 800; font-size: 0.95rem;">
-                        <i class="fas fa-map-marked-alt"></i> Área de Atuação Desejada (Macrorregião) *
+                        <i class="ph ph-crosshair"></i> Área de Atuação Desejada (Macrorregião) *
                     </label>
                     <p style="font-size: 0.85rem; color: #475569; margin-top: 0.3rem; margin-bottom: 0.8rem; line-height: 1.5;">
                         Selecione a região macro pretendida de atuação como recenseador. Essa escolha definirá em quais cidades (RAs) o CAU/DF poderá lhe atribuir rotas.
@@ -445,7 +456,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <!-- Senha e Confirmação de Senha -->
                 <div class="form-group" style="background: #f8fafc; padding: 1.25rem; border-radius: 10px; border: 1px solid #e2e8f0; margin-top: 1.5rem; margin-bottom: 2rem;">
                     <label style="color: #0f172a; font-weight: 800; display: block; margin-bottom: 0.75rem; font-size: 0.95rem;">
-                        <i class="fas fa-lock" style="color: #007a89;"></i> Senha de Acesso ao Sistema
+                        <i class="ph ph-lock" style="color: #007a89;"></i> Senha de Acesso ao Sistema
                     </label>
                     <div class="grid-custom">
                         <div class="form-group" style="margin-bottom: 0;">
@@ -453,7 +464,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <div style="position: relative;">
                                 <input type="password" name="password" id="reg_password" required placeholder="Digite sua senha" style="padding-right: 40px; width: 100%;">
                                 <button type="button" onclick="togglePasswordVisibility('reg_password', 'eye_icon_1')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px;">
-                                    <i class="fas fa-eye" id="eye_icon_1"></i>
+                                    <i class="ph ph-eye" id="eye_icon_1"></i>
                                 </button>
                             </div>
                         </div>
@@ -462,7 +473,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <div style="position: relative;">
                                 <input type="password" name="confirm_password" id="reg_confirm_password" required placeholder="Repita sua senha" style="padding-right: 40px; width: 100%;">
                                 <button type="button" onclick="togglePasswordVisibility('reg_confirm_password', 'eye_icon_2')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px;">
-                                    <i class="fas fa-eye" id="eye_icon_2"></i>
+                                    <i class="ph ph-eye" id="eye_icon_2"></i>
                                 </button>
                             </div>
                         </div>
@@ -471,9 +482,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
 
                 <!-- Address -->
-                <div class="form-section-title"><i class="fas fa-map-marker-alt"></i> Endereço Residencial</div>
+                <div class="form-section-title"><i class="ph ph-map-pin"></i> Endereço Residencial</div>
                 <div style="background: #fffbe6; color: #856404; padding: 0.85rem 1rem; border-radius: 8px; border: 1px solid #ffe58f; margin-bottom: 1.25rem; font-size: 0.88rem; line-height: 1.5;">
-                    <strong><i class="fas fa-exclamation-triangle"></i> ATENÇÃO:</strong> O endereço preenchido na solicitação precisa corresponder exatamente ao comprovante de residência anexado.
+                    <strong><i class="ph ph-warning"></i> ATENÇÃO:</strong> O endereço preenchido na solicitação precisa corresponder exatamente ao comprovante de residência anexado.
                 </div>
 
                 <div class="form-group">
@@ -527,7 +538,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
 
                 <!-- Education -->
-                <div class="form-section-title"><i class="fas fa-graduation-cap"></i> Escolaridade e Formação</div>
+                <div class="form-section-title"><i class="ph ph-graduation-cap"></i> Escolaridade e Formação</div>
 
                 <div class="form-group">
                     <label>Grau de Escolaridade *</label>
@@ -561,7 +572,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
 
                 <!-- Documents -->
-                <div class="form-section-title"><i class="fas fa-folder-open"></i> Documentação Exigida (Formato PDF)</div>
+                <div class="form-section-title"><i class="ph ph-folder-open"></i> Documentação Exigida (Formato PDF)</div>
                 <p style="font-size: 0.88rem; color: #64748b; margin-bottom: 1.25rem;">
                     * Os documentos anexos deverão ser em formato PDF e com tamanho máximo de 10MB por arquivo.
                 </p>
@@ -648,14 +659,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
 
                 <button type="submit" class="btn-register-submit">
-                    <i class="fas fa-paper-plane"></i> SUBMETER INSCRIÇÃO PARA ANÁLISE
+                    <i class="ph ph-paper-plane"></i> SUBMETER INSCRIÇÃO PARA ANÁLISE
                 </button>
             </form>
 
             <div class="login-footer-link-box">
                 <p style="font-size: 0.88rem; color: #64748b; margin: 0;">Já possui um cadastro aprovado ou em análise?</p>
                 <a href="login.php" class="login-footer-link">
-                    <i class="fas fa-sign-in-alt" style="font-size: 0.8rem;"></i> Faça Login no Sistema
+                    <i class="ph ph-sign-in" style="font-size: 0.8rem;"></i> Faça Login no Sistema
                 </a>
             </div>
         </div>
@@ -729,11 +740,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 msg.style.display = 'block';
                 if (pass.value && confirmPass.value && pass.value === confirmPass.value) {
                     msg.style.color = '#155724';
-                    msg.innerHTML = '<i class="fas fa-check-circle"></i> As senhas coincidem perfeitamente!';
+                    msg.innerHTML = '<i class="ph ph-check-circle"></i> As senhas coincidem perfeitamente!';
                     confirmPass.style.borderColor = '#28a745';
                 } else if (confirmPass.value) {
                     msg.style.color = '#721c24';
-                    msg.innerHTML = '<i class="fas fa-times-circle"></i> As senhas digitadas não coincidem!';
+                    msg.innerHTML = '<i class="ph ph-x-circle"></i> As senhas digitadas não coincidem!';
                     confirmPass.style.borderColor = '#dc3545';
                 } else {
                     msg.style.display = 'none';

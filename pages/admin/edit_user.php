@@ -16,6 +16,7 @@ if (!$user_id) {
 $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_user') {
+    csrf_verify();
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
@@ -37,38 +38,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $user_role = $currentUser ? $currentUser['role'] : 'recenseador';
 
     if ($user_role === 'recenseador' && empty($cpf)) {
-        $message = '<div class="alert danger"><i class="fas fa-times"></i> Erro: O campo CPF é obrigatório para recenseadores.</div>';
+        $message = '<div class="alert danger"><i class="ph ph-x"></i> Erro: O campo CPF é obrigatório para recenseadores.</div>';
     } else {
         $db_cpf = empty($cpf) ? null : $cpf;
 
         try {
             $stmt = $pdo->prepare("UPDATE users SET name=?, email=?, phone=?, cpf=?, rg=?, address=?, city=?, state=?, cep=?, microregion=?, processo_sei=?, contrato=?, status=? WHERE id=?");
             if ($stmt->execute([$name, $email, $phone, $db_cpf, $rg, $address, $city, $state, $cep, $microregion, $processo_sei, $contrato, $status, $user_id])) {
-                $message = '<div class="alert success"><i class="fas fa-check"></i> Dados do usuário atualizados com sucesso!</div>';
+                $message = '<div class="alert success"><i class="ph ph-check"></i> Dados do usuário atualizados com sucesso!</div>';
             } else {
-                $message = '<div class="alert danger"><i class="fas fa-times"></i> Nenhuma alteração foi feita ou ocorreu um erro.</div>';
+                $message = '<div class="alert danger"><i class="ph ph-x"></i> Nenhuma alteração foi feita ou ocorreu um erro.</div>';
             }
         } catch (PDOException $e) {
             if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
-                $message = '<div class="alert danger"><i class="fas fa-times"></i> Erro ao atualizar: Este E-mail ou CPF já está cadastrado em outro usuário.</div>';
+                $message = '<div class="alert danger"><i class="ph ph-x"></i> Erro ao atualizar: Este E-mail ou CPF já está cadastrado em outro usuário.</div>';
             } else {
-                $message = '<div class="alert danger"><i class="fas fa-times"></i> Erro ao atualizar: ' . $e->getMessage() . '</div>';
+                $message = '<div class="alert danger"><i class="ph ph-x"></i> Erro ao atualizar: ' . $e->getMessage() . '</div>';
             }
         }
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'reset_password') {
+    csrf_verify();
     try {
         $custom_pass = trim($_POST['custom_password'] ?? '');
         $plain_password = !empty($custom_pass) ? $custom_pass : '123456';
         $new_password_hash = password_hash($plain_password, PASSWORD_DEFAULT);
         $stmt = $pdo->prepare("UPDATE users SET password=? WHERE id=?");
         if ($stmt->execute([$new_password_hash, $user_id])) {
-            $message = '<div class="alert success"><i class="fas fa-key"></i> Senha redefinida para <strong>' . htmlspecialchars($plain_password) . '</strong> com sucesso! O recenseador já pode acessar o sistema com essa senha.</div>';
+            $message = '<div class="alert success"><i class="ph ph-key"></i> Senha redefinida para <strong>' . htmlspecialchars($plain_password) . '</strong> com sucesso! O recenseador já pode acessar o sistema com essa senha.</div>';
         } else {
-            $message = '<div class="alert danger"><i class="fas fa-times"></i> Nenhuma alteração foi feita ou ocorreu um erro na redefinição de senha.</div>';
+            $message = '<div class="alert danger"><i class="ph ph-x"></i> Nenhuma alteração foi feita ou ocorreu um erro na redefinição de senha.</div>';
         }
     } catch (PDOException $e) {
-        $message = '<div class="alert danger"><i class="fas fa-times"></i> Erro ao tentar redefinir a senha: ' . $e->getMessage() . '</div>';
+        $message = '<div class="alert danger"><i class="ph ph-x"></i> Erro ao tentar redefinir a senha: ' . $e->getMessage() . '</div>';
     }
 }
 
@@ -88,7 +90,7 @@ if (!$edit_user) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Usuário - CAU/DF</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <style>
         .page-header {
@@ -161,7 +163,7 @@ if (!$edit_user) {
     <div class="page-header" style="justify-content: space-between;">
         <div style="display: flex; align-items: center; gap: 1rem;">
             <a href="dashboard.php#users" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.3rem 0.8rem;">
-                <i class="fas fa-arrow-left"></i> Voltar
+                <i class="ph ph-arrow-left"></i> Voltar
             </a>
             <h2 style="color: var(--primary-teal); margin: 0;">Editar Dados do Recenseador</h2>
         </div>
@@ -183,6 +185,7 @@ if (!$edit_user) {
                 echo $message; ?>
 
             <form method="post">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="update_user">
 
                 <div class="form-group">
@@ -304,7 +307,7 @@ if (!$edit_user) {
                 <!-- Painel de Redefinição de Senha Administrativa -->
                 <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 1.25rem; margin-top: 2rem;">
                     <h4 style="margin: 0 0 0.5rem 0; color: #334155; font-size: 1rem;">
-                        <i class="fas fa-key"></i> Redefinição de Senha do Recenseador (Administrador)
+                        <i class="ph ph-key"></i> Redefinição de Senha do Recenseador (Administrador)
                     </h4>
                     <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
                         Você pode redefinir a senha deste recenseador diretamente. Digite uma nova senha abaixo ou deixe em branco para redefinir para a senha padrão (<strong>123456</strong>).
@@ -313,23 +316,24 @@ if (!$edit_user) {
                         <input type="text" id="admin_custom_pass" placeholder="Nova senha (deixe em branco p/ 123456)" class="form-control" style="width: 320px; font-size: 0.85rem; padding: 0.6rem;">
                         <button type="button" class="btn" style="background: #eab308; color: #713f12; font-weight: 700; font-size: 0.85rem; padding: 0.6rem 1.2rem; border: none; border-radius: 4px; cursor: pointer;"
                                 onclick="submitAdminReset()">
-                            <i class="fas fa-sync-alt"></i> Redefinir Senha
+                            <i class="ph ph-arrows-clockwise"></i> Redefinir Senha
                         </button>
                     </div>
                 </div>
 
                 <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
                     <a href="view_user.php?user_id=<?php echo $edit_user['id']; ?>" class="btn btn-outline" target="_blank">
-                        <i class="fas fa-user-circle"></i> Ver Perfil Completo
+                        <i class="ph ph-user-circle"></i> Ver Perfil Completo
                     </a>
                     <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2rem;">
-                        <i class="fas fa-save"></i> Salvar Alterações dos Dados
+                        <i class="ph ph-floppy-disk"></i> Salvar Alterações dos Dados
                     </button>
                 </div>
             </form>
 
             <!-- Hidden form for resetting password -->
             <form id="resetPasswordForm" method="post" style="display: none;">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="reset_password">
                 <input type="hidden" name="custom_password" id="hidden_custom_password" value="">
             </form>

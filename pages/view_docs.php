@@ -23,6 +23,7 @@ if (!$user) {
 
 // Handle document approval/rejection
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     $action = $_POST['action'] ?? '';
     $doc_id = (int) ($_POST['doc_id'] ?? 0);
 
@@ -46,7 +47,7 @@ $documents = $docs_stmt->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Documentos de <?php echo htmlspecialchars($user['name']); ?> - CAU/DF</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <style>
         .page-header {
@@ -152,19 +153,19 @@ $documents = $docs_stmt->fetchAll();
             <div>
                 <a href="admin/dashboard.php" class="btn btn-outline mb-2"
                     style="font-size: 0.8rem; padding: 0.3rem 0.8rem;">
-                    <i class="fas fa-arrow-left"></i> Voltar
+                    <i class="ph ph-arrow-left"></i> Voltar
                 </a>
                 <h2 style="color: var(--primary-teal); margin: 0;">
                     <?php echo htmlspecialchars($user['name']); ?>
                 </h2>
                 <div class="user-details">
-                    <div><i class="fas fa-id-card"></i> CPF: <?php echo htmlspecialchars($user['cpf']); ?></div>
-                    <div><i class="fas fa-envelope"></i> <?php echo htmlspecialchars($user['email']); ?></div>
-                    <div><i class="fas fa-phone"></i> <?php echo htmlspecialchars($user['phone']); ?></div>
+                    <div><i class="ph ph-identification-card"></i> CPF: <?php echo htmlspecialchars($user['cpf']); ?></div>
+                    <div><i class="ph ph-envelope"></i> <?php echo htmlspecialchars($user['email']); ?></div>
+                    <div><i class="ph ph-phone"></i> <?php echo htmlspecialchars($user['phone']); ?></div>
                 </div>
                 <div style="margin-top: 0.8rem; display: flex; flex-direction: column; gap: 0.4rem;">
                     <div style="font-size: 0.9rem; color: #555;">
-                        <i class="fas fa-map-marker-alt" style="width: 16px; color: var(--primary-teal);"></i> 
+                        <i class="ph ph-map-pin" style="width: 16px; color: var(--primary-teal);"></i> 
                         <strong>Endereço:</strong> <?php echo htmlspecialchars(($user['address'] ?? '') . ', ' . ($user['city'] ?? '') . ' - ' . ($user['state'] ?? '') . ' (CEP: ' . ($user['cep'] ?? '') . ')'); ?>
                     </div>
                     <?php 
@@ -173,7 +174,7 @@ $documents = $docs_stmt->fetchAll();
                         $macroDisplay = str_replace(['├ú', 'Ã£'], 'ã', $macroDisplay);
                     ?>
                     <div style="font-size: 0.9rem; color: #555;">
-                        <i class="fas fa-layer-group" style="width: 16px; color: var(--primary-teal);"></i> 
+                        <i class="ph ph-stack" style="width: 16px; color: var(--primary-teal);"></i> 
                         <strong>Macrorregião Escolhida:</strong> <span style="color: var(--primary-teal); font-weight: 700;"><?php echo htmlspecialchars($macroDisplay); ?></span>
                     </div>
                 </div>
@@ -182,18 +183,20 @@ $documents = $docs_stmt->fetchAll();
             <div class="actions" style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; justify-content: flex-end;">
                 <!-- Quick actions for admin -->
                 <form method="post" action="admin/dashboard.php" style="display:flex; align-items:center; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end;" onsubmit="return confirm('Deseja aprovar este cadastro?');">
+                    <?php echo csrf_field(); ?>
                     <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
                     <input type="hidden" name="action" value="approve">
                     <input type="text" name="processo_sei" placeholder="Processo SEI" class="form-control" style="width: 140px; padding: 0.4rem 0.5rem; height: 40px; font-size: 0.85rem; margin: 0;">
                     <input type="text" name="contrato" placeholder="Nº do Edital" class="form-control" style="width: 140px; padding: 0.4rem 0.5rem; height: 40px; font-size: 0.85rem; margin: 0;">
-                    <button type="submit" class="btn btn-primary" style="height: 40px; line-height: 1;"><i class="fas fa-check"></i> Aprovar Cadastro</button>
+                    <button type="submit" class="btn btn-primary" style="height: 40px; line-height: 1;"><i class="ph ph-check"></i> Aprovar Cadastro</button>
                 </form>
                 <form method="post" action="admin/dashboard.php" style="display:flex; justify-content: flex-end;"
                     onsubmit="return confirm('Tem certeza que deseja reprovar este cadastro?');">
+                    <?php echo csrf_field(); ?>
                     <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
                     <input type="hidden" name="action" value="reject">
                     <button type="submit" class="btn btn-outline" style="color: #dc3545; border-color: #dc3545; height: 40px;"><i
-                            class="fas fa-times"></i> Reprovar Cadastro</button>
+                            class="ph ph-x"></i> Reprovar Cadastro</button>
                 </form>
             </div>
         </div>
@@ -204,7 +207,7 @@ $documents = $docs_stmt->fetchAll();
                     <div class="doc-card">
                         <div class="doc-header" style="justify-content: space-between;">
                             <div>
-                                <i class="fas fa-file-alt" style="color: var(--primary-teal);"></i>
+                                <i class="ph ph-file-text" style="color: var(--primary-teal);"></i>
                                 <?php echo htmlspecialchars($doc['document_type']); ?>
                             </div>
                             <?php if (($doc['status'] ?? 'pending') === 'approved'): ?>
@@ -244,7 +247,7 @@ $documents = $docs_stmt->fetchAll();
                             <?php elseif (in_array($ext, ['jpg', 'jpeg', 'png'])): ?>
                                 <img src="<?php echo htmlspecialchars($displayPath); ?>">
                             <?php else: ?>
-                                <i class="fas fa-file doc-icon"></i>
+                                <i class="ph ph-file doc-icon"></i>
                             <?php endif; ?>
 
                             <a href="<?php echo htmlspecialchars($displayPath); ?>" target="_blank" class="overlay"></a>
@@ -253,23 +256,25 @@ $documents = $docs_stmt->fetchAll();
                         <div class="doc-footer" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                             <a href="<?php echo htmlspecialchars($displayPath); ?>" target="_blank" class="btn btn-outline"
                                 style="flex: 1 1 100%; font-size: 0.9rem;">
-                                <i class="fas fa-external-link-alt"></i> Visualizar/Baixar
+                                <i class="ph ph-arrow-square-out"></i> Visualizar/Baixar
                             </a>
                             <form method="post" style="flex: 1;">
+                                <?php echo csrf_field(); ?>
                                 <input type="hidden" name="doc_id" value="<?php echo $doc['id']; ?>">
                                 <input type="hidden" name="action" value="approve_doc">
                                 <button type="submit" class="btn btn-primary"
                                     style="width: 100%; font-size: 0.8rem; padding: 0.4rem; background: #198754; border-color: #198754;">
-                                    <i class="fas fa-check"></i> Aprovar
+                                    <i class="ph ph-check"></i> Aprovar
                                 </button>
                             </form>
                             <form method="post" style="flex: 1;">
+                                <?php echo csrf_field(); ?>
                                 <input type="hidden" name="doc_id" value="<?php echo $doc['id']; ?>">
                                 <input type="hidden" name="action" value="reject_doc">
                                 <button type="submit" class="btn btn-outline"
                                     style="width: 100%; font-size: 0.8rem; padding: 0.4rem; color: #dc3545; border-color: #dc3545;"
                                     onclick="return confirm('Tem certeza que deseja reprovar este documento?');">
-                                    <i class="fas fa-times"></i> Reprovar
+                                    <i class="ph ph-x"></i> Reprovar
                                 </button>
                             </form>
                         </div>
@@ -278,7 +283,7 @@ $documents = $docs_stmt->fetchAll();
             </div>
         <?php else: ?>
             <div class="text-center py-5">
-                <i class="fas fa-folder-open" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+                <i class="ph ph-folder-open" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
                 <p class="text-muted">Este usuário ainda não enviou nenhum documento.</p>
             </div>
         <?php endif; ?>
