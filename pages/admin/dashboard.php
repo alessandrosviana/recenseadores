@@ -587,6 +587,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             if (type === 'padrao') {
                 specificFields.forEach(el => el.style.display = 'none');
                 areaFields.forEach(el => el.style.display = 'block');
+                initQuill();
                 document.getElementById('route_microregion').required = false;
                 document.getElementById('street').required = false;
             } else if (type === 'especifica') {
@@ -597,6 +598,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             } else { // mista
                 specificFields.forEach(el => el.style.display = 'block');
                 areaFields.forEach(el => el.style.display = 'block');
+                initQuill();
                 document.getElementById('route_microregion').required = true;
                 document.getElementById('street').required = true;
             }
@@ -604,8 +606,8 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
 
         // Initialize Quill
         let quill;
-        document.addEventListener("DOMContentLoaded", function () {
-            if (document.getElementById('editor-container')) {
+        function initQuill() {
+            if (!quill && document.getElementById('editor-container') && typeof Quill !== 'undefined') {
                 quill = new Quill('#editor-container', {
                     theme: 'snow',
                     modules: {
@@ -616,12 +618,13 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         ]
                     }
                 });
-
                 quill.on('text-change', function() {
                     document.getElementById('area_details_input').value = quill.root.innerHTML;
                 });
             }
-            
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            initQuill();
             setDemandType('especifica');
         });
     </script>
@@ -839,7 +842,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                     <p style="font-size: 0.9rem; color: #555; margin-top: 0.5rem;">O CAUDF, representado pela GERFISC - Gerência de Fiscalização, formaliza a distribuição da demanda para pagamento.</p>
                 </div>
 
-                <div class="card" id="task_calc_card" style="padding: 2rem; max-width: 900px; margin: 0 auto; border: 1px solid #e0e0e0; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background: white;">
+                <div class="card" id="task_calc_card" style="padding: 2rem; max-width: 900px; margin: 0 auto; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm); background: var(--surface-1); border-radius: var(--radius);">
                     
                     <!-- CABEÇALHO DE IMPRESSÃO -->
                     <div class="print-header" style="display: none; text-align: center; margin-bottom: 2rem;">
@@ -912,11 +915,11 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         <input type="hidden" name="grand_total" id="task_hidden_grand_total">
 
                         <!-- SELEÇÃO NO-PRINT -->
-                        <div class="no-print" style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem; border: 1px solid #eee;">
+                        <div class="no-print" style="background: var(--surface-input); padding: 1.5rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem; border: 1px solid var(--border-subtle);">
                             <div style="display: flex; align-items: center; gap: 1.5rem;">
-                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="ph ph-user-rectangle" style="color: var(--primary-teal); margin-right: 5px;"></i> Vincular Recenseador:</div>
+                                <div style="font-weight: 600; color: var(--ink-tertiary); text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.03em; width: 220px;"><i class="ph ph-user-rectangle" style="color: var(--primary-teal); margin-right: 5px;"></i> Vincular Recenseador:</div>
                                 <div style="flex-grow: 1;">
-                                    <select id="task_calc_user" class="form-control" style="font-weight: 600; color: #333; border: 2px solid #ddd; width: 100%; padding: 0.5rem;" onchange="taskUpdateCalcRouteSelect()">
+                                    <select id="task_calc_user" class="form-control" style="font-weight: 600; color: #333; border: 1px solid var(--border-default); width: 100%; padding: 0.5rem;" onchange="taskUpdateCalcRouteSelect()">
                                         <option value="">-- Selecione o recenseador --</option>
                                         <?php foreach ($approved_users as $u): 
                                             $macroDisplay = $u['microregion'] ?? 'N/A';
@@ -933,27 +936,27 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 1.5rem;">
-                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="ph ph-crosshair" style="color: var(--primary-teal); margin-right: 5px;"></i> Selecionar Rota:</div>
+                                <div style="font-weight: 600; color: var(--ink-tertiary); text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.03em; width: 220px;"><i class="ph ph-crosshair" style="color: var(--primary-teal); margin-right: 5px;"></i> Selecionar Rota:</div>
                                 <div style="flex-grow: 1;">
-                                    <select id="task_calc_route" name="route_id" class="form-control" style="font-weight: 600; color: #333; border: 2px solid #ddd; width: 100%; padding: 0.5rem;" onchange="taskLoadSavedCalculation()">
+                                    <select id="task_calc_route" name="route_id" class="form-control" style="font-weight: 600; color: #333; border: 1px solid var(--border-default); width: 100%; padding: 0.5rem;" onchange="taskLoadSavedCalculation()">
                                         <option value="">-- Escolha primeiro o recenseador --</option>
                                     </select>
                                 </div>
                             </div>
                             <div id="task_sei_pagamento_container" style="display: none; align-items: center; gap: 1.5rem;">
-                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="ph ph-receipt" style="color: var(--primary-teal); margin-right: 5px;"></i> SEI de Pagamento: <span style="color:red;">*</span></div>
+                                <div style="font-weight: 600; color: var(--ink-tertiary); text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.03em; width: 220px;"><i class="ph ph-receipt" style="color: var(--primary-teal); margin-right: 5px;"></i> SEI de Pagamento: <span style="color:red;">*</span></div>
                                 <div style="flex-grow: 1;">
-                                    <input type="text" name="sei_pagamento" id="task_calc_sei_pagamento" required class="form-control" placeholder="Informe o SEI para liquidação" style="font-weight: 600; color: #333; border: 2px solid #ddd; width: 100%; padding: 0.5rem;">
+                                    <input type="text" name="sei_pagamento" id="task_calc_sei_pagamento" required class="form-control" placeholder="Informe o SEI para liquidação" style="font-weight: 600; color: #333; border: 1px solid var(--border-default); width: 100%; padding: 0.5rem;">
                                 </div>
                             </div>
                         </div>
 
                         <!-- INPUT DE GASOLINA -->
-                        <div class="no-print" style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; display: flex; align-items: center; gap: 1.5rem; border: 1px solid #eee;">
-                            <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem;">Preço Médio Gasolina DF (ANP):</div>
+                        <div class="no-print" style="background: var(--surface-input); padding: 1.5rem; border-radius: var(--radius-sm); margin-bottom: 2rem; display: flex; align-items: center; gap: 1.5rem; border: 1px solid var(--border-subtle);">
+                            <div style="font-weight: 600; color: var(--ink-tertiary); text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.03em;">Preco Médio Gasolina DF (ANP):</div>
                             <div style="position: relative; width: 160px;">
                                 <span style="position: absolute; left: 12px; top: 10px; color: #666; font-weight: 600;">R$</span>
-                                <input type="number" id="task_gas_price" name="gas_price" value="6.36" step="0.001" class="form-control" style="padding-left: 40px; font-weight: 800; color: var(--primary-teal); border: 2px solid #ddd; width: 100%;" oninput="taskUpdateFromGasoline()">
+                                <input type="number" id="task_gas_price" name="gas_price" value="6.36" step="0.001" class="form-control" style="padding-left: 40px; font-weight: 800; color: var(--primary-teal); border: 1px solid var(--border-default); width: 100%;" oninput="taskUpdateFromGasoline()">
                             </div>
                             <div style="font-size: 0.85rem; color: #777;">
                                 <i class="ph ph-info"></i> Ajuste a gasolina para atualizar os valores de KM automaticamente.
@@ -961,12 +964,12 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         </div>
 
                     <!-- TABELA CÁLCULO -->
-                    <div style="text-align: center; margin-bottom: 1.5rem; font-weight: 800; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px;">CÁLCULO REMUNERAÇÃO PREVISTA</div>
+                    <div style="text-align: center; margin-bottom: 1.5rem; font-weight: 800; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-secondary);">Calculo Remuneracao Prevista</div>
                     
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; background: white; border: 1px solid transparent;">
                         <thead>
-                            <tr style="border-bottom: 1px solid #eee;">
-                                <th style="padding: 1rem 0; text-align: left; width: 45%; color: #555; font-weight: 800; font-size: 1.1rem;">VALOR-FIXO</th>
+                            <tr style="border-bottom: 1px solid var(--border-subtle);">
+                                <th style="padding: 1rem 0; text-align: left; width: 45%; color: var(--ink-secondary); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.03em;">Valor Fixo</th>
                                 <th style="padding: 1rem 0; text-align: center; color: #333; font-weight: 800;">Quant.</th>
                                 <th style="padding: 1rem 0; text-align: center; color: #333; font-weight: 800;">Unitário</th>
                                 <th style="padding: 1rem 0; text-align: right; color: #333; font-weight: 800;">Total</th>
@@ -974,46 +977,46 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         </thead>
                         <tbody>
                             <tr>
-                                <td style="padding: 1.2rem 0; border-bottom: 1px solid #eee; color: #555;">Escritório-Modelo (un.)</td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);">Escritório-Modelo (un.)</td>
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="task_q_escritorio" name="q_escritorio" value="1" class="form-control" style="width: 60px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="taskUpdateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="task_u_escritorio" name="u_escritorio" value="102.02" step="0.01" class="form-control" style="width: 80px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="taskUpdateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid #eee; color: #555;" id="task_t_escritorio">R$ 102,02</td>
+                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);" id="task_t_escritorio">R$ 102,02</td>
                             </tr>
                             <tr>
-                                <td style="padding: 1.2rem 0; border-bottom: 1px solid #eee; color: #555;">Auxílio-combustível (km)</td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);">Auxílio-combustível (km)</td>
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="task_q_km_fix" name="q_km_fix" value="10" class="form-control" style="width: 60px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="taskUpdateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="task_u_km_fix" name="u_km_fix" value="2.03" step="0.01" class="form-control" style="width: 80px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="taskUpdateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid #eee; color: #555;" id="task_t_km_fix">R$ 20,30</td>
+                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);" id="task_t_km_fix">R$ 20,30</td>
                             </tr>
                             <tr>
-                                <td style="padding: 1.2rem 0; border-bottom: 1px solid #eee; color: #555;">Auxílio-Alimentação (un.)</td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);">Auxílio-Alimentação (un.)</td>
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="task_q_alim" name="q_alim" value="2" class="form-control" style="width: 60px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="taskUpdateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="task_u_alim" name="u_alim" value="46.35" step="0.01" class="form-control" style="width: 80px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="taskUpdateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid #eee; color: #555;" id="task_t_alim">R$ 92,70</td>
+                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);" id="task_t_alim">R$ 92,70</td>
                             </tr>
                             <tr style="font-weight: 800; font-size: 1.1rem;">
-                                <td colspan="3" style="padding: 1.5rem 0; text-align: left; color: #444;">TOTAL VALOR FIXO</td>
-                                <td style="padding: 1.5rem 0; text-align: right; color: #444;" id="task_total_fixed_display">R$ 215,02</td>
+                                <td colspan="3" style="padding: 1.5rem 0; text-align: left; color: var(--ink-tertiary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em;">Total Valor Fixo</td>
+                                <td style="padding: 1.5rem 0; text-align: right; color: var(--petrol); font-variant-numeric: tabular-nums;" id="task_total_fixed_display">R$ 215,02</td>
                             </tr>
                         </tbody>
                     </table>
 
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; background: white; border: 1px solid transparent;">
                         <thead>
-                            <tr style="border-bottom: 1px solid #eee;">
-                                <th style="padding: 1rem 0; text-align: left; width: 45%; color: #555; font-weight: 800; font-size: 1.1rem;">VALOR-VARIÁVEL***</th>
+                            <tr style="border-bottom: 1px solid var(--border-subtle);">
+                                <th style="padding: 1rem 0; text-align: left; width: 45%; color: var(--ink-secondary); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.03em;">Valor Variavel***</th>
                                 <th style="padding: 1rem 0; text-align: center; color: #333; font-weight: 800;">Quant.</th>
                                 <th style="padding: 1rem 0; text-align: center; color: #333; font-weight: 800;">Unitário</th>
                                 <th style="padding: 1rem 0; text-align: right; color: #333; font-weight: 800;">Total</th>
@@ -1021,40 +1024,40 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         </thead>
                         <tbody>
                             <tr>
-                                <td style="padding: 1.2rem 0; border-bottom: 1px solid #eee; color: #555;">Auxílio combustível (km)</td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);">Auxílio combustível (km)</td>
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="task_q_km_var" name="q_km_var" value="30" class="form-control" style="width: 60px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="taskUpdateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="task_u_km_var" name="u_km_var" value="2.03" step="0.01" class="form-control" style="width: 80px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="taskUpdateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid #eee; color: #555;" id="task_t_km_var">R$ 60,90</td>
+                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);" id="task_t_km_var">R$ 60,90</td>
                             </tr>
                             <tr>
-                                <td style="padding: 1.2rem 0; border-bottom: 1px solid #eee; color: #555;">Quant. Obras (un.)</td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);">Quant. Obras (un.)</td>
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="task_q_obras" name="q_obras" value="1" class="form-control" style="width: 60px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="taskUpdateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="task_u_obras" name="u_obras" value="7.61" step="0.01" class="form-control" style="width: 80px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="taskUpdateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid #eee; color: #555;" id="task_t_obras">R$ 7,61</td>
+                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);" id="task_t_obras">R$ 7,61</td>
                             </tr>
                             <tr style="font-weight: 800; font-size: 1.1rem;">
-                                <td colspan="3" style="padding: 1.5rem 0; text-align: left; color: #444;">TOTAL VALOR VARIÁVEL</td>
-                                <td style="padding: 1.5rem 0; text-align: right; color: #444;" id="task_total_var_display">R$ 68,51</td>
+                                <td colspan="3" style="padding: 1.5rem 0; text-align: left; color: var(--ink-tertiary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em;">Total Valor Variavel</td>
+                                <td style="padding: 1.5rem 0; text-align: right; color: var(--petrol); font-variant-numeric: tabular-nums;" id="task_total_var_display">R$ 68,51</td>
                             </tr>
                         </tbody>
                     </table>
 
                     <!-- RESULTADO FINAL -->
-                    <div style="border: 1px solid #000; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; background: white; margin-top: 1rem;">
-                        <div style="font-weight: 800; font-size: 0.95rem; color: #444;">REMUNERAÇÃO = TOTAL VALOR FIXO + TOTAL VALOR VARIÁVEL</div>
-                        <div style="font-size: 2.2rem; font-weight: 800; color: #3b8a7c;" id="task_grand_total_display">R$ 283,53</div>
+                    <div style="border: 1px solid var(--border-emphasis); padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; background: var(--surface-1); margin3rem 1rem; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm);">
+                        <div style="font-weight: 800; font-size: 0.95rem; color: var(--ink-tertiary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em;">Remuneracao = Total Fixo + Total Variavel</div>
+                        <div style="font-size: 2.2rem; font-weight: 800; color: var(--petrol);" id="task_grand_total_display">R$ 283,53</div>
                     </div>
 
                     <div class="no-print" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
-                        <p style="font-size: 0.75rem; color: #777; margin: 0;">
+                        <p style="font-size: 0.75rem; color: var(--ink-muted); margin: 0;">
                             *** variável a depender da demanda.<br>
                             ** As DEMANDAS são limitadas em no máximo 10 (dez) obras a serem visitadas.
                         </p>
@@ -1064,7 +1067,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 <i class="ph ph-file-pdf"></i> Visualizar Relatório
                             </button>
                             
-                            <button type="submit" class="btn btn-primary" style="padding: 0.8rem 1.5rem; background: #28a745; border-color: #28a745;">
+                            <button type="submit" class="btn btn-primary" style="padding: 0.8rem 1.5rem; background: var(--success); border-color: var(--success); box-shadow: 0 2px 8px -2px rgba*rgba(13, 157, 108, 0.25);">
                                 <i class="ph ph-floppy-disk"></i> Salvar e Liquidar Pagamento
                             </button>
                         </div>
@@ -1782,7 +1785,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 <!-- Card Footer: Actions -->
                                 <div style="padding: 1rem; border-top: 1px solid #f1f5f9; background: #fff;">
                                     <?php if (!in_array($route['status'], ['pending_acceptance', 'rejected'])): ?>
-                                        <a href="../recenseador/generate_contract.php?route_id=<?php echo $route['id']; ?>" target="_blank" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: white; background: #28a745; border-color: #28a745; padding: 0.6rem; margin-bottom: 0.5rem;" title="Baixar Termo de Registro de Demanda assinado pelo recenseador">
+                                        <a href="../recenseador/generate_contract.php?route_id=<?php echo $route['id']; ?>" target="_blank" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: white; background: var(--success); border-color: var(--success); box-shadow: 0 2px 8px -2px rgba*rgba(13, 157, 108, 0.25); padding: 0.6rem; margin-bottom: 0.5rem;" title="Baixar Termo de Registro de Demanda assinado pelo recenseador">
                                             <i class="ph ph-file-text"></i> TERMO DE ACEITE (PDF)
                                         </a>
                                     <?php endif; ?>
@@ -2009,7 +2012,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 <!-- Card Footer: Actions -->
                                 <div style="padding: 1rem; border-top: 1px solid #f1f5f9; background: #fff;">
                                     <?php if (!in_array($route['status'], ['pending_acceptance', 'rejected'])): ?>
-                                        <a href="../recenseador/generate_contract.php?route_id=<?php echo $route['id']; ?>" target="_blank" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: white; background: #28a745; border-color: #28a745; padding: 0.6rem; margin-bottom: 0.5rem;" title="Baixar Termo de Registro de Demanda assinado pelo recenseador">
+                                        <a href="../recenseador/generate_contract.php?route_id=<?php echo $route['id']; ?>" target="_blank" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: white; background: var(--success); border-color: var(--success); box-shadow: 0 2px 8px -2px rgba*rgba(13, 157, 108, 0.25); padding: 0.6rem; margin-bottom: 0.5rem;" title="Baixar Termo de Registro de Demanda assinado pelo recenseador">
                                             <i class="ph ph-file-text"></i> TERMO DE ACEITE (PDF)
                                         </a>
                                     <?php endif; ?>
@@ -2046,31 +2049,47 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <div id="approvals" class="tab-content">
                 <div class="section-header">
                     <h2><i class="ph ph-clock-user"></i> Aprovações Pendentes</h2>
+                    <p class="text-muted">Cadastros aguardando análise documental.</p>
                 </div>
+
+                <?php if (count($pending_users) > 0): ?>
+                    <div class="kpi-grid" style="margin-bottom: 1rem;">
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: var(--warning-light); color: var(--warning);">
+                                <i class="ph ph-clock-user"></i>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-value"><?php echo count($pending_users); ?></span>
+                                <span class="kpi-label">Pendentes</span>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
                 <div id="pending-list">
                     <?php if (count($pending_users) > 0): ?>
                         <?php foreach ($pending_users as $user): ?>
                             <div class="pending-card">
                                 <div>
-                                    <h4 style="margin: 0; color: #1e293b; font-weight: 800;">
-                                        <?php echo mb_strtoupper(htmlspecialchars($user['name']), 'UTF-8'); ?>
+                                    <h4 style="margin: 0; color: var(--ink-primary); font-weight: 700; font-size: 0.95rem;">
+                                        <?php echo htmlspecialchars($user['name']); ?>
                                     </h4>
-                                    <p style="margin: 0.2rem 0; color: var(--text-muted); font-size: 0.9rem;">
-                                        <i class="ph ph-envelope"></i> <?php echo htmlspecialchars($user['email']); ?>
+                                    <p style="margin: 0.2rem 0; color: var(--ink-tertiary); font-size: 0.82rem; display: flex; align-items: center; gap: 5px;">
+                                        <i class="ph ph-envelope" style="font-size: 0.75rem;"></i> <?php echo htmlspecialchars($user['email']); ?>
                                     </p>
                                 </div>
                                 <div class="pending-actions">
                                     <a href="../view_docs.php?user_id=<?php echo $user['id']; ?>" target="_blank"
-                                        class="btn btn-outline" style="height: 40px; padding: 0 1rem; font-size: 0.8rem;">
-                                        <i class="ph ph-magnifying-glass"></i> ANALISAR DOCUMENTOS
+                                        class="btn btn-outline" style="height: 40px; padding: 0 1rem; font-size: 0.78rem;">
+                                        <i class="ph ph-magnifying-glass"></i> Analisar Docs
                                     </a>
                                     
                                     <form method="post" style="display:flex; align-items:center;" onsubmit="return confirm('Deseja aprovar este cadastro e documentos?');">
                                         <?php echo csrf_field(); ?>
                                         <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
                                         <input type="hidden" name="action" value="approve">
-                                        <button type="submit" class="btn-approve" style="height: 40px; padding: 0 1.2rem; font-size: 0.8rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 700;">
-                                            <i class="ph ph-check"></i> APROVAR
+                                        <button type="submit" class="btn-approve" style="height: 40px; padding: 0 1.2rem; font-size: 0.78rem;">
+                                            <i class="ph ph-check"></i> Aprovar
                                         </button>
                                     </form>
 
@@ -2086,7 +2105,8 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <div class="text-center py-5">
+                        <div class="text-center py-5" style="border: 2px dashed var(--border-default); border-radius: var(--radius); background: var(--surface-1); padding: 3rem;">
+                            <i class="ph ph-check-circle" style="font-size: 2.5rem; color: var(--ink-muted); margin-bottom: 1rem;"></i>
                             <p class="text-muted">Nenhum cadastro pendente.</p>
                         </div>
                     <?php endif; ?>
@@ -2253,8 +2273,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         </div>
                          <div class="form-group mb-4 area-only" style="display:none;">
                             <label><i class="ph ph-text-align-left"></i> Descrição da Área de Atuação</label>
-                            <div id="editor-container" style="height: 200px; background: #fff; border-radius: 4px;"></div>
-                            <input type="hidden" name="area_details" id="area_details_input">
+                            <textarea name="area_details" id="area_details_input" class="form-control" rows="6" placeholder="Descreva a area de atuacao..."></textarea>
                         </div>
 
                         <div class="form-group mb-4"><label>Instruções Complementares</label><textarea name="route_desc"
@@ -2287,47 +2306,108 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
             <div id="users" class="tab-content">
                 <div class="section-header">
                     <h2><i class="ph ph-users"></i> Recenseadores</h2>
+                    <p class="text-muted">Cadastro, regiao de atuacao e status de acesso.</p>
                 </div>
-                <div style="background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead style="background: #f8f9fa;">
-                            <tr>
-                                <th style="padding:1rem; text-align: left;">Nome</th>
-                                <th style="padding:1rem; text-align: left;">E-mail</th>
-                                <th style="padding:1rem; text-align: left;">Acesso</th>
-                                <th style="padding:1rem; text-align: center;">Ações</th>
+
+                <?php
+                $total_users = count($registered_users);
+                $approved_count = count(array_filter($registered_users, function($u) { return $u['status'] === 'approved'; }));
+                $active_count = count(array_filter($registered_users, function($u) { return $u['is_active'] == 1; }));
+                $macro_user_count = [];
+                foreach ($macro_mapping as $macro => $ras) { $macro_user_count[$macro] = 0; }
+                foreach ($registered_users as $u) {
+                    $uMacro = $u['microregion'] ?? '';
+                    foreach ($macro_mapping as $macro => $ras) {
+                        if (in_array(trim($uMacro), $ras) || stripos($uMacro, $macro) !== false) {
+                            $macro_user_count[$macro]++;
+                            break;
+                        }
+                    }
+                }
+                ?>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background: var(--petrol-tint); color: var(--petrol);">
+                            <i class="ph ph-users"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-value"><?php echo $total_users; ?></span>
+                            <span class="kpi-label">Total</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background: var(--success-light); color: var(--success);">
+                            <i class="ph ph-check-circle"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-value"><?php echo $approved_count; ?></span>
+                            <span class="kpi-label">Aprovados</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background: var(--petrol-tint); color: var(--petrol);">
+                            <i class="ph ph-power"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-value"><?php echo $active_count; ?></span>
+                            <span class="kpi-label">Ativos</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.6rem; margin-bottom: 1.5rem;">
+                    <?php $mi = 0; foreach ($macro_user_count as $macro => $cnt): $mc = $colors[$mi % count($colors)]; ?>
+                        <div style="background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.6rem 0.85rem; display: flex; align-items: center; gap: 0.6rem; box-shadow: var(--shadow-xs);">
+                            <div style="width: 8px; height: 8px; border-radius: 50%; background: <?php echo $mc; ?>; flex-shrink: 0;"></div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-size: 0.78rem; font-weight: 600; color: var(--ink-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo str_replace('Macrorregião ', 'MR ', $macro); ?></div>
+                            </div>
+                            <span style="font-size: 0.85rem; font-weight: 800; color: var(--ink-primary); font-variant-numeric: tabular-nums;"><?php echo $cnt; ?></span>
+                        </div>
+                    <?php $mi++; endforeach; ?>
+                </div>
+
+                <div style="background: var(--surface-1); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-xs);">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-default);">
+                                <th style="padding: 0.85rem 1rem; text-align: left; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em;">Nome</th>
+                                <th style="padding: 0.85rem 1rem; text-align: left; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em;">E-mail</th>
+                                <th style="padding: 0.85rem 1rem; text-align: left; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em;">Acesso</th>
+                                <th style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em;">Acoes</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($registered_users as $u): ?>
-                                <tr style="border-bottom: 1px solid #eee; <?php echo ($u['is_active'] == 0) ? 'background: #fdf2f2;' : ''; ?>">
-                                    <td style="padding:1rem;">
-                                        <div style="font-weight: 600; color: #333; display: flex; align-items: center; gap: 8px;">
+                                <tr style="border-bottom: 1px solid var(--border-subtle); transition: background 0.15s var(--ease); <?php echo ($u['is_active'] == 0) ? 'background: var(--danger-light);' : ''; ?>" onmouseover="this.style.background='<?php echo ($u['is_active'] == 0) ? 'var(--danger-light)' : 'var(--petrol-tint)'; ?>';" onmouseout="this.style.background='<?php echo ($u['is_active'] == 0) ? 'var(--danger-light)' : 'transparent'; ?>';">
+                                    <td style="padding: 0.85rem 1rem;">
+                                        <div style="font-weight: 600; color: var(--ink-primary); font-size: 0.88rem; display: flex; align-items: center; gap: 8px;">
                                             <?php if ($u['is_active'] == 0): ?>
-                                                <i class="ph ph-user-minus" style="color: #dc3545;" title="Acesso Desativado"></i>
+                                                <i class="ph ph-user-minus" style="color: var(--danger); font-size: 0.85rem;" title="Acesso Desativado"></i>
                                             <?php endif; ?>
-                                            <?php echo mb_strtoupper(htmlspecialchars($u['name']), 'UTF-8'); ?>
+                                            <?php echo htmlspecialchars($u['name']); ?>
                                         </div>
                                         <?php if (!empty($u['microregion'])): ?>
-                                            <div style="font-size: 0.85rem; color: var(--primary-teal); margin-top: 0.2rem;">
-                                                <i class="ph ph-map-pin"></i>
+                                            <div style="font-size: 0.78rem; color: var(--petrol); margin-top: 0.2rem; font-weight: 600;">
+                                                <i class="ph ph-map-pin" style="font-size: 0.7rem;"></i>
                                                 <?php echo htmlspecialchars($u['microregion']); ?>
                                             </div>
                                         <?php endif; ?>
-                                        <div style="font-size: 0.75rem; color: #666; margin-top: 0.2rem;">
+                                        <div style="font-size: 0.72rem; color: var(--ink-muted); margin-top: 0.2rem;">
                                             <span style="margin-right: 10px;"><strong>SEI:</strong> <?php echo htmlspecialchars($u['processo_sei'] ?? 'N/A'); ?></span>
-                                            <span><strong>CONTRATO:</strong> <?php echo htmlspecialchars($u['contrato'] ?? 'N/A'); ?></span>
+                                            <span><strong>Contrato:</strong> <?php echo htmlspecialchars($u['contrato'] ?? 'N/A'); ?></span>
                                         </div>
                                     </td>
-                                    <td style="padding:1rem;"><?php echo htmlspecialchars($u['email']); ?></td>
-                                    <td style="padding:1rem;">
+                                    <td style="padding: 0.85rem 1rem; color: var(--ink-secondary); font-size: 0.82rem;"><?php echo htmlspecialchars($u['email']); ?></td>
+                                    <td style="padding: 0.85rem 1rem;">
                                         <?php if ($u['status'] === 'approved'): ?>
-                                            <span class="badge" style="background:#28a745;">Aprovado</span>
+                                            <span class="badge badge-success">Aprovado</span>
                                         <?php else: ?>
-                                            <span class="badge" style="background:#dc3545;">Reprovado</span>
+                                            <span class="badge badge-danger">Reprovado</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td style="padding:1rem;">
+                                    <td style="padding: 0.85rem 1rem;">
                                         <form method="post" style="display: flex; align-items: center; gap: 10px;">
                                             <?php echo csrf_field(); ?>
                                             <input type="hidden" name="action" value="toggle_active">
@@ -2338,25 +2418,25 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                                 <input type="checkbox" <?php echo $u['is_active'] ? 'checked' : ''; ?> onchange="this.form.submit()">
                                                 <span class="slider round"></span>
                                             </label>
-                                            <span style="font-size: 0.75rem; font-weight: 700; color: <?php echo $u['is_active'] ? '#28a745' : '#dc3545'; ?>;">
-                                                <?php echo $u['is_active'] ? 'ATIVO' : 'INATIVO'; ?>
+                                            <span style="font-size: 0.72rem; font-weight: 600; color: <?php echo $u['is_active'] ? 'var(--success)' : 'var(--danger)'; ?>;">
+                                                <?php echo $u['is_active'] ? 'Ativo' : 'Inativo'; ?>
                                             </span>
                                         </form>
                                     </td>
-                                    <td style="padding:1rem; text-align: center;">
-                                        <div style="display: flex; justify-content: center; gap: 0.5rem;">
+                                    <td style="padding: 0.85rem 1rem; text-align: center;">
+                                        <div style="display: flex; justify-content: center; gap: 0.4rem;">
                                             <a href="../view_docs.php?user_id=<?php echo $u['id']; ?>"
                                                     class="btn btn-outline"
-                                                    style="padding: 0.3rem 0.6rem; font-size: 0.85rem; background: #f0fdfa; color: var(--primary-teal); border-color: var(--primary-teal);"><i class="ph ph-user-circle"></i> Perfil</a>
+                                                    style="padding: 0.3rem 0.6rem; font-size: 0.75rem; background: var(--petrol-tint); color: var(--petrol); border-color: rgba(0, 122, 137, 0.2);"><i class="ph ph-user-circle"></i> Perfil</a>
                                             
                                             <?php if ($u['status'] === 'approved'): ?>
                                                 <a href="user_routes.php?user_id=<?php echo $u['id']; ?>"
                                                     class="btn btn-outline"
-                                                    style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">Rotas</a>
+                                                    style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Rotas</a>
                                             <?php endif; ?>
                                             
                                             <a href="edit_user.php?user_id=<?php echo $u['id']; ?>" class="btn btn-outline"
-                                                style="color:#0d6efd; border-color:#0d6efd; padding: 0.3rem 0.6rem; font-size: 0.85rem;"><i
+                                                style="padding: 0.3rem 0.6rem; font-size: 0.75rem;"><i
                                                     class="ph ph-pencil-simple-line"></i> Editar</a>
                                         </div>
                                     </td>
@@ -2444,7 +2524,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 </thead>
                                 <tbody>
                                     <?php foreach ($routes as $c_route): ?>
-                                        <tr style="border-bottom: 1px solid #eee;">
+                                        <tr style="border-bottom: 1px solid var(--border-subtle);">
                                             <td style="padding:1rem; vertical-align: top;">
                                                 <div style="font-weight: 600; color: #333;"><?php echo mb_strtoupper(htmlspecialchars($c_route['user_name']), 'UTF-8'); ?></div>
                                                 <div style="font-size: 0.75rem; color: var(--primary-teal); font-weight: 600; margin-top: 2px;">📍 <?php echo htmlspecialchars($c_route['microregion']); ?></div>
@@ -2503,7 +2583,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                             </thead>
                             <tbody>
                                 <?php foreach ($cancelled_routes as $r): ?>
-                                    <tr style="border-bottom: 1px solid #eee;">
+                                    <tr style="border-bottom: 1px solid var(--border-subtle);">
                                         <td style="padding:1rem; font-weight: 600; color: #333;">
                                             <?php echo mb_strtoupper(htmlspecialchars($r['user_name']), 'UTF-8'); ?>
                                         </td>
@@ -2560,7 +2640,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                             </thead>
                             <tbody>
                                 <?php foreach ($rejected_routes as $r): ?>
-                                    <tr style="border-bottom: 1px solid #eee;">
+                                    <tr style="border-bottom: 1px solid var(--border-subtle);">
                                         <td style="padding:1rem; font-weight: 600; color: #333;">
                                             <?php echo mb_strtoupper(htmlspecialchars($r['user_name']), 'UTF-8'); ?>
                                         </td>
@@ -2599,67 +2679,100 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                 </div>
 
                 <?php if (count($paid_routes) > 0): ?>
-                    <div style="background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <thead style="background: #f8f9fa;">
-                                <tr>
-                                    <th style="padding:1rem; text-align: left; width: 25%;">Recenseador / Rota</th>
-                                    <th style="padding:1rem; text-align: center; width: 10%;">Data Conclusão</th>
-                                    <th style="padding:1rem; text-align: center; width: 15%;">SEI Pagamento</th>
-                                    <th style="padding:1rem; text-align: center; width: 12%;">Valor Pago</th>
-                                    <th style="padding:1rem; text-align: center; width: 18%;">Memória de Cálculo (PDF)</th>
-                                    <th style="padding:1rem; text-align: center; width: 10%;">Status</th>
-                                    <th style="padding:1rem; text-align: center; width: 10%;">Ações</th>
+                    <?php
+                    $sum_paid = array_sum(array_filter(array_map(function($r) { return $r['calc_grand_total'] ?? 0; }, $paid_routes)));
+                    $avg_paid = count($paid_routes) > 0 ? $sum_paid / count($paid_routes) : 0;
+                    ?>
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: var(--success-light); color: var(--success);">
+                                <i class="ph ph-check-circle"></i>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-value"><?php echo count($paid_routes); ?></span>
+                                <span class="kpi-label">Rotas Liquidadas</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: var(--petrol-tint); color: var(--petrol);">
+                                <i class="ph ph-hand-coins"></i>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-value">R$ <?php echo number_format($sum_paid, 2, ',', '.'); ?></span>
+                                <span class="kpi-label">Valor Total</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: var(--petrol-tint); color: var(--petrol);">
+                                <i class="ph ph-coins"></i>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-value">R$ <?php echo number_format($avg_paid, 2, ',', '.'); ?></span>
+                                <span class="kpi-label">Valor Medio</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--surface-1); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-xs);">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--border-default);">
+                                    <th style="padding: 0.85rem 1rem; text-align: left; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; width: 25%;">Recenseador / Rota</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; width: 10%;">Conclusao</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; width: 15%;">SEI Pagamento</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; width: 12%;">Valor Pago</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; width: 18%;">Memoria (PDF)</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; width: 10%;">Status</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; width: 10%;">Acoes</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($paid_routes as $p): ?>
-                                    <tr style="border-bottom: 1px solid #eee;">
-                                        <td style="padding:1rem;">
-                                            <div style="font-weight: 600; color: #333;"><?php echo htmlspecialchars($p['title']); ?></div>
-                                            <div style="font-size: 0.85rem; color: var(--primary-teal); font-weight: 600;">
-                                                <i class="ph ph-user"></i> <?php echo mb_strtoupper(htmlspecialchars($p['user_name']), 'UTF-8'); ?>
+                                    <tr style="border-bottom: 1px solid var(--border-subtle); transition: background 0.15s var(--ease);" onmouseover="this.style.background='var(--petrol-tint)';" onmouseout="this.style.background='transparent';">
+                                        <td style="padding: 0.85rem 1rem;">
+                                            <div style="font-weight: 600; color: var(--ink-primary); font-size: 0.88rem;"><?php echo htmlspecialchars($p['title']); ?></div>
+                                            <div style="font-size: 0.78rem; color: var(--petrol); font-weight: 600; margin-top: 0.2rem;">
+                                                <i class="ph ph-user" style="font-size: 0.75rem;"></i> <?php echo htmlspecialchars($p['user_name']); ?>
                                             </div>
-                                            <div style="font-size: 0.75rem; color: #999;">CPF: <?php echo htmlspecialchars($p['user_cpf']); ?></div>
+                                            <div style="font-size: 0.72rem; color: var(--ink-muted); margin-top: 0.1rem;">CPF: <?php echo htmlspecialchars($p['user_cpf']); ?></div>
                                         </td>
-                                        <td style="padding:1rem; text-align: center;">
+                                        <td style="padding: 0.85rem 1rem; text-align: center; color: var(--ink-secondary); font-size: 0.8rem;">
                                             <?php echo ($p['completed_at']) ? date('d/m/Y', strtotime($p['completed_at'])) : '---'; ?>
                                         </td>
-                                        <td style="padding:1rem; text-align: center;">
-                                            <span style="background: #f1f3f5; padding: 0.4rem 0.8rem; border-radius: 4px; font-family: monospace; font-weight: 700; color: #333; white-space: nowrap; display: inline-block; font-size: 0.85rem; border: 1px solid #dee2e6;">
+                                        <td style="padding: 0.85rem 1rem; text-align: center;">
+                                            <span style="background: var(--surface-input); padding: 0.35rem 0.7rem; border-radius: var(--radius-xs); font-family: monospace; font-weight: 600; color: var(--ink-secondary); white-space: nowrap; display: inline-block; font-size: 0.8rem; border: 1px solid var(--border-subtle);">
                                                 <?php echo htmlspecialchars($p['sei_pagamento'] ?? 'N/A'); ?>
                                             </span>
                                         </td>
-                                        <td style="padding:1rem; text-align: center; font-weight: 700; color: var(--primary-teal);">
+                                        <td style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--petrol); font-size: 0.95rem;">
                                             <?php echo ($p['calc_grand_total'] > 0) ? 'R$ ' . number_format($p['calc_grand_total'], 2, ',', '.') : '---'; ?>
                                         </td>
-                                        <td style="padding:1rem; text-align: center;">
-                                            <a href="generate_memory_pdf.php?route_id=<?php echo $p['id']; ?>" target="_blank" class="btn" style="font-size: 0.75rem; padding: 0.6rem 1rem; color: white; background: #28a745; border-color: #28a745; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: bold; width: 100%; box-sizing: border-box;" title="Visualizar e Imprimir Memória de Cálculo">
-                                                <i class="ph ph-receipt"></i> MEMÓRIA (PDF)
+                                        <td style="padding: 0.85rem 1rem; text-align: center;">
+                                            <a href="generate_memory_pdf.php?route_id=<?php echo $p['id']; ?>" target="_blank" class="btn" style="font-size: 0.75rem; padding: 0.5rem 0.9rem; color: white; background: var(--success); border: none; border-radius: var(--radius-sm); display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; width: 100%; box-sizing: border-box; box-shadow: 0 2px 8px -2px rgba(13, 157, 108, 0.25);" title="Visualizar e Imprimir Memoria de Calculo">
+                                                <i class="ph ph-receipt"></i> MEMORIA (PDF)
                                             </a>
                                         </td>
-                                        <td style="padding:1rem; text-align: center;">
-                                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem;">
-                                                <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-                                                    <i class="ph ph-check-circle" style="color: #28a745; font-size: 1.1rem;"></i>
-                                                    <span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; white-space: nowrap;">Liquidado</span>
-                                                </div>
-                                                <button onclick="viewCalculationMemory(<?php echo $p['id']; ?>)" class="btn btn-primary" style="font-size: 0.7rem; padding: 0.3rem 0.6rem; background: #5c6bc0; border: none;">
-                                                    <i class="ph ph-receipt"></i> Memória de Cálculo
+                                        <td style="padding: 0.85rem 1rem; text-align: center;">
+                                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem;">
+                                                <span style="background: var(--success-light); color: var(--success); padding: 3px 9px; border-radius: 9999px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; display: inline-flex; align-items: center; gap: 4px;">
+                                                    <i class="ph ph-check" style="font-size: 0.6rem;"></i> Liquidado
+                                                </span>
+                                                <button onclick="viewCalculationMemory(<?php echo $p['id']; ?>)" class="btn btn-outline" style="font-size: 0.7rem; padding: 0.25rem 0.6rem;">
+                                                    <i class="ph ph-receipt"></i> Memoria
                                                 </button>
                                             </div>
                                         </td>
-                                        <td style="padding:1rem; text-align: center;">
-                                            <div style="display: flex; justify-content: center; gap: 0.5rem;">
-                                                <a href="edit_route.php?id=<?php echo $p['id']; ?>" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.3rem 0.6rem;">
-                                                    <i class="ph ph-magnifying-glass"></i> Ver Rota
+                                        <td style="padding: 0.85rem 1rem; text-align: center;">
+                                            <div style="display: flex; justify-content: center; gap: 0.4rem;">
+                                                <a href="edit_route.php?id=<?php echo $p['id']; ?>" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.6rem;">
+                                                    <i class="ph ph-magnifying-glass"></i> Ver
                                                 </a>
                                                 <form method="post" style="display: inline;" onsubmit="return confirm('Mover de volta para o Wizard de Andamento?');">
                                                     <?php echo csrf_field(); ?>
                                                     <input type="hidden" name="action" value="update_wizard">
                                                     <input type="hidden" name="route_id" value="<?php echo $p['id']; ?>">
                                                     <input type="hidden" name="step" value="5">
-                                                    <button type="submit" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.3rem 0.6rem; color: #f0ad4e; border-color: #f0ad4e;">-1 Estágio</button>
+                                                    <button type="submit" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.6rem; color: var(--warning); border-color: var(--warning);">-1</button>
                                                 </form>
                                             </div>
                                         </td>
@@ -2669,9 +2782,9 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         </table>
                     </div>
                 <?php else: ?>
-                    <div class="text-center py-5" style="border: 2px dashed #eee; border-radius: 8px; background: white;">
-                        <i class="ph ph-hand-coins" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
-                        <p class="text-muted">Ainda não há pagamentos liquidados no sistema.</p>
+                    <div class="text-center py-5" style="border: 2px dashed var(--border-default); border-radius: var(--radius); background: var(--surface-1); padding: 3rem;">
+                        <i class="ph ph-hand-coins" style="font-size: 2.5rem; color: var(--ink-muted); margin-bottom: 1rem;"></i>
+                        <p class="text-muted">Ainda nao ha pagamentos liquidados no sistema.</p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -2742,19 +2855,19 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
 
                     <!-- List Admins -->
                     <div style="background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0;">
-                        <div style="background: #f8f9fa; padding: 1rem; border-bottom: 1px solid #eee;">
+                        <div style="background: #f8f9fa; padding: 1rem; border-bottom: 1px solid var(--border-subtle);">
                             <h3 style="margin: 0; font-size: 1rem; color: #333;"><i class="ph ph-list"></i> Administradores Atuais</h3>
                         </div>
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
-                                <tr style="background: #fff; border-bottom: 1px solid #eee;">
+                                <tr style="background: #fff; border-bottom: 1px solid var(--border-subtle);">
                                     <th style="padding:1rem; text-align: left; font-size: 0.85rem;">Nome</th>
                                     <th style="padding:1rem; text-align: left; font-size: 0.85rem;">E-mail</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($admin_users as $adm): ?>
-                                    <tr style="border-bottom: 1px solid #eee;">
+                                    <tr style="border-bottom: 1px solid var(--border-subtle);">
                                         <td style="padding:1rem;">
                                             <div style="font-weight: 600; color: #333; font-size: 0.9rem;">
                                                 <?php echo htmlspecialchars($adm['name']); ?>
@@ -2778,35 +2891,71 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                     <p class="text-muted">Quantidade total de rotas atribuídas por Macrorregião (excluindo canceladas e rejeitadas).</p>
                 </div>
 
-                <div class="grid grid-4">
+                <?php
+                $total_all_macro = array_sum($macro_report);
+                $active_macros = count(array_filter($macro_report, function($v) { return $v > 0; }));
+                $max_macro = array_keys($macro_report, max($macro_report))[0];
+                ?>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background: var(--petrol-tint); color: var(--petrol);">
+                            <i class="ph ph-stack"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-value"><?php echo $total_all_macro; ?></span>
+                            <span class="kpi-label">Total de Rotas</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background: var(--success-light); color: var(--success);">
+                            <i class="ph ph-crosshair"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-value"><?php echo $active_macros; ?></span>
+                            <span class="kpi-label">Regioes Ativas</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background: var(--warning-light); color: var(--warning);">
+                            <i class="ph ph-chart-line-up"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-value" style="font-size: 1rem; line-height: 1.2;"><?php echo str_replace('Macrorregião ', 'MR ', $max_macro); ?></span>
+                            <span class="kpi-label">Maior Volume</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-4" style="margin-bottom: 2rem;">
                     <?php 
                     $i = 0;
                     foreach ($macro_report as $macro => $total): 
                         $color = $colors[$i % count($colors)];
                     ?>
-                        <div style="background: white; padding: 1.5rem; border-radius: 8px; border-left: 4px solid <?php echo $color; ?>; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15); display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                            <div style="font-size: 0.7rem; font-weight: bold; color: <?php echo $color; ?>; text-transform: uppercase; margin-bottom: 0.5rem;"><?php echo $macro; ?></div>
-                            <div style="font-size: 1.5rem; font-weight: bold; color: #5a5c69;"><?php echo $total; ?></div>
-                            <div style="font-size: 0.75rem; color: #b7b9cc;">Rotas Atribuídas</div>
+                        <div style="background: var(--surface-1); padding: 1.25rem; border-radius: var(--radius); border: 1px solid var(--border-subtle); border-left: 3px solid <?php echo $color; ?>; box-shadow: var(--shadow-xs); display: flex; flex-direction: column; gap: 0.35rem; transition: var(--transition);" onmouseover="this.style.boxShadow='var(--shadow-sm)'" onmouseout="this.style.boxShadow='var(--shadow-xs)'">
+                            <div style="font-size: 0.72rem; font-weight: 700; color: <?php echo $color; ?>; text-transform: uppercase; letter-spacing: 0.02em;"><?php echo str_replace('Macrorregião ', 'MR ', $macro); ?></div>
+                            <div style="font-size: 1.4rem; font-weight: 800; color: var(--ink-primary); line-height: 1; font-variant-numeric: tabular-nums;"><?php echo $total; ?></div>
+                            <div style="font-size: 0.72rem; color: var(--ink-muted);">Rotas Atribuidas</div>
                         </div>
                     <?php $i++; endforeach; ?>
                 </div>
 
-                <div style="background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0; margin-top: 2rem;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead style="background: #f8f9fa;">
-                            <tr>
-                                <th style="padding:1rem; text-align: left; width: 160px;">Macrorregião</th>
-                                <th style="padding:1rem; text-align: left;">Cidades / RAs Incluídas</th>
-                                <th style="padding:1rem; text-align: center; width: 140px;">Total de Rotas</th>
+                <div style="background: var(--surface-1); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-xs);">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-default);">
+                                <th style="padding: 0.85rem 1rem; text-align: left; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; width: 160px;">Macrorregiao</th>
+                                <th style="padding: 0.85rem 1rem; text-align: left; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em;">Cidades / RAs</th>
+                                <th style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; width: 140px;">Total</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($macro_mapping as $macro => $ras): ?>
-                                <tr style="border-bottom: 1px solid #eee;">
-                                    <td style="padding:1rem; font-weight: 700; color: #333; white-space: nowrap;"><?php echo $macro; ?></td>
-                                    <td style="padding:1rem; font-size: 0.85rem; color: #666;"><?php echo implode(', ', $ras); ?></td>
-                                    <td style="padding:1rem; text-align: center; font-weight: bold; font-size: 1.2rem; color: var(--primary-teal);">
+                                <tr style="border-bottom: 1px solid var(--border-subtle); transition: background 0.15s var(--ease);" onmouseover="this.style.background='var(--petrol-tint)';" onmouseout="this.style.background='transparent';">
+                                    <td style="padding: 0.85rem 1rem; font-weight: 700; color: var(--ink-primary); white-space: nowrap; font-size: 0.88rem;"><?php echo $macro; ?></td>
+                                    <td style="padding: 0.85rem 1rem; font-size: 0.8rem; color: var(--ink-tertiary);"><?php echo implode(', ', $ras); ?></td>
+                                    <td style="padding: 0.85rem 1rem; text-align: center; font-weight: 800; font-size: 1.1rem; color: var(--petrol); font-variant-numeric: tabular-nums;">
                                         <?php echo $macro_report[$macro]; ?>
                                     </td>
                                 </tr>
@@ -2824,48 +2973,93 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                 </div>
 
                 <?php if (count($report_data) > 0): ?>
-                    <div style="background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0; margin-top: 1rem;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <thead style="background: #f8f9fa;">
-                                <tr>
-                                    <th style="padding:1rem; text-align: left;">Recenseador</th>
-                                    <th style="padding:1rem; text-align: left;">SEI / Contrato</th>
-                                    <th style="padding:1rem; text-align: center;">Total</th>
-                                    <th style="padding:1rem; text-align: center; color: #f0ad4e;" title="Rotas Atribuídas e Aguardando Início">Aguard.</th>
-                                    <th style="padding:1rem; text-align: center; color: #28a745;" title="Rotas Em Andamento">Andamento</th>
-                                    <th style="padding:1rem; text-align: center; color: #dc3545;" title="Rotas Atrasadas">Atrasadas</th>
-                                    <th style="padding:1rem; text-align: center; color: #198754;" title="Rotas Concluídas">Concluídas</th>
-                                    <th style="padding:1rem; text-align: center; color: #6c757d;" title="Rotas Canceladas">Canceladas</th>
-                                    <th style="padding:1rem; text-align: center;">Ações</th>
+                    <?php
+                    $sum_total = array_sum(array_column($report_data, 'total_routes'));
+                    $sum_completed = array_sum(array_column($report_data, 'completed_routes'));
+                    $sum_delayed = array_sum(array_column($report_data, 'delayed_routes'));
+                    $sum_in_progress = array_sum(array_column($report_data, 'in_progress_routes'));
+                    ?>
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: var(--petrol-tint); color: var(--petrol);">
+                                <i class="ph ph-users"></i>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-value"><?php echo count($report_data); ?></span>
+                                <span class="kpi-label">Recenseadores</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: var(--petrol-tint); color: var(--petrol);">
+                                <i class="ph ph-stack"></i>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-value"><?php echo $sum_total; ?></span>
+                                <span class="kpi-label">Total de Rotas</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: var(--success-light); color: var(--success);">
+                                <i class="ph ph-checks"></i>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-value"><?php echo $sum_completed; ?></span>
+                                <span class="kpi-label">Concluidas</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: var(--danger-light); color: var(--danger);">
+                                <i class="ph ph-warning"></i>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-value"><?php echo $sum_delayed; ?></span>
+                                <span class="kpi-label">Atrasadas</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--surface-1); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-xs);">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--border-default);">
+                                    <th style="padding: 0.85rem 1rem; text-align: left; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em;">Recenseador</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: left; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em;">SEI / Contrato</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em;">Total</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--warning); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em;" title="Rotas Aguardando Inicio">Aguard.</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--petrol); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em;" title="Rotas Em Andamento">Andamento</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--danger); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em;" title="Rotas Atrasadas">Atrasadas</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--success); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em;" title="Rotas Concluidas">Concluidas</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--ink-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em;" title="Rotas Canceladas">Cancel.</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--ink-tertiary); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em;">Acoes</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($report_data as $row): ?>
-                                    <tr style="border-bottom: 1px solid #eee;">
-                                        <td style="padding:1rem;">
-                                            <div style="font-weight: 600; color: #333;">
-                                                <?php echo mb_strtoupper(htmlspecialchars($row['name']), 'UTF-8'); ?>
+                                    <tr style="border-bottom: 1px solid var(--border-subtle); transition: background 0.15s var(--ease);" onmouseover="this.style.background='var(--petrol-tint)';" onmouseout="this.style.background='transparent';">
+                                        <td style="padding: 0.85rem 1rem;">
+                                            <div style="font-weight: 600; color: var(--ink-primary); font-size: 0.88rem;">
+                                                <?php echo htmlspecialchars($row['name']); ?>
                                             </div>
-                                            <div style="font-size: 0.85rem; color: #666; margin-top: 0.3rem;">
+                                            <div style="font-size: 0.78rem; color: var(--ink-muted); margin-top: 0.2rem;">
                                                 <?php echo htmlspecialchars($row['email']); ?>
                                             </div>
                                         </td>
-                                        <td style="padding:1rem;">
-                                            <div style="font-size: 0.85rem; color: #333;">
+                                        <td style="padding: 0.85rem 1rem;">
+                                            <div style="font-size: 0.8rem; color: var(--ink-secondary);">
                                                 <strong>SEI:</strong> <?php echo htmlspecialchars($row['processo_sei'] ?? 'N/A'); ?>
                                             </div>
-                                            <div style="font-size: 0.85rem; color: #198754; font-weight: 600; margin-top: 0.2rem;">
-                                                <strong>CONTRATO:</strong> <?php echo htmlspecialchars($row['contrato'] ?? 'N/A'); ?>
+                                            <div style="font-size: 0.8rem; color: var(--petrol); font-weight: 600; margin-top: 0.2rem;">
+                                                <strong>Contrato:</strong> <?php echo htmlspecialchars($row['contrato'] ?? 'N/A'); ?>
                                             </div>
                                         </td>
-                                        <td style="padding:1rem; text-align: center; font-weight: bold; font-size: 1.1rem;"><?php echo $row['total_routes']; ?></td>
-                                        <td style="padding:1rem; text-align: center;"><?php echo $row['assigned_routes']; ?></td>
-                                        <td style="padding:1rem; text-align: center;"><?php echo $row['in_progress_routes']; ?></td>
-                                        <td style="padding:1rem; text-align: center;"><?php echo $row['delayed_routes']; ?></td>
-                                        <td style="padding:1rem; text-align: center; font-weight: 600; color: #198754;"><?php echo $row['completed_routes']; ?></td>
-                                        <td style="padding:1rem; text-align: center; color: #6c757d;"><?php echo $row['cancelled_routes']; ?></td>
-                                        <td style="padding:1rem; text-align: center;">
-                                            <a href="user_routes.php?user_id=<?php echo $row['id']; ?>" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">Ver Rotas</a>
+                                        <td style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; font-size: 1rem; color: var(--ink-primary);"><?php echo $row['total_routes']; ?></td>
+                                        <td style="padding: 0.85rem 1rem; text-align: center; color: var(--warning); font-weight: 600;"><?php echo $row['assigned_routes']; ?></td>
+                                        <td style="padding: 0.85rem 1rem; text-align: center; color: var(--petrol); font-weight: 600;"><?php echo $row['in_progress_routes']; ?></td>
+                                        <td style="padding: 0.85rem 1rem; text-align: center; color: var(--danger); font-weight: 600;"><?php echo $row['delayed_routes']; ?></td>
+                                        <td style="padding: 0.85rem 1rem; text-align: center; color: var(--success); font-weight: 700;"><?php echo $row['completed_routes']; ?></td>
+                                        <td style="padding: 0.85rem 1rem; text-align: center; color: var(--ink-muted);"><?php echo $row['cancelled_routes']; ?></td>
+                                        <td style="padding: 0.85rem 1rem; text-align: center;">
+                                            <a href="user_routes.php?user_id=<?php echo $row['id']; ?>" class="btn btn-outline" style="padding: 0.3rem 0.7rem; font-size: 0.78rem;">Ver Rotas</a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -2873,9 +3067,9 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         </table>
                     </div>
                 <?php else: ?>
-                    <div class="text-center py-5" style="border: 2px dashed #eee; border-radius: 8px; background: white;">
-                        <i class="ph ph-chart-line-up" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
-                        <p class="text-muted">Não há dados suficientes para gerar o relatório.</p>
+                    <div class="text-center py-5" style="border: 2px dashed var(--border-default); border-radius: var(--radius); background: var(--surface-1); padding: 3rem;">
+                        <i class="ph ph-chart-line-up" style="font-size: 2.5rem; color: var(--ink-muted); margin-bottom: 1rem;"></i>
+                        <p class="text-muted">Nao ha dados suficientes para gerar o relatorio.</p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -2961,11 +3155,11 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         <input type="hidden" name="grand_total" id="hidden_grand_total">
 
                         <!-- SELEÇÃO NO-PRINT -->
-                        <div class="no-print" style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem; border: 1px solid #eee;">
+                        <div class="no-print" style="background: var(--surface-input); padding: 1.5rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem; border: 1px solid var(--border-subtle);">
                             <div style="display: flex; align-items: center; gap: 1.5rem;">
-                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="ph ph-user-rectangle" style="color: var(--primary-teal); margin-right: 5px;"></i> Vincular Recenseador:</div>
+                                <div style="font-weight: 600; color: var(--ink-tertiary); text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.03em; width: 220px;"><i class="ph ph-user-rectangle" style="color: var(--primary-teal); margin-right: 5px;"></i> Vincular Recenseador:</div>
                                 <div style="flex-grow: 1;">
-                                    <select id="calc_user" class="form-control" style="font-weight: 600; color: #333; border: 2px solid #ddd; width: 100%; padding: 0.5rem;" onchange="updateCalcRouteSelect()">
+                                    <select id="calc_user" class="form-control" style="font-weight: 600; color: #333; border: 1px solid var(--border-default); width: 100%; padding: 0.5rem;" onchange="updateCalcRouteSelect()">
                                         <option value="">-- Selecione o recenseador --</option>
                                         <?php foreach ($approved_users as $u): 
                                             $macroDisplay = $u['microregion'] ?? 'N/A';
@@ -2982,27 +3176,27 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 1.5rem;">
-                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="ph ph-crosshair" style="color: var(--primary-teal); margin-right: 5px;"></i> Selecionar Rota:</div>
+                                <div style="font-weight: 600; color: var(--ink-tertiary); text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.03em; width: 220px;"><i class="ph ph-crosshair" style="color: var(--primary-teal); margin-right: 5px;"></i> Selecionar Rota:</div>
                                 <div style="flex-grow: 1;">
-                                    <select id="calc_route" name="route_id" class="form-control" style="font-weight: 600; color: #333; border: 2px solid #ddd; width: 100%; padding: 0.5rem;" onchange="loadSavedCalculation()">
+                                    <select id="calc_route" name="route_id" class="form-control" style="font-weight: 600; color: #333; border: 1px solid var(--border-default); width: 100%; padding: 0.5rem;" onchange="loadSavedCalculation()">
                                         <option value="">-- Escolha primeiro o recenseador --</option>
                                     </select>
                                 </div>
                             </div>
                             <div id="sei_pagamento_container" style="display: none; align-items: center; gap: 1.5rem;">
-                                <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem; width: 220px;"><i class="ph ph-receipt" style="color: var(--primary-teal); margin-right: 5px;"></i> SEI de Pagamento: <span style="color:red;">*</span></div>
+                                <div style="font-weight: 600; color: var(--ink-tertiary); text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.03em; width: 220px;"><i class="ph ph-receipt" style="color: var(--primary-teal); margin-right: 5px;"></i> SEI de Pagamento: <span style="color:red;">*</span></div>
                                 <div style="flex-grow: 1;">
-                                    <input type="text" name="sei_pagamento" id="calc_sei_pagamento" required class="form-control" placeholder="Informe o SEI para liquidação" style="font-weight: 600; color: #333; border: 2px solid #ddd; width: 100%; padding: 0.5rem;">
+                                    <input type="text" name="sei_pagamento" id="calc_sei_pagamento" required class="form-control" placeholder="Informe o SEI para liquidação" style="font-weight: 600; color: #333; border: 1px solid var(--border-default); width: 100%; padding: 0.5rem;">
                                 </div>
                             </div>
                         </div>
 
                         <!-- INPUT DE GASOLINA -->
-                        <div class="no-print" style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; display: flex; align-items: center; gap: 1.5rem; border: 1px solid #eee;">
-                            <div style="font-weight: 700; color: #444; text-transform: uppercase; font-size: 0.9rem;">Preço Médio Gasolina DF (ANP):</div>
+                        <div class="no-print" style="background: var(--surface-input); padding: 1.5rem; border-radius: var(--radius-sm); margin-bottom: 2rem; display: flex; align-items: center; gap: 1.5rem; border: 1px solid var(--border-subtle);">
+                            <div style="font-weight: 600; color: var(--ink-tertiary); text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.03em;">Preco Médio Gasolina DF (ANP):</div>
                             <div style="position: relative; width: 160px;">
                                 <span style="position: absolute; left: 12px; top: 10px; color: #666; font-weight: 600;">R$</span>
-                                <input type="number" id="gas_price" name="gas_price" value="6.36" step="0.001" class="form-control" style="padding-left: 40px; font-weight: 800; color: var(--primary-teal); border: 2px solid #ddd; width: 100%;" oninput="updateFromGasoline()">
+                                <input type="number" id="gas_price" name="gas_price" value="6.36" step="0.001" class="form-control" style="padding-left: 40px; font-weight: 800; color: var(--primary-teal); border: 1px solid var(--border-default); width: 100%;" oninput="updateFromGasoline()">
                             </div>
                             <div style="font-size: 0.85rem; color: #777;">
                                 <i class="ph ph-info"></i> Ajuste a gasolina para atualizar os valores de KM automaticamente.
@@ -3010,12 +3204,12 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         </div>
 
                     <!-- TABELA CÁLCULO -->
-                    <div style="text-align: center; margin-bottom: 1.5rem; font-weight: 800; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px;">CÁLCULO REMUNERAÇÃO PREVISTA</div>
+                    <div style="text-align: center; margin-bottom: 1.5rem; font-weight: 800; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-secondary);">Calculo Remuneracao Prevista</div>
                     
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; background: white; border: 1px solid transparent;">
                         <thead>
-                            <tr style="border-bottom: 1px solid #eee;">
-                                <th style="padding: 1rem 0; text-align: left; width: 45%; color: #555; font-weight: 800; font-size: 1.1rem;">VALOR-FIXO</th>
+                            <tr style="border-bottom: 1px solid var(--border-subtle);">
+                                <th style="padding: 1rem 0; text-align: left; width: 45%; color: var(--ink-secondary); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.03em;">Valor Fixo</th>
                                 <th style="padding: 1rem 0; text-align: center; color: #333; font-weight: 800;">Quant.</th>
                                 <th style="padding: 1rem 0; text-align: center; color: #333; font-weight: 800;">Unitário</th>
                                 <th style="padding: 1rem 0; text-align: right; color: #333; font-weight: 800;">Total</th>
@@ -3023,37 +3217,37 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         </thead>
                         <tbody>
                             <tr>
-                                <td style="padding: 1.2rem 0; border-bottom: 1px solid #eee; color: #555;">Escritório-Modelo (un.)</td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);">Escritório-Modelo (un.)</td>
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="q_escritorio" name="q_escritorio" value="1" class="form-control" style="width: 60px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="updateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="u_escritorio" name="u_escritorio" value="102.02" step="0.01" class="form-control" style="width: 80px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="updateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid #eee; color: #555;" id="t_escritorio">R$ 102,02</td>
+                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);" id="t_escritorio">R$ 102,02</td>
                             </tr>
                             <tr>
-                                <td style="padding: 1.2rem 0; border-bottom: 1px solid #eee; color: #555;">Auxílio-combustível (km)</td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);">Auxílio-combustível (km)</td>
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="q_km_fix" name="q_km_fix" value="10" class="form-control" style="width: 60px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="updateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="u_km_fix" name="u_km_fix" value="2.03" step="0.01" class="form-control" style="width: 80px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="updateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid #eee; color: #555;" id="t_km_fix">R$ 20,30</td>
+                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);" id="t_km_fix">R$ 20,30</td>
                             </tr>
                             <tr>
-                                <td style="padding: 1.2rem 0; border-bottom: 1px solid #eee; color: #555;">Auxílio-Alimentação (un.)</td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);">Auxílio-Alimentação (un.)</td>
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="q_alim" name="q_alim" value="2" class="form-control" style="width: 60px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="updateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="u_alim" name="u_alim" value="46.35" step="0.01" class="form-control" style="width: 80px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="updateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid #eee; color: #555;" id="t_alim">R$ 92,70</td>
+                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);" id="t_alim">R$ 92,70</td>
                             </tr>
                             <tr style="font-weight: 800; font-size: 1.1rem;">
-                                <td colspan="3" style="padding: 1.5rem 0; text-align: left; color: #444;">TOTAL VALOR FIXO</td>
+                                <td colspan="3" style="padding: 1.5rem 0; text-align: left; color: var(--ink-tertiary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em;">Total Valor Fixo</td>
                                 <td style="padding: 1.5rem 0; text-align: right; color: #444;" id="total_fixed_display">R$ 215,02</td>
                             </tr>
                         </tbody>
@@ -3061,8 +3255,8 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
 
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; background: white; border: 1px solid transparent;">
                         <thead>
-                            <tr style="border-bottom: 1px solid #eee;">
-                                <th style="padding: 1rem 0; text-align: left; width: 45%; color: #555; font-weight: 800; font-size: 1.1rem;">VALOR-VARIÁVEL***</th>
+                            <tr style="border-bottom: 1px solid var(--border-subtle);">
+                                <th style="padding: 1rem 0; text-align: left; width: 45%; color: var(--ink-secondary); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.03em;">Valor Variavel***</th>
                                 <th style="padding: 1rem 0; text-align: center; color: #333; font-weight: 800;">Quant.</th>
                                 <th style="padding: 1rem 0; text-align: center; color: #333; font-weight: 800;">Unitário</th>
                                 <th style="padding: 1rem 0; text-align: right; color: #333; font-weight: 800;">Total</th>
@@ -3070,40 +3264,40 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                         </thead>
                         <tbody>
                             <tr>
-                                <td style="padding: 1.2rem 0; border-bottom: 1px solid #eee; color: #555;">Auxílio combustível (km)</td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);">Auxílio combustível (km)</td>
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="q_km_var" name="q_km_var" value="30" class="form-control" style="width: 60px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="updateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="u_km_var" name="u_km_var" value="2.03" step="0.01" class="form-control" style="width: 80px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="updateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid #eee; color: #555;" id="t_km_var">R$ 60,90</td>
+                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);" id="t_km_var">R$ 60,90</td>
                             </tr>
                             <tr>
-                                <td style="padding: 1.2rem 0; border-bottom: 1px solid #eee; color: #555;">Quant. Obras (un.)</td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);">Quant. Obras (un.)</td>
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="q_obras" name="q_obras" value="1" class="form-control" style="width: 60px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="updateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid #eee;">
+                                <td style="padding: 1.2rem 0; text-align: center; border-bottom: 1px solid var(--border-subtle);">
                                     <input type="number" id="u_obras" name="u_obras" value="7.61" step="0.01" class="form-control" style="width: 80px; margin: 0 auto; text-align: center; font-weight: 800; padding: 0.2rem;" oninput="updateAllCalculations()">
                                 </td>
-                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid #eee; color: #555;" id="t_obras">R$ 7,61</td>
+                                <td style="padding: 1.2rem 0; text-align: right; border-bottom: 1px solid var(--border-subtle); color: var(--ink-secondary);" id="t_obras">R$ 7,61</td>
                             </tr>
                             <tr style="font-weight: 800; font-size: 1.1rem;">
-                                <td colspan="3" style="padding: 1.5rem 0; text-align: left; color: #444;">TOTAL VALOR VARIÁVEL</td>
+                                <td colspan="3" style="padding: 1.5rem 0; text-align: left; color: var(--ink-tertiary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em;">Total Valor Variavel</td>
                                 <td style="padding: 1.5rem 0; text-align: right; color: #444;" id="total_var_display">R$ 68,51</td>
                             </tr>
                         </tbody>
                     </table>
 
                     <!-- RESULTADO FINAL -->
-                    <div style="border: 1px solid #000; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; background: white; margin-top: 1rem;">
-                        <div style="font-weight: 800; font-size: 0.95rem; color: #444;">REMUNERAÇÃO = TOTAL VALOR FIXO + TOTAL VALOR VARIÁVEL</div>
+                    <div style="border: 1px solid var(--border-emphasis); padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; background: var(--surface-1); margin3rem 1rem; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm);">
+                        <div style="font-weight: 800; font-size: 0.95rem; color: var(--ink-tertiary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em;">Remuneracao = Total Fixo + Total Variavel</div>
                         <div style="font-size: 2.2rem; font-weight: 800; color: #3b8a7c;" id="grand_total_display">R$ 283,53</div>
                     </div>
 
                     <div class="no-print" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
-                        <p style="font-size: 0.75rem; color: #777; margin: 0;">
+                        <p style="font-size: 0.75rem; color: var(--ink-muted); margin: 0;">
                             *** variável a depender da demanda.<br>
                             ** As DEMANDAS são limitadas em no máximo 10 (dez) obras a serem visitadas.
                         </p>
@@ -3113,7 +3307,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 <i class="ph ph-file-pdf"></i> Visualizar Relatório
                             </button>
                             
-                            <button type="submit" class="btn btn-primary" style="padding: 0.8rem 1.5rem; background: #28a745; border-color: #28a745;">
+                            <button type="submit" class="btn btn-primary" style="padding: 0.8rem 1.5rem; background: var(--success); border-color: var(--success); box-shadow: 0 2px 8px -2px rgba*rgba(13, 157, 108, 0.25);">
                                 <i class="ph ph-floppy-disk"></i> Salvar e Liquidar Pagamento
                             </button>
                         </div>
@@ -3569,7 +3763,7 @@ $colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5
                                 <!-- Card Footer: Actions -->
                                 <div style="padding: 1rem; border-top: 1px solid #f1f5f9; background: #fff;">
                                     <?php if (!in_array($route['status'], ['pending_acceptance', 'rejected'])): ?>
-                                        <a href="../recenseador/generate_contract.php?route_id=<?php echo $route['id']; ?>" target="_blank" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: white; background: #28a745; border-color: #28a745; padding: 0.6rem; margin-bottom: 0.5rem;" title="Baixar Termo de Registro de Demanda assinado pelo recenseador">
+                                        <a href="../recenseador/generate_contract.php?route_id=<?php echo $route['id']; ?>" target="_blank" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: white; background: var(--success); border-color: var(--success); box-shadow: 0 2px 8px -2px rgba*rgba(13, 157, 108, 0.25); padding: 0.6rem; margin-bottom: 0.5rem;" title="Baixar Termo de Registro de Demanda assinado pelo recenseador">
                                             <i class="ph ph-file-text"></i> TERMO DE ACEITE (PDF)
                                         </a>
                                     <?php endif; ?>
