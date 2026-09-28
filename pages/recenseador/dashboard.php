@@ -51,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $ext = strtolower(pathinfo($_FILES[$inputName]['name'], PATHINFO_EXTENSION));
                 if (in_array($ext, $allowedExts)) {
                     if ($_FILES[$inputName]['size'] > 10 * 1024 * 1024) continue;
+                    if (!validate_upload_mime($_FILES[$inputName]['tmp_name'], ['application/pdf', 'image/jpeg', 'image/png'])) continue;
                     $newName = "report_{$routeId}_{$i}_" . time() . "." . $ext;
                     if (move_uploaded_file($_FILES[$inputName]['tmp_name'], $uploadDir . $newName)) {
                         $filePaths[$i] = $uploadDir . $newName;
@@ -95,6 +96,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
                 
                 if (in_array($ext, $allowed)) {
+                    if ($_FILES['new_document']['size'] > 10 * 1024 * 1024) {
+                        $message = '<div class="alert danger"><i class="ph ph-x"></i> Arquivo muito grande. Tamanho máximo: 10MB.</div>';
+                    } elseif (!validate_upload_mime($_FILES['new_document']['tmp_name'], ['application/pdf', 'image/jpeg', 'image/png'])) {
+                        $message = '<div class="alert danger"><i class="ph ph-x"></i> Tipo de arquivo inválido (MIME não confere). Use PDF, JPG ou PNG.</div>';
+                    } else {
                     $uploadDir = '../../uploads/';
                     if (!is_dir($uploadDir)) {
                         mkdir($uploadDir, 0777, true);
@@ -132,6 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $message = '<div class="alert success"><i class="ph ph-check-circle"></i> Documento enviado com sucesso! Aguarde a nova análise do administrador.</div>';
                     } else {
                         $message = '<div class="alert danger"><i class="ph ph-x"></i> Erro ao salvar o novo arquivo no servidor.</div>';
+                    }
                     }
                 } else {
                     $message = '<div class="alert danger"><i class="ph ph-x"></i> Formato inválido. Apenas PDF, JPG, JPEG e PNG são aceitos.</div>';

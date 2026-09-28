@@ -39,6 +39,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $message = '<div style="color:red; margin-bottom:1rem; font-weight:bold;"><i class="ph ph-exclamation-mark"></i> Preencha os campos obrigatórios.</div>';
     } elseif ($password !== $confirm_password) {
         $message = '<div style="color:red; margin-bottom:1rem; font-weight:bold;"><i class="ph ph-warning"></i> As senhas digitadas não coincidem. Por favor, verifique e tente novamente.</div>';
+    } elseif (!validar_cpf($cpf)) {
+        $message = '<div style="color:red; margin-bottom:1rem; font-weight:bold;"><i class="ph ph-exclamation-mark"></i> CPF inválido. Verifique os dígitos.</div>';
     } else {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 

@@ -63,7 +63,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 unset($_SESSION['reset_user_id']);
                 unset($_SESSION['reset_user_name']);
                 if (function_exists('sendEmail')) {
-                    @sendEmail($user_email ?? '', 'Senha redefinida - CAU/DF', 'Sua senha foi redefinida com sucesso no portal de recenseadores do CAU/DF.');
+                    $emailStmt = $pdo->prepare("SELECT email FROM users WHERE id = ?");
+                    $emailStmt->execute([$user_id]);
+                    $reset_email = $emailStmt->fetchColumn();
+                    @sendEmail($reset_email ?: '', 'Senha redefinida - CAU/DF', 'Sua senha foi redefinida com sucesso no portal de recenseadores do CAU/DF.');
                 }
                 header("Location: login.php?reset=success");
                 exit();

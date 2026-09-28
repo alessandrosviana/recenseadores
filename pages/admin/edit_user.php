@@ -53,7 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
                 $message = '<div class="alert danger"><i class="ph ph-x"></i> Erro ao atualizar: Este E-mail ou CPF já está cadastrado em outro usuário.</div>';
             } else {
-                $message = '<div class="alert danger"><i class="ph ph-x"></i> Erro ao atualizar: ' . $e->getMessage() . '</div>';
+                log_error($e->getMessage(), __FILE__, __LINE__);
+                $message = '<div class="alert danger"><i class="ph ph-x"></i> Erro ao atualizar. Tente novamente.</div>';
             }
         }
     }
@@ -70,7 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $message = '<div class="alert danger"><i class="ph ph-x"></i> Nenhuma alteração foi feita ou ocorreu um erro na redefinição de senha.</div>';
         }
     } catch (PDOException $e) {
-        $message = '<div class="alert danger"><i class="ph ph-x"></i> Erro ao tentar redefinir a senha: ' . $e->getMessage() . '</div>';
+        log_error($e->getMessage(), __FILE__, __LINE__);
+        $message = '<div class="alert danger"><i class="ph ph-x"></i> Erro ao tentar redefinir a senha. Tente novamente.</div>';
     }
 }
 
