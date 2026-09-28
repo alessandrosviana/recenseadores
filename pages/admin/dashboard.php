@@ -2543,14 +2543,14 @@ if (!empty($expired_macro_report)) {
                 </div>
 
                 <!-- Aviso Fiscal -->
-                <div style="background: #e7f3ff; color: #004085; border: 1px solid #b8daff; padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem; display: flex; align-items: flex-start; gap: 1rem;">
-                    <i class="ph ph-exclamation-mark" style="font-size: 1.4rem; margin-top: 3px;"></i>
+                <div style="background: var(--petrol-tint); color: var(--petrol-deep); border: 1px solid rgba(0, 122, 137, 0.15); padding: 1.1rem 1.25rem; border-radius: var(--radius); margin-bottom: 1.5rem; display: flex; align-items: flex-start; gap: 0.85rem; box-shadow: var(--shadow-xs);">
+                    <div style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--petrol); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                        <i class="ph ph-info"></i>
+                    </div>
                     <div>
-                        <p style="margin: 0; font-weight: 500; margin-bottom: 0.5rem;">As rotas concluídas listadas abaixo ainda serão revisadas pelo fiscal e serão encaminhadas para pagamento posteriormente.</p>
-                        <p style="margin: 0; font-size: 0.9rem; line-height: 1.4;">
-                            <strong style="color: #004085;"><i class="ph ph-info"></i> Importante:</strong> 
-                            As rotas que aparecem aqui são rotas ainda não revisadas pelo fiscal e não liquidadas no pagamento.
-                            O Fiscal validará a tarefa no Wizard de Andamento, enviará para o Passo 4 e subsequente 5 (Envio para Pagamento). Após o Passo 5, a rota sumirá desta lista e aparecerá em <strong>Pagamentos Liquidados</strong>.
+                        <p style="margin: 0 0 0.4rem; font-weight: 700; font-size: 0.9rem;">Rotas concluídas aguardando revisão fiscal</p>
+                        <p style="margin: 0; font-size: 0.82rem; line-height: 1.5; color: var(--ink-secondary);">
+                            As rotas abaixo foram concluídas pelo recenseador e aguardam validação do fiscal no <strong>Wizard de Andamento</strong>. Após mover para o Passo 4 e 5 (Envio para Pagamento), a rota sai desta lista e aparece em <strong style="color: var(--success);">Pagamentos Liquidados</strong>.
                         </p>
                     </div>
                 </div>
@@ -2569,7 +2569,7 @@ if (!empty($expired_macro_report)) {
                     }
                 ?>
                     <!-- Macroregion Cards -->
-                    <div class="grid grid-4" style="margin-bottom: 2rem;">
+                    <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); margin-bottom: 1.5rem;">
                         <?php 
                         $i = 0;
                         foreach ($grouped_completed as $macro => $routes): 
@@ -2578,14 +2578,16 @@ if (!empty($expired_macro_report)) {
                             $safeId = preg_replace('/[^a-z0-9]/i', '', $macro);
                         ?>
                             <div id="card-<?php echo $safeId; ?>" class="completed-macro-card" onclick="filterCompleted('<?php echo htmlspecialchars($macro, ENT_QUOTES); ?>')" 
-                                 style="background: white; padding: 1.2rem; border-radius: 8px; border: 1px solid #e0e0e0; cursor: pointer; transition: all 0.2s; text-align: center; <?php echo $count === 0 ? 'opacity: 0.6;' : ''; ?>">
-                                <div style="font-size: 0.70rem; font-weight: bold; color: <?php echo $color; ?>; text-transform: uppercase;"><?php echo $macro; ?></div>
-                                <div style="font-size: 1.8rem; font-weight: bold; color: #333; margin: 0.3rem 0;"><?php echo $count; ?></div>
-                                <div style="font-size: 0.75rem; color: #888;">Pendentes de Pgto</div>
+                                 style="background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: 1.1rem; box-shadow: var(--shadow-xs); cursor: pointer; transition: var(--transition); text-align: center; <?php echo $count === 0 ? 'opacity: 0.55;' : ''; ?>"
+                                 onmouseover="this.style.boxShadow='var(--shadow-sm)';this.style.borderColor='var(--border-default)'"
+                                 onmouseout="this.style.boxShadow='var(--shadow-xs)';this.style.borderColor='var(--border-subtle)'">
+                                <div style="font-size: 0.68rem; font-weight: 700; color: <?php echo $color; ?>; text-transform: uppercase; letter-spacing: 0.02em;"><?php echo $macro; ?></div>
+                                <div style="font-size: 1.7rem; font-weight: 800; color: var(--ink-primary); margin: 0.25rem 0; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums;"><?php echo $count; ?></div>
+                                <div style="font-size: 0.72rem; color: var(--ink-tertiary); font-weight: 500;">Pendentes de Pgto</div>
                                 <?php if ($count > 0): ?>
-                                    <div style="font-size: 0.65rem; color: var(--primary-teal); font-weight: 700; margin-top: 5px;"><i class="ph ph-eye"></i> Ver Detalhes</div>
+                                    <div style="font-size: 0.62rem; color: var(--petrol); font-weight: 700; margin-top: 6px; display: inline-flex; align-items: center; gap: 3px;"><i class="ph ph-eye" style="font-size: 0.7rem;"></i> Ver detalhes</div>
                                 <?php else: ?>
-                                    <div style="font-size: 0.65rem; color: #ccc; margin-top: 5px;">Nada pendente</div>
+                                    <div style="font-size: 0.62rem; color: var(--ink-muted); margin-top: 6px;">Nada pendente</div>
                                 <?php endif; ?>
                             </div>
                         <?php $i++; endforeach; ?>
@@ -2596,46 +2598,48 @@ if (!empty($expired_macro_report)) {
                         if (count($routes) === 0) continue;
                         $safeId = preg_replace('/[^a-z0-9]/i', '', $macro);
                     ?>
-                        <div id="table-<?php echo $safeId; ?>" class="completed-macro-table" style="display: none; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0; margin-top: 1rem; animation: fadeIn 0.3s;">
-                            <div style="background: #f8f9fa; padding: 1rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-                                <h3 style="margin: 0; font-size: 1rem; color: var(--primary-teal);"><i class="ph ph-map-pin"></i> Detalhes: <?php echo $macro; ?></h3>
-                                <button onclick="filterCompleted(null)" class="btn" style="padding: 0.2rem 0.5rem; font-size: 0.7rem; background: #eee; border: none;">Fechar</button>
+                        <div id="table-<?php echo $safeId; ?>" class="completed-macro-table" style="display: none; background: var(--surface-1); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border-subtle); margin-top: 1rem; box-shadow: var(--shadow-sm); animation: fadeIn 0.3s;">
+                            <div style="background: var(--petrol-tint); padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+                                <h3 style="margin: 0; font-size: 0.92rem; color: var(--petrol-deep); font-weight: 700; display: flex; align-items: center; gap: 6px;"><i class="ph ph-map-pin"></i> <?php echo $macro; ?></h3>
+                                <button onclick="filterCompleted(null)" class="action-btn-circle" style="width: 30px; height: 30px; font-size: 0.8rem;" title="Fechar"><i class="ph ph-x"></i></button>
                             </div>
                             <table style="width: 100%; border-collapse: collapse;">
-                                <thead style="background: #fff; border-bottom: 2px solid #eee;">
-                                    <tr>
-                                        <th style="padding:1rem; text-align: left;">Recenseador / RA</th>
-                                        <th style="padding:1rem; text-align: left;">Título da Rota</th>
-                                        <th style="padding:1rem; text-align: left;">Data</th>
-                                        <th style="padding:1rem; text-align: center;">Relatório</th>
+                                <thead>
+                                    <tr style="border-bottom: 1px solid var(--border-default);">
+                                        <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em;">Recenseador</th>
+                                        <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em;">Rota Concluída</th>
+                                        <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em;">Data</th>
+                                        <th style="padding: 0.75rem 1rem; text-align: center; font-size: 0.7rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em;">Anexos</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach ($routes as $c_route): ?>
-                                        <tr style="border-bottom: 1px solid var(--border-subtle);">
-                                            <td style="padding:1rem; vertical-align: top;">
-                                                <div style="font-weight: 600; color: #333;"><?php echo mb_strtoupper(htmlspecialchars($c_route['user_name']), 'UTF-8'); ?></div>
-                                                <div style="font-size: 0.75rem; color: var(--primary-teal); font-weight: 600; margin-top: 2px;">📍 <?php echo htmlspecialchars($c_route['microregion']); ?></div>
+                                        <tr style="border-bottom: 1px solid var(--border-subtle); transition: background 0.15s var(--ease);" onmouseover="this.style.background='var(--surface-0)'" onmouseout="this.style.background='transparent'">
+                                            <td style="padding: 0.85rem 1rem; vertical-align: top;">
+                                                <div style="font-weight: 700; color: var(--ink-primary); font-size: 0.85rem;"><?php echo mb_strtoupper(htmlspecialchars($c_route['user_name']), 'UTF-8'); ?></div>
+                                                <div style="font-size: 0.72rem; color: var(--petrol); font-weight: 600; margin-top: 3px; display: inline-flex; align-items: center; gap: 3px;"><i class="ph ph-map-pin" style="font-size: 0.7rem;"></i> <?php echo htmlspecialchars($c_route['microregion']); ?></div>
                                             </td>
-                                            <td style="padding:1rem; vertical-align: top;">
-                                                <strong><?php echo htmlspecialchars($c_route['title']); ?></strong>
-                                                <div style="background: #f8f9fa; padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; margin-top: 5px; border-left: 2px solid #28a745;">
-                                                    <?php echo nl2br(htmlspecialchars($c_route['observation'] ?? 'N/A')); ?>
+                                            <td style="padding: 0.85rem 1rem; vertical-align: top;">
+                                                <div style="font-weight: 600; color: var(--ink-primary); font-size: 0.85rem;"><?php echo htmlspecialchars($c_route['title']); ?></div>
+                                                <?php $obs = trim($c_route['observation'] ?? ''); if (!empty($obs)): ?>
+                                                <div style="background: var(--success-light); padding: 0.5rem 0.65rem; border-radius: var(--radius-xs); font-size: 0.78rem; margin-top: 6px; border-left: 3px solid var(--success); color: var(--ink-secondary); line-height: 1.4;">
+                                                    <?php echo nl2br(htmlspecialchars($obs)); ?>
                                                 </div>
+                                                <?php endif; ?>
                                             </td>
-                                            <td style="padding:1rem; vertical-align: top; font-size: 0.85rem;">
+                                            <td style="padding: 0.85rem 1rem; vertical-align: top; font-size: 0.8rem; color: var(--ink-secondary); font-variant-numeric: tabular-nums;">
                                                 <?php echo date('d/m/Y', strtotime($c_route['completed_at'])); ?>
                                             </td>
-                                            <td style="padding:1rem; text-align: center; vertical-align: top;">
+                                            <td style="padding: 0.85rem 1rem; text-align: center; vertical-align: top;">
                                                 <?php
                                                 $files = array_filter([$c_route['report_file_1'], $c_route['report_file_2'], $c_route['report_file_3']]);
                                                 foreach ($files as $idx => $file):
                                                     $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-                                                    $icon = ($ext === 'pdf') ? 'fa-file-pdf' : 'fa-file-image';
+                                                    $icon = ($ext === 'pdf') ? 'file-pdf' : 'file-image';
                                                 ?>
-                                                    <a href="<?php echo htmlspecialchars($file); ?>" target="_blank" title="Anexo <?php echo $idx+1; ?>" style="color: #28a745; margin: 0 3px;"><i class="fas <?php echo $icon; ?>"></i></a>
+                                                    <a href="<?php echo htmlspecialchars($file); ?>" target="_blank" title="Anexo <?php echo $idx+1; ?>" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--radius-xs); background: var(--success-light); color: var(--success); border: 1px solid rgba(13, 157, 108, 0.15); margin: 2px; transition: all 0.18s var(--ease); text-decoration: none;" onmouseover="this.style.background='var(--success)';this.style.color='white'" onmouseout="this.style.background='var(--success-light)';this.style.color='var(--success)'"><i class="ph ph-<?php echo $icon; ?>" style="font-size: 0.8rem;"></i></a>
                                                 <?php endforeach; ?>
-                                                <a href="edit_route.php?id=<?php echo $c_route['id']; ?>" style="display: block; font-size: 0.65rem; color: #666; margin-top: 5px;">Ver</a>
+                                                <a href="edit_route.php?id=<?php echo $c_route['id']; ?>" style="display: inline-flex; align-items: center; gap: 3px; font-size: 0.68rem; font-weight: 700; color: var(--petrol); margin-top: 6px; text-decoration: none; padding: 3px 8px; border-radius: var(--radius-xs); background: var(--petrol-tint); transition: all 0.18s var(--ease);" onmouseover="this.style.background='var(--petrol)';this.style.color='white'" onmouseout="this.style.background='var(--petrol-tint)';this.style.color='var(--petrol)'"><i class="ph ph-arrow-square-out" style="font-size: 0.7rem;"></i> Ver Rota</a>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -2644,9 +2648,11 @@ if (!empty($expired_macro_report)) {
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <div class="text-center py-5" style="border: 2px dashed #eee; border-radius: 8px; background: white;">
-                        <i class="ph ph-folder-open" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
-                        <p class="text-muted">Nenhuma tarefa foi concluída até o momento.</p>
+                    <div style="text-align: center; padding: 3rem; border: 1px dashed var(--border-default); border-radius: var(--radius); background: var(--surface-1);">
+                        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--surface-0); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                            <i class="ph ph-folder-open" style="font-size: 1.6rem; color: var(--ink-muted);"></i>
+                        </div>
+                        <p style="color: var(--ink-tertiary); font-size: 0.9rem; margin: 0;">Nenhuma tarefa foi concluída até o momento.</p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -2659,40 +2665,36 @@ if (!empty($expired_macro_report)) {
                 </div>
 
                 <?php if (count($cancelled_routes) > 0): ?>
-                    <div style="background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0; margin-top: 1rem;">
+                    <div style="background: var(--surface-1); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border-subtle); margin-top: 1rem; box-shadow: var(--shadow-xs);">
                         <table style="width: 100%; border-collapse: collapse;">
-                            <thead style="background: #f8f9fa;">
-                                <tr>
-                                    <th style="padding:1rem; text-align: left;">Recenseador</th>
-                                    <th style="padding:1rem; text-align: left;">Título da Rota</th>
-                                    <th style="padding:1rem; text-align: left;">Data Cancelamento</th>
-                                    <th style="padding:1rem; text-align: center;">Ações</th>
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--border-default);">
+                                    <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em;">Recenseador</th>
+                                    <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em;">Rota Cancelada</th>
+                                    <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em;">Data</th>
+                                    <th style="padding: 0.75rem 1rem; text-align: center; font-size: 0.7rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em;">Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($cancelled_routes as $r): ?>
-                                    <tr style="border-bottom: 1px solid var(--border-subtle);">
-                                        <td style="padding:1rem; font-weight: 600; color: #333;">
+                                    <tr style="border-bottom: 1px solid var(--border-subtle); transition: background 0.15s var(--ease);" onmouseover="this.style.background='var(--surface-0)'" onmouseout="this.style.background='transparent'">
+                                        <td style="padding: 0.85rem 1rem; font-weight: 700; color: var(--ink-primary); font-size: 0.85rem;">
                                             <?php echo mb_strtoupper(htmlspecialchars($r['user_name']), 'UTF-8'); ?>
                                         </td>
-                                        <td style="padding:1rem;">
-                                            <div style="font-weight: 600;"><?php echo htmlspecialchars($r['title']); ?></div>
-                                            <div style="font-size: 0.85rem; color: #666; margin-top: 2px;">
-                                                <i class="ph ph-map-pin"></i> <?php echo htmlspecialchars($r['microregion'] ?? 'N/A'); ?>
-                                            </div>
+                                        <td style="padding: 0.85rem 1rem;">
+                                            <div style="font-weight: 600; color: var(--ink-primary); font-size: 0.85rem;"><?php echo htmlspecialchars($r['title']); ?></div>
+                                            <div style="font-size: 0.72rem; color: var(--ink-tertiary); margin-top: 3px; display: inline-flex; align-items: center; gap: 3px;"><i class="ph ph-map-pin" style="font-size: 0.7rem;"></i> <?php echo htmlspecialchars($r['microregion'] ?? 'N/A'); ?></div>
                                             <?php if (!empty($r['cancellation_reason'])): ?>
-                                                <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; color: #991b1b; margin-top: 5px; display: inline-block; max-width: 350px;">
-                                                    <i class="ph ph-prohibit"></i> Motivo: <?php echo htmlspecialchars($r['cancellation_reason']); ?>
+                                                <div style="background: var(--danger-light); border-left: 3px solid var(--danger); padding: 0.4rem 0.65rem; border-radius: var(--radius-xs); font-size: 0.78rem; color: #991b1b; margin-top: 6px; line-height: 1.4;">
+                                                    <i class="ph ph-prohibit" style="font-size: 0.75rem;"></i> <?php echo htmlspecialchars($r['cancellation_reason']); ?>
                                                 </div>
                                             <?php endif; ?>
                                         </td>
-                                        <td style="padding:1rem;">
+                                        <td style="padding: 0.85rem 1rem; font-size: 0.8rem; color: var(--ink-secondary); font-variant-numeric: tabular-nums;">
                                             <?php echo date('d/m/Y H:i', strtotime($r['updated_at'])); ?>
                                         </td>
-                                        <td style="padding:1rem; text-align: center;">
-                                            <a href="edit_route.php?id=<?php echo $r['id']; ?>" class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.85rem;">
-                                                <i class="ph ph-pencil-simple-line"></i> Editar/Reativar
-                                            </a>
+                                        <td style="padding: 0.85rem 1rem; text-align: center;">
+                                            <a href="edit_route.php?id=<?php echo $r['id']; ?>" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 700; color: var(--petrol); text-decoration: none; padding: 5px 10px; border-radius: var(--radius-xs); background: var(--petrol-tint); border: 1px solid rgba(0, 122, 137, 0.12); transition: all 0.18s var(--ease);" onmouseover="this.style.background='var(--petrol)';this.style.color='white'" onmouseout="this.style.background='var(--petrol-tint)';this.style.color='var(--petrol)'"><i class="ph ph-pencil-simple-line" style="font-size: 0.75rem;"></i> Editar/Reativar</a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -2700,9 +2702,11 @@ if (!empty($expired_macro_report)) {
                         </table>
                     </div>
                 <?php else: ?>
-                    <div class="text-center py-5" style="border: 2px dashed #eee; border-radius: 8px; background: white;">
-                        <i class="ph ph-check-circle" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
-                        <p class="text-muted">Nenhuma rota cancelada no momento.</p>
+                    <div style="text-align: center; padding: 3rem; border: 1px dashed var(--border-default); border-radius: var(--radius); background: var(--surface-1);">
+                        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--surface-0); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                            <i class="ph ph-check-circle" style="font-size: 1.6rem; color: var(--ink-muted);"></i>
+                        </div>
+                        <p style="color: var(--ink-tertiary); font-size: 0.9rem; margin: 0;">Nenhuma rota cancelada no momento.</p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -2716,35 +2720,33 @@ if (!empty($expired_macro_report)) {
                 </div>
 
                 <?php if (count($rejected_routes) > 0): ?>
-                    <div style="background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0; margin-top: 1rem;">
+                    <div style="background: var(--surface-1); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border-subtle); margin-top: 1rem; box-shadow: var(--shadow-xs);">
                         <table style="width: 100%; border-collapse: collapse;">
-                            <thead style="background: #f8f9fa;">
-                                <tr>
-                                    <th style="padding:1rem; text-align: left;">Recenseador</th>
-                                    <th style="padding:1rem; text-align: left;">Rota / Motivo</th>
-                                    <th style="padding:1rem; text-align: left;">Data Recusa</th>
-                                    <th style="padding:1rem; text-align: center;">Ações</th>
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--border-default);">
+                                    <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em;">Recenseador</th>
+                                    <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em;">Rota / Motivo</th>
+                                    <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em;">Data</th>
+                                    <th style="padding: 0.75rem 1rem; text-align: center; font-size: 0.7rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em;">Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($rejected_routes as $r): ?>
-                                    <tr style="border-bottom: 1px solid var(--border-subtle);">
-                                        <td style="padding:1rem; font-weight: 600; color: #333;">
+                                    <tr style="border-bottom: 1px solid var(--border-subtle); transition: background 0.15s var(--ease);" onmouseover="this.style.background='var(--surface-0)'" onmouseout="this.style.background='transparent'">
+                                        <td style="padding: 0.85rem 1rem; font-weight: 700; color: var(--ink-primary); font-size: 0.85rem;">
                                             <?php echo mb_strtoupper(htmlspecialchars($r['user_name']), 'UTF-8'); ?>
                                         </td>
-                                        <td style="padding:1rem;">
-                                            <div style="font-weight: 600;"><?php echo htmlspecialchars($r['title']); ?></div>
-                                            <div style="background: #fff5f5; padding: 0.5rem; border-left: 3px solid #dc3545; color: #b91c1c; font-size: 0.85rem; margin-top: 5px;">
+                                        <td style="padding: 0.85rem 1rem;">
+                                            <div style="font-weight: 600; color: var(--ink-primary); font-size: 0.85rem;"><?php echo htmlspecialchars($r['title']); ?></div>
+                                            <div style="background: var(--danger-light); padding: 0.4rem 0.65rem; border-left: 3px solid var(--danger); color: #991b1b; font-size: 0.78rem; margin-top: 6px; border-radius: var(--radius-xs); line-height: 1.4;">
                                                 <strong>Motivo:</strong> <?php echo htmlspecialchars($r['rejected_reason'] ?? 'Sem justificativa.'); ?>
                                             </div>
                                         </td>
-                                        <td style="padding:1rem;">
+                                        <td style="padding: 0.85rem 1rem; font-size: 0.8rem; color: var(--ink-secondary); font-variant-numeric: tabular-nums;">
                                             <?php echo date('d/m/Y H:i', strtotime($r['created_at'])); ?>
                                         </td>
-                                        <td style="padding:1rem; text-align: center;">
-                                            <a href="edit_route.php?id=<?php echo $r['id']; ?>" class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.85rem;">
-                                                <i class="ph ph-pencil-simple-line"></i> Reatribuir
-                                            </a>
+                                        <td style="padding: 0.85rem 1rem; text-align: center;">
+                                            <a href="edit_route.php?id=<?php echo $r['id']; ?>" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 700; color: var(--petrol); text-decoration: none; padding: 5px 10px; border-radius: var(--radius-xs); background: var(--petrol-tint); border: 1px solid rgba(0, 122, 137, 0.12); transition: all 0.18s var(--ease);" onmouseover="this.style.background='var(--petrol)';this.style.color='white'" onmouseout="this.style.background='var(--petrol-tint)';this.style.color='var(--petrol)'"><i class="ph ph-pencil-simple-line" style="font-size: 0.75rem;"></i> Reatribuir</a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -2752,9 +2754,11 @@ if (!empty($expired_macro_report)) {
                         </table>
                     </div>
                 <?php else: ?>
-                    <div class="text-center py-5" style="border: 2px dashed #eee; border-radius: 8px; background: white;">
-                        <i class="ph ph-check-circle" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
-                        <p class="text-muted">Nenhuma rota foi rejeitada até o momento.</p>
+                    <div style="text-align: center; padding: 3rem; border: 1px dashed var(--border-default); border-radius: var(--radius); background: var(--surface-1);">
+                        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--surface-0); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                            <i class="ph ph-check-circle" style="font-size: 1.6rem; color: var(--ink-muted);"></i>
+                        </div>
+                        <p style="color: var(--ink-tertiary); font-size: 0.9rem; margin: 0;">Nenhuma rota foi rejeitada até o momento.</p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -2916,52 +2920,63 @@ if (!empty($expired_macro_report)) {
                     <h2><i class="ph ph-shield-check"></i> Gestão de Administradores</h2>
                     <p class="text-muted">Adicione novos usuários com permissões de acesso ao painel administrativo.</p>
                 </div>
-                <div class="grid grid-2" style="gap: 2rem; align-items: start;">
+                <div class="grid grid-2" style="gap: 1.5rem; align-items: start;">
                     <!-- Form Creation -->
-                    <div style="background: white; padding: 2rem; border-radius: 8px; border: 1px solid #e0e0e0;">
-                        <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.1rem; color: #333;"><i class="ph ph-user-plus"></i> Novo Administrador</h3>
+                    <div style="background: var(--surface-1); padding: 1.75rem; border-radius: var(--radius); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-xs);">
+                        <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.5rem;">
+                            <div style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--petrol-tint); color: var(--petrol); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                                <i class="ph ph-user-plus"></i>
+                            </div>
+                            <h3 style="margin: 0; font-size: 0.95rem; color: var(--ink-primary); font-weight: 700;">Novo Administrador</h3>
+                        </div>
                         <form method="post">
                             <?php echo csrf_field(); ?>
                             <input type="hidden" name="action" value="create_admin">
                             <div class="form-group mb-3">
-                                <label>Nome Completo</label>
-                                <input type="text" name="name" required class="form-control" placeholder="Ex: João Silva" style="width: 100%; padding:0.8rem; border:1px solid #ccc;">
+                                <label style="font-size: 0.82rem; font-weight: 600; color: var(--ink-secondary);">Nome Completo</label>
+                                <input type="text" name="name" required class="form-control" placeholder="Ex: João Silva" style="width: 100%; padding: 0.7rem 0.85rem; border: 1px solid var(--border-default); border-radius: var(--radius-sm); background: var(--surface-input); color: var(--ink-primary); font-size: 0.88rem;">
                             </div>
                             <div class="form-group mb-3">
-                                <label>E-mail Institucional (@caudf.gov.br)</label>
-                                <input type="email" name="email" required class="form-control" placeholder="usuario@caudf.gov.br" style="width: 100%; padding:0.8rem; border:1px solid #ccc;">
+                                <label style="font-size: 0.82rem; font-weight: 600; color: var(--ink-secondary);">E-mail Institucional (@caudf.gov.br)</label>
+                                <input type="email" name="email" required class="form-control" placeholder="usuario@caudf.gov.br" style="width: 100%; padding: 0.7rem 0.85rem; border: 1px solid var(--border-default); border-radius: var(--radius-sm); background: var(--surface-input); color: var(--ink-primary); font-size: 0.88rem;">
                             </div>
                             <div class="form-group mb-4">
-                                <label>Senha de Acesso</label>
-                                <input type="password" name="password" required class="form-control" placeholder="Clique para digitar" style="width: 100%; padding:0.8rem; border:1px solid #ccc;">
+                                <label style="font-size: 0.82rem; font-weight: 600; color: var(--ink-secondary);">Senha de Acesso</label>
+                                <input type="password" name="password" required class="form-control" placeholder="Clique para digitar" style="width: 100%; padding: 0.7rem 0.85rem; border: 1px solid var(--border-default); border-radius: var(--radius-sm); background: var(--surface-input); color: var(--ink-primary); font-size: 0.88rem;">
                             </div>
-                            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.8rem;">
+                            <button type="submit" style="width: 100%; padding: 0.75rem; font-size: 0.88rem; font-weight: 700; color: white; background: linear-gradient(135deg, var(--petrol) 0%, var(--petrol-deep) 100%); border: none; border-radius: var(--radius-sm); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: var(--transition);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0, 122, 137, 0.3)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
                                 <i class="ph ph-floppy-disk"></i> Criar Administrador
                             </button>
                         </form>
                     </div>
 
                     <!-- List Admins -->
-                    <div style="background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0;">
-                        <div style="background: #f8f9fa; padding: 1rem; border-bottom: 1px solid var(--border-subtle);">
-                            <h3 style="margin: 0; font-size: 1rem; color: #333;"><i class="ph ph-list"></i> Administradores Atuais</h3>
+                    <div style="background: var(--surface-1); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-xs);">
+                        <div style="background: var(--petrol-tint); padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 0.6rem;">
+                            <div style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--petrol); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">
+                                <i class="ph ph-shield-check"></i>
+                            </div>
+                            <h3 style="margin: 0; font-size: 0.92rem; color: var(--petrol-deep); font-weight: 700;">Administradores Atuais</h3>
                         </div>
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
-                                <tr style="background: #fff; border-bottom: 1px solid var(--border-subtle);">
-                                    <th style="padding:1rem; text-align: left; font-size: 0.85rem;">Nome</th>
-                                    <th style="padding:1rem; text-align: left; font-size: 0.85rem;">E-mail</th>
+                                <tr style="border-bottom: 1px solid var(--border-default);">
+                                    <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em;">Nome</th>
+                                    <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em;">E-mail</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($admin_users as $adm): ?>
-                                    <tr style="border-bottom: 1px solid var(--border-subtle);">
-                                        <td style="padding:1rem;">
-                                            <div style="font-weight: 600; color: #333; font-size: 0.9rem;">
-                                                <?php echo htmlspecialchars($adm['name']); ?>
+                                    <tr style="border-bottom: 1px solid var(--border-subtle); transition: background 0.15s var(--ease);" onmouseover="this.style.background='var(--surface-0)'" onmouseout="this.style.background='transparent'">
+                                        <td style="padding: 0.85rem 1rem;">
+                                            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                                                <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--petrol-tint); color: var(--petrol); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0;">
+                                                    <i class="ph ph-shield-check"></i>
+                                                </div>
+                                                <span style="font-weight: 700; color: var(--ink-primary); font-size: 0.85rem;"><?php echo htmlspecialchars($adm['name']); ?></span>
                                             </div>
                                         </td>
-                                        <td style="padding:1rem; font-size: 0.85rem; color: #666;">
+                                        <td style="padding: 0.85rem 1rem; font-size: 0.82rem; color: var(--ink-tertiary);">
                                             <?php echo htmlspecialchars($adm['email']); ?>
                                         </td>
                                     </tr>

@@ -177,15 +177,15 @@ $user_docs = $docs_stmt->fetchAll();
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <style>
         .dashboard-header {
-            background: white;
-            padding: 2.5rem;
+            background: var(--surface-1);
+            padding: 2rem 2.5rem;
             border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            margin-bottom: 2rem;
+            box-shadow: var(--shadow-xs);
+            margin-bottom: 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-subtle);
         }
 
         .status-badge-lg {
@@ -198,19 +198,20 @@ $user_docs = $docs_stmt->fetchAll();
         }
 
         .route-card {
-            background: white;
+            background: var(--surface-1);
             border-radius: var(--radius);
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
+            border: 1px solid var(--border-subtle);
+            box-shadow: var(--shadow-xs);
             transition: var(--transition);
             overflow: hidden;
-            border-top: 5px solid var(--primary-teal);
+            border-top: 4px solid var(--petrol);
             position: relative;
         }
 
         .route-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
             box-shadow: var(--shadow-md);
+            border-color: rgba(0, 122, 137, 0.2);
         }
 
         .status-label {
@@ -261,13 +262,13 @@ $user_docs = $docs_stmt->fetchAll();
         }
 
         .modal-content {
-            background: white;
+            background: var(--surface-1);
             padding: 2rem;
-            border-radius: 12px;
+            border-radius: var(--radius);
             width: 90%;
             max-width: 600px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            border: 1px solid #e2e8f0;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border-subtle);
             animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -275,7 +276,7 @@ $user_docs = $docs_stmt->fetchAll();
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--border-subtle);
             padding-bottom: 1rem;
             margin-bottom: 1.5rem;
         }
@@ -284,7 +285,7 @@ $user_docs = $docs_stmt->fetchAll();
             background: none;
             border: none;
             font-size: 1.5rem;
-            color: #94a3b8;
+            color: var(--ink-muted);
             cursor: pointer;
             transition: color 0.2s;
             line-height: 1;
@@ -292,14 +293,14 @@ $user_docs = $docs_stmt->fetchAll();
         }
 
         .modal-close-btn:hover {
-            color: #475569;
+            color: var(--ink-secondary);
         }
 
         .custom-file-upload {
-            border: 1px dashed #cbd5e1;
+            border: 1px dashed var(--border-default);
             padding: 10px;
-            border-radius: 6px;
-            background: #f8fafc;
+            border-radius: var(--radius-sm);
+            background: var(--surface-input);
             display: flex;
             align-items: center;
             gap: 10px;
@@ -371,47 +372,47 @@ $user_docs = $docs_stmt->fetchAll();
                 </div>
                 
                 <div class="status-card" style="margin-top: 1rem; text-align: left; padding: 1.5rem;">
-                    <h3 style="font-size: 1.1rem; color: #333; margin-bottom: 1rem; border-bottom: 2px solid var(--primary-teal); padding-bottom: 0.5rem;"><i class="ph ph-file-text"></i> Meus Documentos</h3>
+                    <h3 style="font-size: 0.95rem; color: var(--ink-primary); margin-bottom: 1rem; border-bottom: 2px solid var(--petrol); padding-bottom: 0.6rem; font-weight: 700; display: flex; align-items: center; gap: 6px;"><i class="ph ph-file-text" style="color: var(--petrol);"></i> Meus Documentos</h3>
                     
                     <?php if (count($user_docs) > 0): ?>
                         <ul style="list-style: none; padding: 0; margin: 0;">
                             <?php foreach ($user_docs as $doc): ?>
-                                <li style="border-bottom: 1px solid #eee; padding: 0.8rem 0; display: flex; justify-content: space-between; align-items: center;">
-                                    <div style="font-size: 0.9rem; font-weight: 500; color: #555;">
-                                        <i class="ph ph-file-pdf" style="color: #dc3545; margin-right: 5px;"></i> 
+                                <li style="border-bottom: 1px solid var(--border-subtle); padding: 0.7rem 0; display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="font-size: 0.82rem; font-weight: 600; color: var(--ink-secondary);">
+                                        <i class="ph ph-file-pdf" style="color: var(--danger); margin-right: 5px;"></i> 
                                         <?php echo htmlspecialchars($doc['document_type']); ?>
                                     </div>
                                     <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
                                         <?php if (($doc['status'] ?? 'pending') === 'approved'): ?>
-                                            <span style="background: #198754; color: white; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700;">APROVADO</span>
+                                            <span style="background: var(--success); color: white; padding: 0.2rem 0.6rem; border-radius: var(--radius-xs); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.03em;">APROVADO</span>
                                         <?php elseif (($doc['status'] ?? 'pending') === 'rejected'): ?>
-                                            <span style="background: #dc3545; color: white; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700;">REPROVADO</span>
+                                            <span style="background: var(--danger); color: white; padding: 0.2rem 0.6rem; border-radius: var(--radius-xs); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.03em;">REPROVADO</span>
                                             
                                             <!-- Formulário inline para substituição do documento rejeitado -->
                                             <form method="post" enctype="multipart/form-data" style="margin: 0; display: inline-block;">
                                                 <?php echo csrf_field(); ?>
                                                 <input type="hidden" name="replace_doc_id" value="<?php echo $doc['id']; ?>">
                                                 <input type="file" name="new_document" accept=".pdf,image/*" required style="display: none;" id="replace-upload-<?php echo $doc['id']; ?>" onchange="this.form.submit()">
-                                                <label for="replace-upload-<?php echo $doc['id']; ?>" class="btn btn-outline" style="font-size: 0.65rem; padding: 3px 8px; cursor: pointer; border-color: #d97706; color: #d97706; display: inline-flex; align-items: center; gap: 4px; background: white; font-weight: 700; transition: all 0.2s; border-radius: 4px; margin-top: 3px;">
+                                                <label for="replace-upload-<?php echo $doc['id']; ?>" style="font-size: 0.62rem; padding: 3px 8px; cursor: pointer; border: 1px solid rgba(217, 119, 6, 0.2); color: var(--warning); display: inline-flex; align-items: center; gap: 4px; background: var(--warning-light); font-weight: 700; transition: all 0.18s var(--ease); border-radius: var(--radius-xs); margin-top: 3px;" onmouseover="this.style.background='var(--warning)';this.style.color='white'" onmouseout="this.style.background='var(--warning-light)';this.style.color='var(--warning)'">
                                                     <i class="ph ph-arrows-clockwise"></i> Substituir
                                                 </label>
                                             </form>
                                         <?php else: ?>
-                                            <span style="background: #ffc107; color: #000; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700;">PENDENTE</span>
+                                            <span style="background: var(--warning); color: white; padding: 0.2rem 0.6rem; border-radius: var(--radius-xs); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.03em;">PENDENTE</span>
                                         <?php endif; ?>
                                     </div>
                                 </li>
                             <?php endforeach; ?>
                         </ul>
                     <?php else: ?>
-                        <p style="font-size: 0.85rem; color: #888; text-align: center; margin: 1rem 0;">Nenhum documento anexado.</p>
+                        <p style="font-size: 0.85rem; color: var(--ink-muted); text-align: center; margin: 1rem 0;">Nenhum documento anexado.</p>
                     <?php endif; ?>
                 </div>
             </div>
 
             <div class="main-content">
                 <?php if ($user['status'] == 'approved'): ?>
-                    <h3 class="mb-4" style="border-left: 4px solid var(--primary-teal); padding-left: 1rem; color: #333;">
+                    <h3 class="mb-4" style="border-left: 4px solid var(--petrol); padding-left: 1rem; color: var(--ink-primary); font-size: 1.05rem; font-weight: 700;">
                         Minhas Rotas de Trabalho
                     </h3>
 
@@ -420,9 +421,9 @@ $user_docs = $docs_stmt->fetchAll();
                             <?php foreach ($routes as $route): 
                                 $deadline = !empty($route['scheduled_end']) ? $route['scheduled_end'] : (!empty($route['end_date']) ? $route['end_date'] : null);
                             ?>
-                                <div class="route-card" style="display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border); transition: transform 0.2s;">
+                                <div class="route-card" style="display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-subtle); transition: var(--transition);">
                                     <!-- Header: Simplified & Elegant -->
-                                    <div style="background: var(--slate-50); padding: 1.25rem; border-bottom: 1px solid var(--border); position: relative;">
+                                    <div style="background: var(--surface-0); padding: 1.25rem; border-bottom: 1px solid var(--border-subtle); position: relative;">
                                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                                             <?php 
                                                 $demandLabel = "Específica";
@@ -453,7 +454,7 @@ $user_docs = $docs_stmt->fetchAll();
                                                 ?>
                                             </span>
                                         </div>
-                                        <h3 style="margin: 0; font-size: 1.1rem; color: var(--slate-900); font-weight: 700; line-height: 1.3;">
+                                        <h3 style="margin: 0; font-size: 1.05rem; color: var(--ink-primary); font-weight: 700; line-height: 1.3;">
                                             <?php echo htmlspecialchars($route['title']); ?>
                                         </h3>
                                         
@@ -462,7 +463,7 @@ $user_docs = $docs_stmt->fetchAll();
                                         if ($mapUrl): 
                                      ?>
                                          <a href="<?php echo htmlspecialchars($mapUrl); ?>" target="_blank" 
-                                           style="display: inline-flex; align-items: center; gap: 6px; margin-top: 0.8rem; color: #2563eb; font-size: 0.7rem; font-weight: 700; text-decoration: none; padding: 4px 0;">
+                                           style="display: inline-flex; align-items: center; gap: 6px; margin-top: 0.8rem; color: var(--info); font-size: 0.7rem; font-weight: 700; text-decoration: none; padding: 4px 0;">
                                             <i class="ph ph-arrow-square-out"></i> ABRIR NO GOOGLE MAPS
                                         </a>
                                         <?php endif; ?>
@@ -472,18 +473,18 @@ $user_docs = $docs_stmt->fetchAll();
                                         
                                         <!-- Dates & Alerts Grid -->
                                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                                            <div style="background: white; border: 1px solid var(--border); padding: 0.75rem; border-radius: 8px;">
-                                                <small style="font-size: 0.6rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 4px;">Atribuição</small>
-                                                <div style="font-size: 0.8rem; font-weight: 600; color: var(--slate-700);">
-                                                    <i class="ph ph-calendar-check" style="color: var(--primary-teal); margin-right: 4px;"></i>
+                                            <div style="background: var(--surface-1); border: 1px solid var(--border-subtle); padding: 0.75rem; border-radius: var(--radius-sm);">
+                                                <small style="font-size: 0.6rem; color: var(--ink-tertiary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; display: block; margin-bottom: 4px;">Atribuição</small>
+                                                <div style="font-size: 0.8rem; font-weight: 600; color: var(--ink-secondary);">
+                                                    <i class="ph ph-calendar-check" style="color: var(--petrol); margin-right: 4px;"></i>
                                                     <?php echo date('d/m/Y', strtotime($route['created_at'])); ?>
                                                 </div>
                                             </div>
                                             
                                             <?php if (!empty($deadline)): ?>
-                                            <div style="background: #fff5f5; border: 1px solid #fee2e2; padding: 0.75rem; border-radius: 8px;">
-                                                <small style="font-size: 0.6rem; color: #b91c1c; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 4px;">Prazo Final</small>
-                                                <div style="font-size: 0.8rem; font-weight: 700; color: #b91c1c;">
+                                            <div style="background: var(--danger-light); border: 1px solid rgba(220, 38, 38, 0.12); padding: 0.75rem; border-radius: var(--radius-sm);">
+                                                <small style="font-size: 0.6rem; color: var(--danger); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; display: block; margin-bottom: 4px;">Prazo Final</small>
+                                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--danger);">
                                                     <i class="ph ph-clock" style="margin-right: 4px;"></i>
                                                     <?php echo date('d/m/Y H:i', strtotime($deadline)); ?>
                                                 </div>
@@ -492,10 +493,10 @@ $user_docs = $docs_stmt->fetchAll();
                                         </div>
                                         
                                         <?php if ($route['status'] === 'completed' && !empty($route['completed_at'])): ?>
-                                        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 0.75rem; border-radius: 8px; display: flex; align-items: center; gap: 8px; color: #15803d; font-size: 0.8rem; font-weight: 600; margin-top: -5px;">
-                                            <i class="ph ph-calendar-check" style="font-size: 1rem; color: #16a34a;"></i>
+                                        <div style="background: var(--success-light); border: 1px solid rgba(13, 157, 108, 0.15); padding: 0.75rem; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 8px; color: var(--success); font-size: 0.8rem; font-weight: 600; margin-top: -5px;">
+                                            <i class="ph ph-calendar-check" style="font-size: 1rem; color: var(--success);"></i>
                                             <div>
-                                                <small style="font-size: 0.6rem; color: #166534; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px;">Data da Conclusão</small>
+                                                <small style="font-size: 0.6rem; color: var(--success); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; display: block; margin-bottom: 2px;">Data da Conclusão</small>
                                                 <?php echo date('d/m/Y \à\s H:i', strtotime($route['completed_at'])); ?>
                                             </div>
                                         </div>
