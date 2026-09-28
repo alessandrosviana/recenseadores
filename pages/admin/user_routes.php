@@ -43,211 +43,231 @@ $routes = $routes_stmt->fetchAll();
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <style>
         .page-header {
-            background: #fff;
-            padding: 2rem;
-            border-bottom: 1px solid #e0e0e0;
+            background: var(--surface-1);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-subtle);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .route-card {
-            background: #fff;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-            margin-bottom: 1rem;
+            background: var(--surface-1);
+            border: 1px solid var(--border-emphasis);
+            border-radius: var(--radius);
+            margin-bottom: 2.5rem;
             padding: 1.5rem;
-            border-left: 4px solid #ddd;
+            border-left: 5px solid var(--petrol);
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+        }
+
+        .route-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
         }
 
         .status-pending_acceptance {
-            border-left-color: #f0ad4e;
+            border-left-color: var(--warning);
+        }
+
+        .status-accepted {
+            border-left-color: var(--info);
         }
 
         .status-in_progress {
-            border-left-color: #28a745;
-            background-color: #f9fff9;
+            border-left-color: var(--success);
         }
 
         .status-completed {
-            border-left-color: #5bc0de;
+            border-left-color: var(--petrol);
         }
 
         .badge {
             display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: 600;
+            padding: 0.25rem 0.6rem;
+            border-radius: var(--radius-xs);
+            font-size: 0.68rem;
+            font-weight: 700;
             color: white;
+            letter-spacing: 0.03em;
         }
 
-        .badge-pending_acceptance {
-            background: #f0ad4e;
-        }
-
-        .badge-in_progress {
-            background: #28a745;
-        }
-
-        .badge-completed {
-            background: #5bc0de;
-        }
+        .badge-pending_acceptance { background: var(--warning); }
+        .badge-accepted { background: var(--info); }
+        .badge-in_progress { background: var(--success); }
+        .badge-completed { background: var(--petrol); }
 
         .btn-edit {
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            background: #fff;
-            border: 1px solid #0d6efd;
-            color: #0d6efd;
-            padding: 0.25rem 0.6rem;
-            border-radius: 4px;
+            background: var(--petrol-tint);
+            border: 1px solid rgba(0, 122, 137, 0.12);
+            color: var(--petrol);
+            padding: 0.3rem 0.7rem;
+            border-radius: var(--radius-xs);
             text-decoration: none;
-            font-size: 0.85rem;
-            transition: all 0.2s;
+            font-size: 0.78rem;
+            font-weight: 700;
+            transition: all 0.18s var(--ease);
             margin-right: 8px;
         }
 
         .btn-edit:hover {
-            background: #0d6efd;
+            background: var(--petrol);
             color: white;
         }
     </style>
 </head>
 
-<body style="background: #fcfcfc;">
+<body style="background: var(--surface-0);">
     <?php include '../../includes/header.php'; ?>
 
     <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
 
         <div class="page-header mb-4">
             <div>
-                <a href="dashboard.php#users" class="btn btn-outline mb-2"
-                    style="font-size: 0.8rem; padding: 0.3rem 0.8rem;">
+                <a href="dashboard.php#users" style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.78rem; font-weight: 700; color: var(--petrol); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-xs); background: var(--petrol-tint); border: 1px solid rgba(0, 122, 137, 0.12); transition: all 0.18s var(--ease); margin-bottom: 0.6rem; display: inline-flex;" onmouseover="this.style.background='var(--petrol)';this.style.color='white'" onmouseout="this.style.background='var(--petrol-tint)';this.style.color='var(--petrol)'">
                     <i class="ph ph-arrow-left"></i> Voltar ao Painel
                 </a>
-                <h2 style="color: var(--primary-teal); margin: 0;">Rotas de:
+                <h2 style="color: var(--petrol-deep); margin: 0; font-size: 1.15rem; font-weight: 700;">Rotas de:
                     <?php echo mb_strtoupper(htmlspecialchars($user['name']), 'UTF-8'); ?>
                 </h2>
-                <p class="text-muted" style="margin-top:0.5rem; font-size:0.9rem;">
-                    <?php echo htmlspecialchars($user['email']); ?> | <?php echo htmlspecialchars($user['city']); ?>
+                <p style="margin-top:0.4rem; font-size:0.85rem; color: var(--ink-tertiary); display: flex; align-items: center; gap: 5px;">
+                    <i class="ph ph-envelope" style="font-size: 0.8rem;"></i> <?php echo htmlspecialchars($user['email']); ?> <span style="color: var(--ink-muted);">|</span> <i class="ph ph-map-pin" style="font-size: 0.8rem;"></i> <?php echo htmlspecialchars($user['city']); ?>
                 </p>
             </div>
         </div>
 
         <?php if (count($routes) > 0): ?>
-            <div class="grid grid-1">
-                <?php foreach ($routes as $route): ?>
-                    <div class="route-card status-<?php echo $route['status']; ?>">
-                        <div style="display:flex; justify-content:space-between; margin-bottom: 1rem;">
-                            <div>
-                                <h3 style="margin:0; font-size: 1.2rem; color: #333;">
-                                    <?php echo htmlspecialchars($route['title']); ?>
-                                </h3>
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                <?php foreach ($routes as $routeIdx => $route): ?>
+                    <div class="route-card status-<?php echo $route['status']; ?>" style="padding: 0; overflow: hidden;">
+                        <!-- Card Header -->
+                        <div style="padding: 1.1rem 1.25rem; border-bottom: 1px solid var(--border-subtle); background: var(--surface-0); display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                                    <span style="width: 28px; height: 28px; border-radius: 50%; background: var(--petrol); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; flex-shrink: 0;"><?php echo $routeIdx + 1; ?></span>
+                                    <h3 style="margin:0; font-size: 1rem; color: var(--ink-primary); font-weight: 700; line-height: 1.3;">
+                                        <?php echo htmlspecialchars($route['title']); ?>
+                                    </h3>
+                                </div>
                                 <?php if (!empty($route['microregion'])): ?>
-                                    <p
-                                        style="margin:0.2rem 0 0 0; color: var(--primary-teal); font-weight: 600; font-size: 0.9rem;">
-                                        <i class="ph ph-map-pin"></i> <?php echo htmlspecialchars($route['microregion']); ?>
+                                    <p style="margin:4px 0 0 0; color: var(--petrol); font-weight: 600; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="ph ph-map-pin" style="font-size: 0.75rem;"></i> <?php echo htmlspecialchars($route['microregion']); ?>
                                     </p>
                                 <?php endif; ?>
                             </div>
-                            <div style="display: flex; align-items: center;">
-                                <a href="edit_route.php?id=<?php echo $route['id']; ?>" class="btn-edit"><i
-                                        class="ph ph-pencil-simple-line"></i> Editar</a>
+                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                                 <?php 
-                                        $demandLabel = "Específica";
-                                        $demandColor = "#3b82f6";
-                                        if (($route['demand_type'] ?? '') === 'padrao') { $demandLabel = "Padrão"; $demandColor = "#8b5cf6"; }
-                                        elseif (($route['demand_type'] ?? '') === 'mista') { $demandLabel = "Mista"; $demandColor = "#f59e0b"; }
-                                    ?>
-                                    <span style="background: <?php echo $demandColor; ?>20; color: <?php echo $demandColor; ?>; font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; border: 1px solid <?php echo $demandColor; ?>40; margin-right: 8px; text-transform: uppercase; vertical-align: middle;">
-                                        <?php echo $demandLabel; ?>
-                                    </span>
-                                    <span class="badge badge-<?php echo $route['status']; ?>">
+                                    $demandLabel = "Específica";
+                                    $demandColor = "#3b82f6";
+                                    $demandIcon = "map-pin";
+                                    if (($route['demand_type'] ?? '') === 'padrao') { $demandLabel = "Padrão"; $demandColor = "#8b5cf6"; $demandIcon = "map"; }
+                                    elseif (($route['demand_type'] ?? '') === 'mista') { $demandLabel = "Mista"; $demandColor = "#f59e0b"; $demandIcon = "stack"; }
+                                ?>
+                                <span style="background: <?php echo $demandColor; ?>15; color: <?php echo $demandColor; ?>; font-size: 0.62rem; font-weight: 800; padding: 3px 8px; border-radius: var(--radius-xs); border: 1px solid <?php echo $demandColor; ?>30; text-transform: uppercase; letter-spacing: 0.03em; display: inline-flex; align-items: center; gap: 3px;">
+                                    <i class="ph ph-<?php echo $demandIcon; ?>" style="font-size: 0.65rem;"></i> <?php echo $demandLabel; ?>
+                                </span>
+                                <span class="badge badge-<?php echo $route['status']; ?>">
                                     <?php
-                                    if ($route['status'] == 'pending_acceptance')
-                                        echo 'AGUARDANDO';
-                                    elseif ($route['status'] == 'in_progress')
-                                        echo 'EM ANDAMENTO';
-                                    else
-                                        echo strtoupper($route['status']);
+                                    if ($route['status'] == 'pending_acceptance') echo 'AGUARDANDO';
+                                    elseif ($route['status'] == 'accepted') echo 'ACEITA';
+                                    elseif ($route['status'] == 'in_progress') echo 'EM ANDAMENTO';
+                                    else echo strtoupper($route['status']);
                                     ?>
                                 </span>
+                                <a href="edit_route.php?id=<?php echo $route['id']; ?>" class="btn-edit"><i class="ph ph-pencil-simple-line"></i> Editar</a>
                             </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; color: #555; font-size: 0.95rem;">
-                            <div>
-                                <?php if (!empty($route['area_details']) && $route['area_details'] !== '<p><br></p>'): ?>
-                                    <div style="margin-bottom: 1rem; background: #f8fafc; padding: 0.8rem; border-radius: 6px; border: 1px solid #e2e8f0; grid-column: span 2;">
-                                        <strong style="color: #475569; display: block; margin-bottom: 5px;"><i class="ph ph-text-align-left"></i> Descrição da Área de Atuação:</strong>
-                                        <div style="font-size: 0.9rem; color: #334155; line-height: 1.5;">
-                                            <?php echo sanitize_html($route['area_details'] ?? ''); ?>
-                                        </div>
+                        <!-- Card Body -->
+                        <div style="padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem;">
+                            <?php if (!empty($route['area_details']) && $route['area_details'] !== '<p><br></p>'): ?>
+                                <div style="background: var(--surface-0); padding: 0.85rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                                    <div style="font-size: 0.68rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;"><i class="ph ph-text-align-left" style="font-size: 0.75rem; color: var(--petrol);"></i> Descrição da Área de Atuação</div>
+                                    <div style="font-size: 0.85rem; color: var(--ink-secondary); line-height: 1.5;">
+                                        <?php echo sanitize_html($route['area_details'] ?? ''); ?>
                                     </div>
-                                <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
 
-                                <strong><i class="ph ph-map-pin"></i> Local/Endereço:</strong><br>
-                                <?php
-                                $cleanLoc = trim($route['start_location'] ?? '', ', - ');
-                                if (!empty($route['address_street'])) {
-                                    echo htmlspecialchars($route['address_street']) . ", " . htmlspecialchars($route['address_number']);
-                                    if (!empty($route['address_complement']))
-                                        echo " - " . htmlspecialchars($route['address_complement']);
-                                    echo "<br>" . htmlspecialchars($route['address_neighborhood']) . " - " . htmlspecialchars($route['address_city']) . "/" . htmlspecialchars($route['address_state']);
-                                    echo "<br>CEP: " . htmlspecialchars($route['address_cep']);
-                                } elseif (!empty($cleanLoc)) {
-                                    echo htmlspecialchars($route['start_location']);
-                                } else {
-                                    echo "Área de Atuação";
-                                }
-                                ?>
-                                
-                                <?php 
-                                    $mapUrl = !empty($route['google_maps_link']) ? $route['google_maps_link'] : (!empty($route['maps_url']) ? $route['maps_url'] : null);
-                                    if ($mapUrl): 
-                                ?>
-                                    <div style="margin-top: 10px;">
-                                        <a href="<?php echo htmlspecialchars($mapUrl); ?>" target="_blank" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; color: #2563eb; border-color: #dbeafe; background: #eff6ff;">
-                                            <i class="ph ph-google-logo"></i> Abrir no Google Maps
-                                        </a>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <!-- Local/Endereço -->
+                                <div style="background: var(--surface-0); padding: 0.85rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                                    <div style="font-size: 0.68rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;"><i class="ph ph-map-pin" style="font-size: 0.75rem; color: var(--petrol);"></i> Local / Endereço</div>
+                                    <div style="font-size: 0.82rem; color: var(--ink-secondary); line-height: 1.5;">
+                                        <?php
+                                        $cleanLoc = trim($route['start_location'] ?? '', ', - ');
+                                        if (!empty($route['address_street'])) {
+                                            echo htmlspecialchars($route['address_street']) . ", " . htmlspecialchars($route['address_number']);
+                                            if (!empty($route['address_complement']))
+                                                echo " - " . htmlspecialchars($route['address_complement']);
+                                            echo "<br>" . htmlspecialchars($route['address_neighborhood']) . " - " . htmlspecialchars($route['address_city']) . "/" . htmlspecialchars($route['address_state']);
+                                            echo "<br><span style='color: var(--ink-tertiary);'>CEP: " . htmlspecialchars($route['address_cep']) . "</span>";
+                                        } elseif (!empty($cleanLoc)) {
+                                            echo htmlspecialchars($route['start_location']);
+                                        } else {
+                                            echo "Área de Atuação";
+                                        }
+                                        ?>
                                     </div>
-                                <?php endif; ?>
+                                    <?php 
+                                        $mapUrl = !empty($route['google_maps_link']) ? $route['google_maps_link'] : (!empty($route['maps_url']) ? $route['maps_url'] : null);
+                                        if ($mapUrl): 
+                                    ?>
+                                        <a href="<?php echo htmlspecialchars($mapUrl); ?>" target="_blank" style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 700; color: var(--info); text-decoration: none; padding: 4px 10px; border-radius: var(--radius-xs); background: var(--info-light); border: 1px solid rgba(59, 130, 246, 0.12); transition: all 0.18s var(--ease); margin-top: 8px;" onmouseover="this.style.background='var(--info)';this.style.color='white'" onmouseout="this.style.background='var(--info-light)';this.style.color='var(--info)'">
+                                            <i class="ph ph-google-logo" style="font-size: 0.75rem;"></i> Abrir no Google Maps
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
+
+                                <!-- Descrição -->
+                                <div style="background: var(--surface-0); padding: 0.85rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                                    <div style="font-size: 0.68rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;"><i class="ph ph-info" style="font-size: 0.75rem; color: var(--petrol);"></i> Descrição</div>
+                                    <div style="font-size: 0.82rem; color: var(--ink-secondary); line-height: 1.5;">
+                                        <?php echo nl2br(htmlspecialchars($route['description'])); ?>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <strong><i class="ph ph-info"></i> Descrição:</strong><br>
-                                <?php echo nl2br(htmlspecialchars($route['description'])); ?>
-                                <br><br>
-                                <small>Atribuída em: <?php echo date('d/m/Y H:i', strtotime($route['created_at'])); ?></small>
+
+                            <!-- Datas -->
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                                <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 600; color: var(--ink-tertiary); background: var(--surface-0); padding: 4px 10px; border-radius: var(--radius-xs); border: 1px solid var(--border-subtle);">
+                                    <i class="ph ph-calendar-plus" style="font-size: 0.7rem; color: var(--petrol);"></i> Atribuída: <?php echo date('d/m/Y H:i', strtotime($route['created_at'])); ?>
+                                </span>
                                 <?php if (!empty($route['accepted_at'])): ?>
-                                    <br><small>Aceita em: <?php echo date('d/m/Y H:i', strtotime($route['accepted_at'])); ?></small>
+                                <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 600; color: var(--info); background: var(--info-light); padding: 4px 10px; border-radius: var(--radius-xs); border: 1px solid rgba(59, 130, 246, 0.12);">
+                                    <i class="ph ph-hand-tap" style="font-size: 0.7rem;"></i> Aceita: <?php echo date('d/m/Y H:i', strtotime($route['accepted_at'])); ?>
+                                </span>
                                 <?php endif; ?>
                                 <?php if ($route['status'] == 'completed' && !empty($route['completed_at'])): ?>
-                                    <br><small>Finalizada em:
-                                        <?php echo date('d/m/Y H:i', strtotime($route['completed_at'])); ?></small>
-                                <?php endif; ?>
-
-                                <?php 
-                                $admFiles = array_filter([$route['admin_file_1'] ?? null, $route['admin_file_2'] ?? null, $route['admin_file_3'] ?? null]);
-                                if (!empty($admFiles)): 
-                                ?>
-                                    <div style="margin-top: 1rem; border-top: 1px solid #eee; padding-top: 0.5rem; display: flex; gap: 10px;">
-                                        <?php foreach ($admFiles as $f): ?>
-                                            <a href="<?php echo str_replace('../../', BASE_URL, htmlspecialchars($f)); ?>" target="_blank" style="font-size: 0.8rem; color: #f57f17; text-decoration: none;">
-                                                <i class="ph ph-paperclip"></i> Anexo Admin
-                                            </a>
-                                        <?php endforeach; ?>
-                                    </div>
+                                <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 600; color: var(--success); background: var(--success-light); padding: 4px 10px; border-radius: var(--radius-xs); border: 1px solid rgba(13, 157, 108, 0.12);">
+                                    <i class="ph ph-check-circle" style="font-size: 0.7rem;"></i> Finalizada: <?php echo date('d/m/Y H:i', strtotime($route['completed_at'])); ?>
+                                </span>
                                 <?php endif; ?>
                             </div>
-                        </div>
+
+                            <!-- Anexos Admin -->
+                            <?php 
+                            $admFiles = array_filter([$route['admin_file_1'] ?? null, $route['admin_file_2'] ?? null, $route['admin_file_3'] ?? null]);
+                            if (!empty($admFiles)): 
+                            ?>
+                                <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center;">
+                                    <span style="font-size: 0.68rem; font-weight: 700; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 0.03em; display: flex; align-items: center; gap: 4px;"><i class="ph ph-paperclip" style="font-size: 0.7rem; color: var(--warning);"></i> Anexos Admin:</span>
+                                    <?php foreach ($admFiles as $f): ?>
+                                        <a href="<?php echo str_replace('../../', BASE_URL, htmlspecialchars($f)); ?>" target="_blank" style="font-size: 0.68rem; font-weight: 600; color: var(--warning); text-decoration: none; padding: 3px 8px; border-radius: var(--radius-xs); background: var(--warning-light); border: 1px solid rgba(217, 119, 6, 0.12); display: inline-flex; align-items: center; gap: 3px; transition: all 0.18s var(--ease);" onmouseover="this.style.background='var(--warning)';this.style.color='white'" onmouseout="this.style.background='var(--warning-light)';this.style.color='var(--warning)'">
+                                            <i class="ph ph-file" style="font-size: 0.7rem;"></i> Anexo
+                                        </a>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
 
                         <?php if ($route['status'] == 'completed'): ?>
-                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #ccc; font-size: 0.95rem;">
-                                <strong style="color: #28a745;"><i class="ph ph-checks"></i> Relatório de Conclusão:</strong>
-                                <p
-                                    style="background: #f8f9fa; padding: 0.8rem; border-radius: 4px; border: 1px solid #e9ecef; margin-top: 0.5rem;">
+                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border-default); font-size: 0.88rem;">
+                                <strong style="color: var(--success); font-size: 0.82rem;"><i class="ph ph-checks"></i> Relatório de Conclusão:</strong>
+                                <p style="background: var(--success-light); padding: 0.8rem; border-radius: var(--radius-sm); border: 1px solid rgba(13, 157, 108, 0.12); margin-top: 0.5rem; color: var(--ink-secondary); line-height: 1.5;">
                                     <?php echo nl2br(htmlspecialchars($route['observation'] ?? 'Sem observações.')); ?>
                                 </p>
 
@@ -263,15 +283,14 @@ $routes = $routes_stmt->fetchAll();
 
                                 <?php if (count($files) > 0): ?>
                                     <div style="margin-top: 0.5rem;">
-                                        <strong><i class="ph ph-paperclip"></i> Anexos:</strong>
+                                        <strong style="font-size: 0.78rem; color: var(--ink-secondary);"><i class="ph ph-paperclip"></i> Anexos:</strong>
                                         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.3rem;">
                                             <?php foreach ($files as $index => $file): 
                                                 $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-                                                $icon = ($ext === 'pdf') ? 'fa-file-pdf' : 'fa-file-image';
+                                                $icon = ($ext === 'pdf') ? 'file-pdf' : 'file-image';
                                             ?>
-                                                <a href="<?php echo htmlspecialchars($file); ?>" target="_blank" class="btn btn-outline"
-                                                    style="font-size: 0.8rem; padding: 0.3rem 0.6rem; display: inline-flex; align-items: center; gap: 4px;">
-                                                    <i class="fas <?php echo $icon; ?>"></i> Anexo <?php echo $index + 1; ?>
+                                                <a href="<?php echo htmlspecialchars($file); ?>" target="_blank" style="font-size: 0.72rem; font-weight: 700; padding: 5px 10px; border-radius: var(--radius-xs); background: var(--success-light); color: var(--success); border: 1px solid rgba(13, 157, 108, 0.12); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all 0.18s var(--ease);" onmouseover="this.style.background='var(--success)';this.style.color='white'" onmouseout="this.style.background='var(--success-light)';this.style.color='var(--success)'">
+                                                    <i class="ph ph-<?php echo $icon; ?>" style="font-size: 0.75rem;"></i> Anexo <?php echo $index + 1; ?>
                                                 </a>
                                             <?php endforeach; ?>
                                         </div>
@@ -283,10 +302,12 @@ $routes = $routes_stmt->fetchAll();
                 <?php endforeach; ?>
             </div>
         <?php else: ?>
-            <div class="text-center py-5" style="border: 2px dashed #eee; border-radius: 8px;">
-                <i class="ph ph-path" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
-                <p class="text-muted">Este recenseador ainda não possui rotas atribuídas.</p>
-                <a href="dashboard.php#routes" class="btn btn-primary" style="margin-top: 1rem;">Atribuir Nova Rota</a>
+            <div style="text-align: center; padding: 3rem; border: 1px dashed var(--border-default); border-radius: var(--radius); background: var(--surface-1);">
+                <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--surface-0); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                    <i class="ph ph-path" style="font-size: 1.6rem; color: var(--ink-muted);"></i>
+                </div>
+                <p style="color: var(--ink-tertiary); font-size: 0.9rem; margin: 0 0 1rem 0;">Este recenseador ainda não possui rotas atribuídas.</p>
+                <a href="dashboard.php#routes" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 700; color: white; background: linear-gradient(135deg, var(--petrol) 0%, var(--petrol-deep) 100%); text-decoration: none; padding: 0.6rem 1.2rem; border-radius: var(--radius-sm); transition: var(--transition);" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">Atribuir Nova Rota</a>
             </div>
         <?php endif; ?>
 
