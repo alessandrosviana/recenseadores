@@ -54,6 +54,7 @@ $fields = [
         'Processo SEI' => $user['processo_sei'],
         'Nº Contrato' => $user['contrato'],
         'Status' => $user['status'] === 'approved' ? 'Aprovado' : ($user['status'] === 'pending' ? 'Pendente' : 'Reprovado'),
+        'Data de Aprovação' => !empty($user['approved_at']) ? date('d/m/Y \à\s H:i', strtotime($user['approved_at'])) : 'Não aprovado',
         'Acesso ao Sistema' => $user['is_active'] ? 'Ativo (Habilitado)' : 'Inativo (Suspenso)',
     ]
 ];
@@ -76,61 +77,88 @@ $fields = [
         }
 
         .profile-header {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            border: 1px solid #e0e0e0;
+            background: var(--surface-1);
+            padding: 1.75rem 2rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-subtle);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
         }
 
         .user-info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 1.5rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .info-card {
-            background: white;
+            background: var(--surface-1);
             padding: 1.5rem;
-            border-radius: 12px;
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-subtle);
+            box-shadow: var(--shadow-xs);
+            transition: var(--transition);
+        }
+
+        .info-card:hover {
+            box-shadow: var(--shadow-sm);
+            border-color: var(--border-default);
         }
 
         .info-card h3 {
             margin-top: 0;
-            margin-bottom: 1.2rem;
-            font-size: 1.1rem;
-            color: var(--primary-teal);
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 0.5rem;
+            margin-bottom: 1.25rem;
+            font-size: 0.88rem;
+            color: var(--ink-primary);
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 0.6rem;
+        }
+
+        .info-card h3 .card-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            background: var(--petrol-tint);
+            color: var(--petrol);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            flex-shrink: 0;
         }
 
         .info-item {
-            margin-bottom: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
         }
 
         .info-label {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: #999;
-            text-transform: uppercase;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--ink-tertiary);
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .info-value {
-            display: block;
-            font-size: 1rem;
-            color: #333;
+            font-size: 0.85rem;
+            color: var(--ink-primary);
             font-weight: 600;
+            text-align: right;
         }
 
         .docs-grid {
@@ -140,45 +168,85 @@ $fields = [
         }
 
         .doc-item {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px solid #eee;
+            background: var(--surface-0);
+            padding: 1.25rem 1rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-subtle);
             text-align: center;
-            transition: all 0.2s;
+            transition: var(--transition);
         }
 
         .doc-item:hover {
-            border-color: var(--primary-teal);
-            background: #f0fdfa;
+            border-color: rgba(0, 122, 137, 0.2);
+            background: var(--petrol-tint);
+            box-shadow: var(--shadow-xs);
         }
 
         .doc-icon {
-            font-size: 2rem;
-            color: #ef4444;
+            font-size: 1.8rem;
+            color: var(--danger);
             margin-bottom: 0.5rem;
             display: block;
         }
 
         .doc-name {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
-            color: #444;
+            color: var(--ink-secondary);
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
+            line-height: 1.3;
         }
 
         .badge {
             padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
+            border-radius: 9999px;
+            font-size: 0.72rem;
             font-weight: 700;
             color: white;
+            letter-spacing: 0.02em;
         }
 
-        .status-approved { background: #22c55e; }
-        .status-pending { background: #f59e0b; }
-        .status-rejected { background: #ef4444; }
+        .status-approved { background: var(--success); }
+        .status-pending { background: var(--warning); }
+        .status-rejected { background: var(--danger); }
+
+        .btn-action {
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 0.55rem 1.1rem;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .btn-action:hover { transform: translateY(-2px); }
+
+        .btn-print {
+            background: var(--petrol-tint);
+            color: var(--petrol);
+            border: 1px solid rgba(0, 122, 137, 0.12);
+        }
+        .btn-print:hover { background: var(--petrol); color: white; }
+
+        .btn-edit-profile {
+            background: linear-gradient(135deg, var(--petrol) 0%, var(--petrol-deep) 100%);
+            color: white;
+            box-shadow: 0 2px 8px -2px rgba(0, 122, 137, 0.25);
+        }
+        .btn-edit-profile:hover { background: var(--petrol-deep); }
+
+        .btn-back {
+            background: var(--surface-1);
+            color: var(--ink-tertiary);
+            border: 1px solid var(--border-default);
+        }
+        .btn-back:hover { background: var(--surface-0); color: var(--ink-secondary); }
 
         @media print {
             .no-print { display: none; }
@@ -187,73 +255,44 @@ $fields = [
     </style>
 </head>
 
-<body style="background: #f8fafc;">
+<body style="background: var(--surface-0);">
     <?php include '../../includes/header.php'; ?>
 
     <div class="profile-container">
         <div class="profile-header">
             <div>
-                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
-                    <h1 style="margin: 0; color: #1e293b; font-size: 1.8rem;"><?php echo mb_strtoupper(htmlspecialchars($user['name']), 'UTF-8'); ?></h1>
+                <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.4rem; flex-wrap: wrap;">
+                    <h1 style="margin: 0; color: var(--ink-primary); font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em;"><?php echo mb_strtoupper(htmlspecialchars($user['name']), 'UTF-8'); ?></h1>
                     <span class="badge status-<?php echo $user['status']; ?>">
                         <?php echo $user['status'] === 'approved' ? 'APROVADO' : ($user['status'] === 'pending' ? 'PENDENTE' : 'REPROVADO'); ?>
                     </span>
                 </div>
-                <p style="margin: 0; color: #64748b;"><i class="ph ph-envelope"></i> <?php echo htmlspecialchars($user['email']); ?></p>
+                <p style="margin: 0; color: var(--ink-tertiary); font-size: 0.88rem; display: flex; align-items: center; gap: 5px;"><i class="ph ph-envelope" style="font-size: 0.85rem;"></i> <?php echo htmlspecialchars($user['email']); ?></p>
             </div>
-            <div class="no-print" style="display: flex; gap: 0.8rem;">
-                <button onclick="window.print()" class="btn btn-print">
+            <div class="no-print" style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                <button onclick="window.print()" class="btn-action btn-print">
                     <i class="ph ph-printer"></i> IMPRIMIR
                 </button>
-                <a href="edit_user.php?user_id=<?php echo $user['id']; ?>" class="btn btn-edit-profile">
+                <a href="edit_user.php?user_id=<?php echo $user['id']; ?>" class="btn-action btn-edit-profile">
                     <i class="ph ph-pencil-simple-line"></i> EDITAR
                 </a>
-                <a href="dashboard.php#users" class="btn btn-back">
+                <a href="dashboard.php#users" class="btn-action btn-back">
                     <i class="ph ph-arrow-left"></i> VOLTAR
                 </a>
             </div>
         </div>
 
-        <style>
-            /* Cores específicas para os botões do cabeçalho */
-            .btn-print {
-                background: #3b82f6 !important;
-                color: white !important;
-                border: none !important;
-                box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
-            }
-            .btn-print:hover { background: #2563eb !important; transform: translateY(-2px); }
-
-            .btn-edit-profile {
-                background: #f59e0b !important;
-                color: white !important;
-                border: none !important;
-                box-shadow: 0 4px 6px rgba(245, 158, 11, 0.2);
-            }
-            .btn-edit-profile:hover { background: #d97706 !important; transform: translateY(-2px); }
-
-            .btn-back {
-                background: #64748b !important;
-                color: white !important;
-                border: none !important;
-                box-shadow: 0 4px 6px rgba(100, 116, 139, 0.2);
-            }
-            .btn-back:hover { background: #475569 !important; transform: translateY(-2px); }
-            
-            .btn { transition: all 0.2s ease; font-weight: 700; letter-spacing: 0.5px; }
-        </style>
-
         <div class="user-info-grid">
             <?php 
             $icons = [
-                'Dados Pessoais' => 'fa-user',
-                'Endereço' => 'fa-map-marker-alt',
-                'Formação e Atuação' => 'fa-graduation-cap',
-                'Dados Administrativos' => 'fa-id-card'
+                'Dados Pessoais' => 'ph-user',
+                'Endereço' => 'ph-map-pin',
+                'Formação e Atuação' => 'ph-graduation-cap',
+                'Dados Administrativos' => 'ph-identification-card'
             ];
             foreach ($fields as $section => $data): ?>
                 <div class="info-card">
-                    <h3><i class="fas <?php echo $icons[$section]; ?>"></i> <?php echo $section; ?></h3>
+                    <h3><span class="card-icon"><i class="ph <?php echo $icons[$section]; ?>"></i></span> <?php echo $section; ?></h3>
                     <?php foreach ($data as $label => $value): ?>
                         <div class="info-item">
                             <span class="info-label"><?php echo $label; ?></span>
@@ -264,29 +303,29 @@ $fields = [
             <?php endforeach; ?>
         </div>
 
-        <div class="info-card" style="margin-bottom: 3rem;">
-            <h3><i class="ph ph-folder-open"></i> Documentos Cadastrados</h3>
+        <div class="info-card" style="margin-bottom: 1.5rem;">
+            <h3><span class="card-icon"><i class="ph ph-folder-open"></i></span> Documentos Cadastrados</h3>
             <?php if (count($documents) > 0): ?>
                 <div class="docs-grid">
                     <?php foreach ($documents as $doc): ?>
                         <div class="doc-item">
                             <i class="ph ph-file-pdf doc-icon"></i>
                             <span class="doc-name"><?php echo htmlspecialchars($doc['document_type']); ?></span>
-                            <a href="../<?php echo htmlspecialchars($doc['file_path']); ?>" target="_blank" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.8rem; width: 100%;">
-                                <i class="ph ph-arrow-square-out"></i> Visualizar
+                            <a href="serve_document.php?doc_id=<?php echo (int)$doc['id']; ?>" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; gap: 4px; font-size: 0.72rem; font-weight: 700; color: var(--petrol); text-decoration: none; padding: 5px 10px; border-radius: var(--radius-xs); background: var(--petrol-tint); border: 1px solid rgba(0, 122, 137, 0.12); transition: all 0.18s var(--ease);" onmouseover="this.style.background='var(--petrol)';this.style.color='white'" onmouseout="this.style.background='var(--petrol-tint)';this.style.color='var(--petrol)'">
+                                <i class="ph ph-arrow-square-out" style="font-size: 0.75rem;"></i> Visualizar
                             </a>
                         </div>
                     <?php endforeach; ?>
                 </div>
             <?php else: ?>
-                <p class="text-muted">Nenhum documento encontrado.</p>
+                <p style="color: var(--ink-muted); font-size: 0.88rem;">Nenhum documento encontrado.</p>
             <?php endif; ?>
         </div>
 
         <?php if (!empty($user['additional_info'])): ?>
-            <div class="info-card" style="margin-bottom: 3rem;">
-                <h3><i class="ph ph-info"></i> Informações Adicionais</h3>
-                <p style="white-space: pre-line; color: #444; line-height: 1.6;">
+            <div class="info-card" style="margin-bottom: 1.5rem;">
+                <h3><span class="card-icon"><i class="ph ph-chat-dots"></i></span> Informações Adicionais</h3>
+                <p style="white-space: pre-line; color: var(--ink-secondary); line-height: 1.6; font-size: 0.88rem; margin: 0;">
                     <?php echo htmlspecialchars($user['additional_info']); ?>
                 </p>
             </div>
