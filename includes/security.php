@@ -102,14 +102,26 @@ function reset_rate_limit(PDO $pdo, string $key): void
 
 function validate_password_strength(string $password): ?string
 {
-    if (strlen($password) < 8) {
-        return 'A senha deve ter no minimo 8 caracteres.';
+    if (strlen($password) < 10) {
+        return 'A senha deve ter no minimo 10 caracteres.';
     }
-    if (!preg_match('/[a-zA-Z]/', $password)) {
-        return 'A senha deve conter pelo menos 1 letra.';
+    if (!preg_match('/[a-z]/', $password)) {
+        return 'A senha deve conter pelo menos 1 letra minuscula.';
+    }
+    if (!preg_match('/[A-Z]/', $password)) {
+        return 'A senha deve conter pelo menos 1 letra maiuscula.';
     }
     if (!preg_match('/[0-9]/', $password)) {
         return 'A senha deve conter pelo menos 1 numero.';
+    }
+    if (!preg_match('/[^a-zA-Z0-9]/', $password)) {
+        return 'A senha deve conter pelo menos 1 caractere especial.';
+    }
+    $common = ['password', '123456', '12345678', 'qwerty', 'abc123', 'admin',
+               'iloveyou', 'letmein', 'welcome', 'monkey', 'dragon', 'master',
+               'sunshine', 'princess', 'football', 'shadow', 'superman'];
+    if (in_array(strtolower($password), $common)) {
+        return 'Esta senha e muito comum. Escolha uma senha mais original.';
     }
     return null;
 }

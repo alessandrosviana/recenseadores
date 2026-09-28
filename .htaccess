@@ -1,17 +1,10 @@
-# .htaccess — Hardening de seguranca (REQ-001, REQ-009)
+# .htaccess — Hardening de seguranca (REQ-001, REQ-009, V2-01)
 # Bloqueia acesso web a scripts de debug/manutencao/migration e arquivos de log
 
-# Bloquear scripts de debug/manutencao na raiz
-<FilesMatch "^(reset_admin|setup|repair_db|clean_db|reset_dados_producao|list_all|list_users)\.php$">
-    Require all denied
-</FilesMatch>
+# Bloquear acesso ao diretorio de manutencao (scripts de debug/migration movidos para ca)
+RedirectMatch 403 ^/manutencao/.*$
 
-# Bloquear scripts com prefixos de debug/migration
-<FilesMatch "^(check_|fix_|debug_|scan_|test_|migrate_|update_schema|update_routes_schema|add_|doc_|master_fix|binary_clean|final_clean|regex_clean|user_final_fix|update_users_fields)\.php$">
-    Require all denied
-</FilesMatch>
-
-# Bloquear arquivos de log e audit (.txt, .log)
+# Bloquear arquivos de log e audit (.txt, .log) que possam existir na raiz
 <FilesMatch "\.(txt|log)$">
     Require all denied
 </FilesMatch>

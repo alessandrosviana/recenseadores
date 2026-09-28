@@ -164,13 +164,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $step = (int) $_POST['step'];
             $sei_pag = $_POST['sei_pagamento'] ?? '';
             
-            // Se o passo for 4 ou mais, garante que o status seja 'completed' e tenha data de conclusão
+            // Mapear wizard_step para status da rota
             if ($step >= 4) {
-                // Ao mudar para passo 4 ou mais, garante que o status da rota seja 'completed' para aparecer na aba correta
                 $stmt = $pdo->prepare("UPDATE routes SET wizard_step = ?, sei_pagamento = ?, status = 'completed', completed_at = IFNULL(completed_at, NOW()) WHERE id = ?");
                 $execute_params = [$step, $sei_pag, $routeId];
+            } elseif ($step == 3) {
+                $stmt = $pdo->prepare("UPDATE routes SET wizard_step = ?, sei_pagamento = ?, status = 'in_progress', completed_at = NULL WHERE id = ?");
+                $execute_params = [$step, $sei_pag, $routeId];
             } else {
-                $stmt = $pdo->prepare("UPDATE routes SET wizard_step = ?, sei_pagamento = ? WHERE id = ?");
+                $stmt = $pdo->prepare("UPDATE routes SET wizard_step = ?, sei_pagamento = ?, status = 'accepted', completed_at = NULL WHERE id = ?");
                 $execute_params = [$step, $sei_pag, $routeId];
             }
 

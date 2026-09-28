@@ -29,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (($action === 'approve_doc' || $action === 'reject_doc') && $doc_id > 0) {
         $status = ($action === 'approve_doc') ? 'approved' : 'rejected';
-        $stmt = $pdo->prepare("UPDATE documents SET status = ? WHERE id = ?");
-        $stmt->execute([$status, $doc_id]);
+        $stmt = $pdo->prepare("UPDATE documents SET status = ? WHERE id = ? AND user_id = ?");
+        $stmt->execute([$status, $doc_id, $user_id]);
     }
 }
 
@@ -221,40 +221,24 @@ $documents = $docs_stmt->fetchAll();
 
                         <div class="doc-preview">
                             <?php
-                            // Adjust path for display: database likely stores relative to upload folder or full path
-                            // If database has "../uploads/...", we need to make it reachable from browser.
-                            // Browser is at /recenseadores/pages/view_docs.php
-                            // Uploads are at /recenseadores/uploads/
-                            // So we need relative path from view_docs.php -> ../uploads/
-                            // Or absolute path /recenseadores/uploads/
-                    
-                            $filepath = $doc['file_path'];
-                            // Normalize path specifically for web display
-                            if (strpos($filepath, '../uploads') !== false) {
-                                $displayPath = str_replace('../uploads', '../uploads', $filepath);
-                                // Actually, if we are in /pages/, ../uploads is correct.
-                            } else {
-                                // Fallback if path is different
-                                $displayPath = '../uploads/' . basename($filepath);
-                            }
-
-                            $ext = strtolower(pathinfo($filepath, PATHINFO_EXTENSION));
+                            $serveUrl = 'serve_document.php?doc_id=' . (int)$doc['id'];
+                            $ext = strtolower(pathinfo($doc['file_path'], PATHINFO_EXTENSION));
                             ?>
 
                             <?php if ($ext === 'pdf'): ?>
-                                <iframe src="<?php echo htmlspecialchars($displayPath); ?>#toolbar=0&navpanes=0&scrollbar=0"
+                                <iframe src="<?php echo htmlspecialchars($serveUrl); ?>#toolbar=0&navpanes=0&scrollbar=0"
                                     scrolling="no"></iframe>
                             <?php elseif (in_array($ext, ['jpg', 'jpeg', 'png'])): ?>
-                                <img src="<?php echo htmlspecialchars($displayPath); ?>">
+                                <img src="<?php echo htmlspecialchars($serveUrl); ?>">
                             <?php else: ?>
                                 <i class="ph ph-file doc-icon"></i>
                             <?php endif; ?>
 
-                            <a href="<?php echo htmlspecialchars($displayPath); ?>" target="_blank" class="overlay"></a>
+                            <a href="<?php echo htmlspecialchars($serveUrl); ?>" target="_blank" class="overlay"></a>
                         </div>
 
                         <div class="doc-footer" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                            <a href="<?php echo htmlspecialchars($displayPath); ?>" target="_blank" class="btn btn-outline"
+                            <a href="<?php echo htmlspecialchars($serveUrl); ?>" target="_blank" class="btn btn-outline"
                                 style="flex: 1 1 100%; font-size: 0.9rem;">
                                 <i class="ph ph-arrow-square-out"></i> Visualizar/Baixar
                             </a>

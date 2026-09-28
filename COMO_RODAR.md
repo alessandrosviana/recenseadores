@@ -44,7 +44,7 @@ $password = ''; // Coloque sua senha aqui se tiver definido uma
 
 ### Primeiro Acesso (Admin)
 Para criar o primeiro administrador:
-1. Acesse: [http://localhost/recenseadores/setup.php](http://localhost/recenseadores/setup.php)
+1. Acesse: [http://localhost/recenseadores/manutencao/setup.php](http://localhost/recenseadores/manutencao/setup.php) (rode localmente via CLI: `php manutencao/setup.php`)
 2. O sistema criará o usuário: `admin@sistema.com` / Senha: `admin123`.
 3. Depois, você pode fazer login normalmente.
 

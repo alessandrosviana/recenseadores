@@ -125,10 +125,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             $pdo->commit();
 
-            // Success
-            $_SESSION['user_id'] = $user_id;
-            $_SESSION['role'] = 'recenseador';
-            header("Location: recenseador/dashboard.php");
+            header("Location: login.php?registered=true");
             exit();
 
         } catch (Exception $e) {
@@ -373,7 +370,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <main class="container">
         <div class="register-card">
             <div class="register-header">
-                <img src="<?php echo BASE_URL; ?>assets/img/logo_caudf.png" alt="CAU/DF - Conselho de Arquitetura e Urbanismo do Distrito Federal">
+                <img src="<?php echo BASE_URL; ?>assets/img/logo-caudf-nova.png" alt="CAU/DF - Conselho de Arquitetura e Urbanismo do Distrito Federal">
                 <h2>Ficha de Inscrição do Recenseador de Obras</h2>
                 <p>
                     Preencha os campos abaixo com atenção e anexe a documentação solicitada em formato PDF (máx 10MB) para análise e credenciamento do CAU/DF.

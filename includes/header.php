@@ -41,7 +41,7 @@
         <div class="header-main" style="padding: 0.85rem 0;">
             <div class="container" style="display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap;">
                 <a href="<?php echo BASE_URL; ?>" class="logo" style="display: flex; align-items: center;">
-                    <img src="<?php echo BASE_URL; ?>assets/img/logo_caudf.png" alt="CAU/DF - Conselho de Arquitetura e Urbanismo do Distrito Federal" style="height: 52px; width: auto; display: block; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)';" onmouseout="this.style.transform='scale(1)';">
+                    <img src="<?php echo BASE_URL; ?>assets/img/logo-caudf-nova.png" alt="CAU/DF - Conselho de Arquitetura e Urbanismo do Distrito Federal" style="height: 52px; width: auto; display: block; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)';" onmouseout="this.style.transform='scale(1)';">
                 </a>
 
                 <div style="display: flex; gap: 1.25rem; align-items: center; flex-grow: 1; justify-content: flex-end;">

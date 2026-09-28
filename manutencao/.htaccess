@@ -1,0 +1,3 @@
+# manutencao/.htaccess — Bloquear TODO acesso web a scripts de manutencao/debug
+
+Require all denied

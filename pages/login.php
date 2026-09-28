@@ -4,6 +4,10 @@ require_once '../config/database.php';
 
 $message = '';
 
+if (isset($_GET['registered']) && $_GET['registered'] === 'true') {
+    $message = '<div class="alert alert-success" style="color: #155724; background: #d4edda; border: 1px solid #c3e6cb; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;"><i class="ph ph-check-circle"></i> Cadastro enviado com sucesso! Aguarde a aprovacao do CAU/DF para acessar o sistema.</div>';
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     csrf_verify();
     $email = trim($_POST['email']);
@@ -241,7 +245,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <main class="container">
         <div class="login-card">
             <div class="login-header">
-                <img src="<?php echo BASE_URL; ?>assets/img/logo_caudf.png" alt="CAU/DF - Conselho de Arquitetura e Urbanismo do Distrito Federal">
+                <img src="<?php echo BASE_URL; ?>assets/img/logo-caudf-nova.png" alt="CAU/DF - Conselho de Arquitetura e Urbanismo do Distrito Federal">
                 <h2>Criado sob medida para Recenseadores e Arquitetos</h2>
                 <p>
                     Se for seu primeiro acesso, realize seu cadastro como recenseador. Caso já possua um cadastro aprovado pelo CAUDF, basta acessar o sistema e iniciar o trabalho.

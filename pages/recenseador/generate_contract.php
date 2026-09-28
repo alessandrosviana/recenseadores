@@ -152,7 +152,7 @@ $rates = [
 <div class="contract-page">
     
     <div class="header">
-        <img src="<?php echo BASE_URL; ?>assets/img/logo_caudf.png" alt="Logo CAU/DF">
+        <img src="<?php echo BASE_URL; ?>assets/img/logo-caudf-nova.png" alt="Logo CAU/DF">
     </div>
 
 
