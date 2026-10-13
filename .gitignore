@@ -4,3 +4,5 @@
 *.log
 emails_log.txt
 config/database.php
+recenseadores-deploy.zip
+recenseadores_db_export.sql
